@@ -8,7 +8,53 @@ export type SiteInfo = {
     userpictureurl: string,
     release: string,
     version: string,
+    userid: string,
 }
+
+export type Course = {
+    id: number;
+    shortname: string;
+    fullname: string;
+    displayname: string;
+    enrolledusercount: number;
+    idnumber: string;
+    visible: number;
+    summary: string;
+    summaryformat: number;
+    format: 'topics';
+    showgrades: boolean;
+    lang: string;
+    enablecompletion: boolean;
+    completionhascriteria: boolean;
+    completionusertracked: boolean;
+    category: number;
+    progress: number;
+    completed: boolean;
+    startdate: number;
+    enddate: number;
+    marker: number;
+    lastaccess: number;
+    isfavourite: boolean;
+    hidden: boolean;
+    overviewfiles: string[]; // Empty array implies a list of strings, could be URLs or file names
+    showactivitydates: boolean;
+    showcompletionconditions: boolean;
+}
+
+export interface ModuleData {
+    name: string;
+    modname: string;
+    url: string;
+    uservisible: boolean;
+    dates?: { timestamp: number }[];
+    customdata?: string;
+}
+
+export interface ContentData {
+    name: string;
+    modules: ModuleData[];
+}
+
 
 interface ApiErrorResponse {
     error: string;              // Description of the error
@@ -17,6 +63,7 @@ interface ApiErrorResponse {
     debuginfo: string | null;    // Debugging information (if any), can be null
     reproductionlink: string | null; // Reproduction link (if any), can be null
 }
+
 
 class MoodleApiError extends Error {
     error: string;
@@ -64,5 +111,17 @@ export default class AuthenticatedMobileApi extends MobileApi {
 
     async fetchSiteInfo(): Promise<SiteInfo> {
         return await this.call('core_webservice_get_site_info')
+    }
+
+    async fetchEnrolledCourses(userId: string): Promise<Course[]> {
+        return await this.call('core_enrol_get_users_courses', {
+            userid: userId
+        })
+    }
+
+    async fetchCourseContents(courseId: number): Promise<ContentData[]> {
+        return await this.call('core_course_get_contents', {
+            courseid: courseId
+        })
     }
 }
