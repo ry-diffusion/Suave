@@ -4,14 +4,14 @@ export default abstract class ApiClient {
     protected POSTBuilder = {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
             accept: 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0'
         },
     }
     protected GETBuilder = {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json', accept: 'application/json' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', accept: 'application/json' },
     }
 
     constructor(baseURL: string) {
@@ -21,7 +21,7 @@ export default abstract class ApiClient {
     protected async post<T>(path: string, body: any): Promise<Awaited<T>> {
         const response = await fetch(`${this.baseURL}/${path}`, {
             ...this.POSTBuilder,
-            body: JSON.stringify(body),
+            body: new URLSearchParams(body),
         });
 
         return await response.json()
@@ -33,7 +33,7 @@ export default abstract class ApiClient {
                 ...headers,
                 ...this.GETBuilder.headers
             },
-            body: body ? JSON.stringify(body) : null,
+            body: body ? new URLSearchParams(body) : null,
         });
 
 

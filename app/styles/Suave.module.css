@@ -1,0 +1,17 @@
+.gradient {
+    color: transparent;
+    background: linear-gradient(140deg, #D2A8FF 12.09%, #F778BA 42.58%, #FF7B72 84.96%) text;
+}
+
+.gradientbg {
+    background-image: linear-gradient(140deg, #D2A8FF 12.09%, #F778BA 42.58%, #FF7B72 84.96%);
+}
+
+.bluegradient {
+    background-image: radial-gradient(circle at 14.2% 27.5%, rgb(104, 199, 255) 0%, rgb(181, 126, 255) 90%);
+}
+
+.blueGradientText {
+    color: transparent;
+    background: radial-gradient(circle at 14.2% 27.5%, rgb(104, 199, 255) 0%, rgb(181, 126, 255) 90%) text;
+}

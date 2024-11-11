@@ -1,6 +1,5 @@
-import AuthenticatedSuapContext from "@/SUAP/AuthenticatedSuapContext"
+import { LoginInput } from "@/core/typings"
 import { IFGoiano } from "@/SUAP/campus"
-import { LoginInput } from "@/SUAP/SuapContext"
 
 export async function POST(request: Request) {
   /* TODO: Adicionar uma validação maneira aqui */
