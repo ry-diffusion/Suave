@@ -1,7 +1,9 @@
 import AuthenticatedMobileApi, { ContentData, ModuleData } from "@/moodle/AuthenticatedMobileApi";
 import { PresencialIFGoiano } from "@/moodle/campus";
 
-interface Module {
+// TODO: Split parseModules into smaller functions
+
+export interface Module {
     name: string,
     parent: string,
     kind: string,
@@ -135,6 +137,13 @@ function intoJson(organized: { past: Map<string, Module[]>, current: Map<string,
     return json
 }
 
+export interface GetAvailableModulesResponse {
+    modules: {
+        past: { [key: string]: Module[] },
+        current: { [key: string]: Module[] },
+        future: { [key: string]: Module[] }
+    }
+}
 
 export async function GET(
     request: Request

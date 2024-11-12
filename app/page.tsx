@@ -7,6 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext, KnownInfo, Passport, REVISION } from "./AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "./components/Loading";
+import Link from "next/link";
 
 function LoginForm({
   onSubmit
@@ -94,7 +95,7 @@ export function Whoami({ passport }: { passport: Passport }) {
 
 
     <div className="flex gap-4">
-      <button
+      <Link href="/Inicio"
         className={`hover:scale-110 rounded-full text-black transition-transform flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 bg-green-300`}
       >
         <Image
@@ -106,7 +107,7 @@ export function Whoami({ passport }: { passport: Passport }) {
         />
 
         Continuar
-      </button>
+      </Link>
 
       <a
         href="/logout"
@@ -182,7 +183,7 @@ export default function Home() {
           state == 'whoami' ? <Whoami passport={passport!} /> : <></>
         }
 
-      </main >
-    </div >
+      </main>
+    </div>
   );
 }
