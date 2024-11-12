@@ -141,7 +141,7 @@ function TimeCategory({ name: time, modules, showOpenDate }: { name: string, mod
         window.open(url, '_blank')
     }
 
-    return <div className={`flex flex-col gap-4 items-center`}>
+    return <div className={`flex flex-col gap-4 items-center min-w-full`}>
         <div className="flex gap-2 justify-items-center items-center">
             <button className="bg-green-200 rounded-full p-2 hover:scale-110 transition-all text-black" onClick={shareWhatsapp}>
                 <Image src="/zap.svg" alt="Zap Icon" width={20} height={20} />
@@ -150,7 +150,7 @@ function TimeCategory({ name: time, modules, showOpenDate }: { name: string, mod
             <h2 className={`uppercase ${GCSS.blueGradientText} shadow-sm text-2xl`}> {time} </h2>
         </div>
 
-        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 place-content-between">
+        <ul className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 place-content-between">
             {avaliableModules.map(([name, modules]) =>
                 modules.map(module => {
                     return <ModuleCard module={module} course={name} key={module.name} showOpenDate={showOpenDate} />
