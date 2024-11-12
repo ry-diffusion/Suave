@@ -12,6 +12,8 @@ import Link from "next/link";
 import SuaveTitle from "../components/SuaveTitle";
 
 import GCSS from "@/app/styles/Suave.module.css";
+import { Course } from "@/moodle/AuthenticatedMobileApi";
+import { useEffect, useState } from "react";
 
 function formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0'); // %d
@@ -130,12 +132,69 @@ function TimeCategory({ name: time, modules }: { name: string, modules: Record<s
     </div>
 }
 
-function Dash({ available }: { available: GetAvailableModulesResponse }) {
+function Dash({ available, isReady }: { available: GetAvailableModulesResponse, isReady: boolean }) {
     return <div className="flex flex-col gap-4 items-center">
-        <h1> Eai? Estes são os moodles do momento </h1>
+        {isReady ? <h1> Eai? Estes são os moodles do momento </h1> : <h1> Carregando... </h1>}
 
         <TimeCategory name="Moodles Abertos" modules={available.modules.current} />
         <TimeCategory name="Moodles Futuros" modules={available.modules.future} />
+    </div>
+}
+
+
+function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBridge }) {
+    const [isLoading, setIsLoading] = useState(true)
+    const [text, setText] = useState("")
+    const [available, setAvailable] = useState<{ modules: Record<string, Module[]> }>({
+        modules: {
+            current: [],
+            future: [],
+            past: []
+        }
+    })
+
+    useEffect(() => {
+        const fetchModules = async () => {
+            for (const course of courses) {
+                const name = course.displayname.split(' - ')[1]
+                setText(name)
+
+                const { modules } = await bridge.GetAvailableModules([course])
+
+                // merge available modules
+                setAvailable(a => {
+                    const available = { ...a }
+                    for (const [key, value] of Object.entries(modules)) {
+                        if (!available.modules[key]) {
+                            available.modules[key] = []
+                        }
+
+                        available.modules[key] = {
+                            ...available.modules[key],
+                            ...value
+                        }
+                    }
+
+                    return available
+                });
+            }
+
+            setIsLoading(false)
+        }
+
+        fetchModules()
+    }, [courses, bridge])
+
+
+
+    return <div className="flex flex-col gap-4 items-center">
+        {
+            isLoading ? <TimedLoading message={`Analisando: ${text}`} /> : null
+        }
+
+        {
+            available ? <Dash available={available as unknown as GetAvailableModulesResponse} isReady={!isLoading} /> : null
+        }
     </div>
 }
 
@@ -144,17 +203,18 @@ function Container() {
     const bridge = new MoodleBridge(passport!.moodleToken);
 
     const { isLoading, error, data } = useQuery({
-        queryKey: ['moodlesDisponiveis'],
-        queryFn: () => bridge.GetAvailableModules()
+        queryKey: ['courses'],
+        queryFn: () => bridge.GetEnrolledCourses()
     })
 
     return <Content>
         <SuaveTitle />
 
-        {isLoading ? <TimedLoading message="Carregando moodles disponíveis..." /> : null}
+        {isLoading ? <TimedLoading message="Analisando as matérias que você tem..." /> : null}
         {error ? <p> Erro: {error.message} </p> : null}
 
-        {data ? Dash({ available: data }) : null}
+        {data ? <LoadCourses courses={data.courses} bridge={bridge} /> : null}
+
     </Content>
 
 }

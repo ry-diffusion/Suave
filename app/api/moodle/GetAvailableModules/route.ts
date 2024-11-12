@@ -145,7 +145,11 @@ export interface GetAvailableModulesResponse {
     }
 }
 
-export async function GET(
+export interface GetAvailableModulesInput {
+    courses: { id: number, fullname: string }[]
+}
+
+export async function POST(
     request: Request
 ) {
     const rawToken = request.headers.get('Authorization')
@@ -158,14 +162,11 @@ export async function GET(
     const token = rawToken.replace('Bearer', '').trim()
     const moodle = AuthenticatedMobileApi.fromUnauthenticated(PresencialIFGoiano, token);
 
-    const siteInfo = await moodle.fetchSiteInfo();
-    const userId = siteInfo.userid;
-
-    const courses = await moodle.fetchEnrolledCourses(userId);
+    const input: GetAvailableModulesInput = await request.json();
 
     const allModules = new Map<string, Module[]>();
 
-    for (const course of courses) {
+    for (const course of input.courses) {
         const contents = await moodle.fetchCourseContents(course.id);
 
         const modules = parseModules(contents)

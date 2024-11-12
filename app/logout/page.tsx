@@ -23,6 +23,6 @@ export default function Logout() {
         <p> Você será redirecionado para a página inicial em instantes. </p>
         <p> Se não for redirecionado, clique <Link href="/" className="text-red-200">aqui</Link>. </p>
 
-        <meta httpEquiv="refresh" content="1;url=/" />
+        <meta httpEquiv="refresh" content="3;url=/" />
     </Content>
 }
