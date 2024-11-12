@@ -3,11 +3,12 @@
 import Image from "next/image";
 import SuaveTitle from "./components/SuaveTitle";
 import SuaveCss from '@/app/styles/Suave.module.css'
-import { useContext, useEffect, useState } from "react";
-import { AuthContext, KnownInfo, Passport, REVISION } from "./AuthContext";
+import { useEffect, useState } from "react";
+import { KnownInfo, Passport, REVISION, usePassport } from "./AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "./components/Loading";
 import Link from "next/link";
+import Content from "./components/Content";
 
 function LoginForm({
   onSubmit
@@ -54,7 +55,7 @@ function KnowninfoShow({ knownInfo }: { knownInfo: KnownInfo }) {
 }
 
 function Whoami({ passport }: { passport: Passport }) {
-  const { updateKnownInfo } = useContext(AuthContext)!;
+  const { updateKnownInfo } = usePassport();
 
   const { isPending, error, data } = useQuery({
     queryKey: ['whoami'],
@@ -128,8 +129,8 @@ function Whoami({ passport }: { passport: Passport }) {
 }
 
 export default function Home() {
-  const { passport, authenticate, updateKnownInfo } = useContext(AuthContext)!;
-  const [state, setLoginState] = useState(passport != null ? 'whoami' : 'form')
+  const { passport, authenticate, updateKnownInfo } = usePassport()!;
+  const [state, setLoginState] = useState('welcome')
 
   const submitLogin = async (username: string, password: string) => {
     setLoginState('spin')
@@ -166,24 +167,32 @@ export default function Home() {
     updateKnownInfo(null)
   }
 
+  useEffect(() => {
+    if (passport != null)
+      setLoginState('whoami')
+    else
+      setLoginState('form')
+  }, [passport])
+
   return (
-    <div className="items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center">
-        <SuaveTitle />
+    <Content>
+      <SuaveTitle />
 
-        {
-          state == 'form' ? <LoginForm onSubmit={submitLogin} /> : <></>
-        }
+      {
+        state == 'welcome' ? <></> : null
+      }
 
-        {
-          state == 'spin' ? <Loading message="Iniciando sessão..." /> : <></>
-        }
+      {
+        state == 'form' ? <LoginForm onSubmit={submitLogin} /> : null
+      }
 
-        {
-          state == 'whoami' ? <Whoami passport={passport!} /> : <></>
-        }
+      {
+        state == 'spin' ? <Loading message="Iniciando sessão..." /> : null
+      }
 
-      </main>
-    </div>
-  );
+      {
+        state == 'whoami' ? <Whoami passport={passport!} /> : null
+      }
+    </Content>
+  )
 }

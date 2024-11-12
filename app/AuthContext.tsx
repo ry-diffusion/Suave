@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, createContext, useEffect } from "react";
+import { useState, createContext, useContext, useEffect } from "react";
 
 export const REVISION = 0x1;
 export type KnownInfo = {
@@ -27,54 +27,68 @@ export type AuthManager = {
 
 export const AuthContext = createContext<AuthManager | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [passport, setPassport] = useState<Passport | null>(null)
+    const [passport, setPassport] = useState<Passport | null>(null);
 
-
-    useEffect(() => {
-        if (typeof window == "undefined") return;
-        if (window.localStorage.getItem('Passport.LoggedIn') && !passport) {
-            const rawKnownInfo = window.localStorage.getItem('Passport.Knowninfo')
-            setPassport({
-                username: window.localStorage.getItem('Passport.user')!,
-                password: window.localStorage.getItem('Passport.password')!,
-                suapToken: window.localStorage.getItem('SUAP.token')!,
-                moodleToken: window.localStorage.getItem('Moodle.token')!,
-                knownInfo: rawKnownInfo ? JSON.parse(rawKnownInfo) : null,
-            })
-        }
-    }, [passport, setPassport]);
 
     const authenticate = (data: Passport) => {
-        setPassport(data)
+        setPassport(data);
 
-        if (typeof window !== "undefined") {
-            window.localStorage.setItem('Passport.user', data.username)
-            window.localStorage.setItem('Passport.password', data.password)
-            window.localStorage.setItem('Moodle.token', data.moodleToken)
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem('Passport.user', data.username);
+            window.localStorage.setItem('Passport.password', data.password);
+            window.localStorage.setItem('Moodle.token', data.moodleToken);
             window.localStorage.setItem('Passport.LoggedIn', 'YES');
-            if (data.suapToken)
-                window.localStorage.setItem('SUAP.Token', data.suapToken)
+            if (data.suapToken) {
+                window.localStorage.setItem('SUAP.Token', data.suapToken);
+            }
         }
-    }
+    };
 
     const updateKnownInfo = (knownInfo: KnownInfo | null) => {
-        if (!passport)
-            throw new Error('User is not logged in.')
+        if (!passport) throw new Error('User is not logged in.');
 
-        if (typeof window !== "undefined")
-            window.localStorage.setItem('Passport.Knowninfo', JSON.stringify(knownInfo))
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem('Passport.Knowninfo', JSON.stringify(knownInfo));
+        }
 
         setPassport({
             ...passport,
-            knownInfo
-        })
-    }
+            knownInfo,
+        });
+    };
 
     const logout = () => {
-        updateKnownInfo(null)
-        setPassport(null)
-        window.localStorage.clear()
-    }
+        updateKnownInfo(null);
+        setPassport(null);
+        if (typeof window !== 'undefined') {
+            window.localStorage.clear();
+        }
+    };
 
-    return <AuthContext.Provider value={{ passport, logout, authenticate, updateKnownInfo }}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={{ passport, logout, authenticate, updateKnownInfo }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
+
+export const usePassport = () => {
+    const context = useContext(AuthContext);
+    if (!context) throw new Error('usePassport must be used within an AuthProvider');
+
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.localStorage.getItem('Passport.LoggedIn') && !context.passport) {
+            const rawKnownInfo = window.localStorage.getItem('Passport.Knowninfo');
+            context.authenticate({
+                username: window.localStorage.getItem('Passport.user')!,
+                password: window.localStorage.getItem('Passport.password')!,
+                suapToken: window.localStorage.getItem('SUAP.Token')!,
+                moodleToken: window.localStorage.getItem('Moodle.token')!,
+                knownInfo: rawKnownInfo ? JSON.parse(rawKnownInfo) : null,
+            });
+        }
+    }, [context])
+
+    return context;
+}

@@ -3,8 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Content from "../components/Content";
 import Loading from "../components/Loading";
-import { useContext } from "react";
-import { AuthContext } from "../AuthContext";
+import { usePassport } from "../AuthContext";
 import TimedLoading from "../components/TimedLoading";
 import Image from "next/image";
 import { MoodleBridge } from "@/bridge/MoodleBridge";
@@ -141,7 +140,7 @@ function Dash({ available }: { available: GetAvailableModulesResponse }) {
 }
 
 function Container() {
-    const { passport } = useContext(AuthContext)!;
+    const { passport } = usePassport();
     const bridge = new MoodleBridge(passport!.moodleToken);
 
     const { isLoading, error, data } = useQuery({
@@ -160,7 +159,7 @@ function Container() {
 
 }
 export default function MoodlesDisponiveis() {
-    const { passport } = useContext(AuthContext)!;
+    const { passport } = usePassport();
 
     if (!passport) {
         return <Content>
