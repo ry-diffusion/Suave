@@ -17,7 +17,7 @@ export default function TimedLoading({ message }: { message: string }) {
     return <div className="flex flex-col gap-4">
         <p className={CSS.counter}> {counter}s </p>
 
-        <p> {message} </p>
+        <p className="text-center text-balance"> {message} </p>
         <AnimatedCube />
     </div>
 }
