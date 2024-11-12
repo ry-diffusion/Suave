@@ -108,7 +108,20 @@ function TimeCategory({ name: time, modules }: { name: string, modules: Record<s
     const shareWhatsapp = () => {
         const message = generateFullMessage(modules)
         console.log(message)
+
+        if (message.trim().length === 0) {
+            return
+        }
+
+
+        // detect if android or ios, if so, use the whatsapp:// protocol
+
+        if (navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i)) {
+            window.location.href = `whatsapp://send?text=${encodeURIComponent(message)}`
+            return
+        }
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+
 
         window.open(url, '_blank')
     }
