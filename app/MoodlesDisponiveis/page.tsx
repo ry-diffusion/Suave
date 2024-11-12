@@ -93,7 +93,7 @@ function generateFullMessage(all: Record<string, Module[]>) {
     let output = "📅✨ MOODLES ABERTOS 🚀\n"
     output += `🎉 Uau! Temos ${total} atividades incríveis prontinhas para vocês explorar e entregar! 🚀\n\n`
     output += messages.join("\n")
-    output += "😃 Criado usando o Suave."
+    output += "\n😃 Criado usando o Suave (https://https://suave-one.vercel.app/)."
 
     return output
 }
@@ -112,7 +112,6 @@ function TimeCategory({ name: time, modules }: { name: string, modules: Record<s
         if (message.trim().length === 0) {
             return
         }
-
 
         // detect if android or ios, if so, use the whatsapp:// protocol
 
