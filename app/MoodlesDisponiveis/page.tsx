@@ -41,12 +41,12 @@ function ModuleCard({ module, course, showOpenDate }: { module: Module, course: 
         <div className="flex flex-col gap-1 mt-auto">
             {showOpenDate ? <div className="flex gap-1">
                 <h3 className="text-green-200"> Abre </h3>
-                <h3> em {formatDate(new Date(module.allowSubmissionsFrom!))} </h3>
+                <h3 className="text-end"> em {formatDate(new Date(module.allowSubmissionsFrom!))} </h3>
             </div> : null}
 
             <div className="flex gap-1">
                 <h3 className="text-red-200"> Fecha </h3>
-                <h3> em {formatDate(new Date(module.dueDate!))} </h3>
+                <h3 className="text-end"> em {formatDate(new Date(module.dueDate!))} </h3>
             </div>
         </div>
 
