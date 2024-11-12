@@ -6,6 +6,7 @@ import Loading from "../components/Loading";
 import { useContext, useEffect } from "react";
 import { AuthContext } from "../AuthContext";
 import TimedLoading from "../components/TimedLoading";
+import Image from "next/image";
 import { MoodleBridge } from "@/bridge/MoodleBridge";
 import { GetAvailableModulesResponse, Module } from "../api/moodle/GetAvailableModules/route";
 import Link from "next/link";
@@ -39,13 +40,85 @@ function ModuleCard({ module, course }: { module: Module, course: string }) {
     </div>
 }
 
+
+function generatePrettyMessage(course: string, modules: Module[]) {
+    const parent = course.split(' - ')[1]
+
+    const emojis = {
+        "assign": "📝",
+        "forum": "💬",
+        "quiz": "🧠",
+        "url": "🔗",
+        "page": "📄",
+        "book": "📚",
+        "folder": "📁",
+        "resource": "📦",
+        "label": "🏷️",
+        "lesson": "📖",
+        "choice": "🤔",
+        "feedback": "📣",
+        "workshop": "🔨",
+        "glossary": "📖",
+        "wiki": "📖",
+        "survey": "📊",
+        "data": "📊",
+        "attendance": "📋",
+        "scorm": "📦",
+        "h5pactivity": "🎮",
+    }
+
+    if (modules.length === 0) return ""
+
+    let moodleContent = `📚 ${parent}\n`
+
+    for (const module of modules) {
+        moodleContent += `➤ ${emojis[module.kind as keyof typeof emojis]} ${module.name} (De: ${formatDate(new Date(module.allowSubmissionsFrom!))}, até ${formatDate(new Date(module.dueDate!))})\n`
+        moodleContent += `Acesse em ${module.url}\n`
+    }
+
+    return moodleContent
+}
+
+function generateFullMessage(all: Record<string, Module[]>) {
+    const messages = Object.entries(all).map(([course, modules]) => {
+        return generatePrettyMessage(course, modules)
+    }).filter(x => x.trim().length > 0)
+
+    let total = 0
+    for (const modules of Object.values(all)) {
+        total += modules.length
+    }
+
+    let output = "📅✨ MOODLES ABERTOS 🚀\n"
+    output += `🎉 Uau! Temos ${total} atividades incríveis prontinhas para vocês explorar e entregar! 🚀\n\n`
+    output += messages.join("\n")
+    output += "😃 Criado usando o Suave."
+
+    return output
+}
+
+
 function TimeCategory({ name: time, modules }: { name: string, modules: Record<string, Module[]> }) {
     const avaliableModules = Object.entries(modules).filter(([_, modules]) => modules.length > 0)
 
     if (avaliableModules.length === 0) return
 
+    const shareWhatsapp = () => {
+        const message = generateFullMessage(modules)
+        console.log(message)
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+
+        window.open(url, '_blank')
+    }
+
     return <div className={`flex flex-col gap-4 items-center`}>
-        <h2 className={`uppercase ${GCSS.blueGradientText} shadow-sm text-xl`}> {time} </h2>
+        <div className="flex gap-2 justify-items-center items-center">
+            <button className="bg-green-200 rounded-full p-2 hover:scale-110 transition-all text-black" onClick={shareWhatsapp}>
+                <Image src="/zap.svg" alt="Zap Icon" width={20} height={20} />
+            </button>
+
+            <h2 className={`uppercase ${GCSS.blueGradientText} shadow-sm text-2xl`}> {time} </h2>
+        </div>
 
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 place-content-between">
             {avaliableModules.map(([name, modules]) =>
