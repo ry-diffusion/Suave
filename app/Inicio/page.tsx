@@ -15,7 +15,7 @@ export default function Inicio() {
 
         <UrlLink url="https://nubank.com.br/cobrar/jk28o/67331f9e-cafa-416c-b3ef-bb0ca933c88e" className="bg-purple-200">
             <Image src="/pix.svg" alt="Pix" width={20} height={20} />
-            Contribuia com o suave
+            Seja um contribuinte do Suave
         </UrlLink>
     </Content>
 }
