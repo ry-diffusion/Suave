@@ -79,10 +79,19 @@ export const usePassport = () => {
     const context = useContext(AuthContext);
     if (!context) throw new Error('usePassport must be used within an AuthProvider');
 
-
     useEffect(() => {
         if (typeof window !== 'undefined' && window.localStorage.getItem('Passport.LoggedIn') && !context.passport) {
             const rawKnownInfo = window.localStorage.getItem('Passport.Knowninfo');
+
+            if (!window.localStorage.getItem('Passport.Institution')) {
+                console.warn('Invalid state: Institution not found in local storage.');
+
+                window.localStorage.clear();
+
+                return;
+            }
+
+
             context.authenticate({
                 username: window.localStorage.getItem('Passport.user')!,
                 password: window.localStorage.getItem('Passport.password')!,
