@@ -1,5 +1,6 @@
 "use client";
 
+import { Institution, Providers } from "@/Support/Institutions";
 import { useState, createContext, useContext, useEffect } from "react";
 
 export const REVISION = 0x1;
@@ -15,7 +16,8 @@ export type Passport = {
     password: string,
     moodleToken: string,
     suapToken: string | null,
-    knownInfo: KnownInfo | null
+    knownInfo: KnownInfo | null,
+    institution: Institution
 };
 
 export type AuthManager = {
@@ -29,7 +31,6 @@ export const AuthContext = createContext<AuthManager | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [passport, setPassport] = useState<Passport | null>(null);
 
-
     const authenticate = (data: Passport) => {
         setPassport(data);
 
@@ -38,6 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             window.localStorage.setItem('Passport.password', data.password);
             window.localStorage.setItem('Moodle.token', data.moodleToken);
             window.localStorage.setItem('Passport.LoggedIn', 'YES');
+            window.localStorage.setItem('Passport.Institution', data.institution);
+
             if (data.suapToken) {
                 window.localStorage.setItem('SUAP.Token', data.suapToken);
             }
@@ -85,10 +88,18 @@ export const usePassport = () => {
                 password: window.localStorage.getItem('Passport.password')!,
                 suapToken: window.localStorage.getItem('SUAP.Token')!,
                 moodleToken: window.localStorage.getItem('Moodle.token')!,
+                institution: window.localStorage.getItem('Passport.Institution') as Institution,
                 knownInfo: rawKnownInfo ? JSON.parse(rawKnownInfo) : null,
             });
         }
     }, [context])
 
     return context;
+}
+
+export const useProvider = () => {
+    const { passport } = usePassport();
+    if (!passport) throw new Error('User is not logged in.');
+
+    return Providers[passport!.institution];
 }

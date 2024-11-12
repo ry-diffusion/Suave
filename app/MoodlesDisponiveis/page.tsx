@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Content from "../components/Content";
 import Loading from "../components/Loading";
-import { usePassport } from "../AuthContext";
+import { usePassport, useProvider } from "../AuthContext";
 import TimedLoading from "../components/TimedLoading";
 import Image from "next/image";
 import { MoodleBridge } from "@/bridge/MoodleBridge";
@@ -228,7 +228,8 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
 
 function Container() {
     const { passport } = usePassport();
-    const bridge = new MoodleBridge(passport!.moodleToken);
+    const provider = useProvider();
+    const bridge = provider.moodle!.useBridge(passport!.moodleToken);
 
     const { isLoading, error, data } = useQuery({
         queryKey: ['courses'],
