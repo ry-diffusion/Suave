@@ -40,25 +40,32 @@ function parseModules(contents: ContentData[]): Module[] {
             }
 
             if (null != moodleModule.customdata) {
-                const customData = JSON.parse(moodleModule.customdata)
-                if (!customData.customdata)
+                const payload = JSON.parse(moodleModule.customdata)
+                if (payload.customdata) {
+                    const dueDate = new Date(payload.customdata.duedate * 1000)
+                    const allowSubmissionsFrom = new Date(payload.customdata.allowsubmissionsfromdate * 1000)
+                    found.push({
+                        ...baseOutput,
+                        allowSubmissionsFrom,
+                        dueDate
+                    })
                     continue;
-                const dueDate = new Date(customData.customdata.duedate * 1000)
-                const allowSubmissionsFrom = new Date(customData.customdata.allowsubmissionsfromdate * 1000)
-                found.push({
-                    ...baseOutput,
-                    allowSubmissionsFrom,
-                    dueDate
-                })
-                continue;
+                }
             }
 
-            const regex = /(?<qNome>\w*. \d{1,2}) \((?<abre>\d{2}\/\d{2})\s*-\s*(?<fecha>\d{2}\/\d{2})\)/;
+            const regex = /(?<qNome>\w* \d{1,2}) \((?<abre>\d{2}\/\d{2})\s*-\s*(?<fecha>\d{2}\/\d{2})\)/;
             const match = moodleModule.name.match(regex);
+
+            const parse = (currentYear: number, abre: string) => {
+                const [day, month] = abre.split("/");
+                return new Date(`${currentYear}-${month}-${day}`);
+            };
+
+
             if (match) {
                 const currentYear = new Date().getFullYear();
-                const dueDate = new Date(`${currentYear}/${match.groups?.fecha}`);
-                const allowSubmissionsFrom = new Date(`${currentYear}/${match.groups?.abre}`);
+                const dueDate = parse(currentYear, match.groups?.fecha as string);
+                const allowSubmissionsFrom = parse(currentYear, match.groups?.abre as string);
 
                 found.push({
                     ...baseOutput,
@@ -75,8 +82,8 @@ function parseModules(contents: ContentData[]): Module[] {
 
 function organizeModules(modules: Module[]) {
     const past = modules.filter(module => module.dueDate && module.dueDate < new Date())
-    const current = modules.filter(module => module.dueDate && module.dueDate > new Date())
-    const future = modules.filter(module => !module.dueDate)
+    const current = modules.filter(module => module.dueDate && module.dueDate > new Date() && module.allowSubmissionsFrom && module.allowSubmissionsFrom < new Date())
+    const future = modules.filter(module => module.allowSubmissionsFrom && module.allowSubmissionsFrom > new Date())
 
     return {
         past,

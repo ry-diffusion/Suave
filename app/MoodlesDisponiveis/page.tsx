@@ -30,13 +30,17 @@ function Acessar({ url }: { url: string }) {
     </Link>
 }
 
-function ModuleCard({ module, course }: { module: Module, course: string }) {
+function ModuleCard({ module, course, showOpenDate }: { module: Module, course: string, showOpenDate?: boolean }) {
     const parent = course.split(' - ')[1]
 
     return <div className={`flex flex-col gap-4 p-8 rounded-sm bg-zinc-900`}>
 
         <h2> {module.name} • {parent} </h2>
-        <h3> Fecha em {formatDate(new Date(module.dueDate!))} </h3>
+        <div className="flex flex-col gap1">
+            {showOpenDate ? <h3> Abre em {formatDate(new Date(module.allowSubmissionsFrom!))} </h3> : null}
+            <h3> Fecha em {formatDate(new Date(module.dueDate!))} </h3>
+        </div>
+
         <Acessar url={module.url} />
     </div>
 }
@@ -80,7 +84,7 @@ function generatePrettyMessage(course: string, modules: Module[]) {
     return moodleContent
 }
 
-function generateFullMessage(all: Record<string, Module[]>) {
+function generateFullMessage(title: string, all: Record<string, Module[]>) {
     const messages = Object.entries(all).map(([course, modules]) => {
         return generatePrettyMessage(course, modules)
     }).filter(x => x.trim().length > 0)
@@ -90,24 +94,26 @@ function generateFullMessage(all: Record<string, Module[]>) {
         total += modules.length
     }
 
-    let output = "📅✨ MOODLES ABERTOS 🚀\n"
-    output += `🎉 Uau! Temos ${total} atividades incríveis prontinhas para vocês explorar e entregar! 🚀\n\n`
+    const verbTem = total > 1 ? "temos" : "tem"
+    const verbDisponiveis = total > 1 ? "atividades disponíveis" : "atividade disponível"
+
+    let output = `📅✨ ${title} 🚀\n`
+    output += `🎉 Eae, galera, suave na nave? ${verbTem} ${total} ${verbDisponiveis}! 🚀\n\n`
     output += messages.join("\n")
-    output += "\n😃 Criado usando o Suave (https://https://suave-one.vercel.app/)."
+    output += "\n😃 Criado usando o Suave (https://suave-one.vercel.app/)."
 
     return output
 }
 
 
-function TimeCategory({ name: time, modules }: { name: string, modules: Record<string, Module[]> }) {
+function TimeCategory({ name: time, modules, showOpenDate }: { name: string, modules: Record<string, Module[]>, showOpenDate?: boolean }) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const avaliableModules = Object.entries(modules).filter(([_, modules]) => modules.length > 0)
 
     if (avaliableModules.length === 0) return
 
     const shareWhatsapp = () => {
-        const message = generateFullMessage(modules)
-        console.log(message)
+        const message = generateFullMessage(time, modules)
 
         if (message.trim().length === 0) {
             return
@@ -119,6 +125,7 @@ function TimeCategory({ name: time, modules }: { name: string, modules: Record<s
             window.location.href = `whatsapp://send?text=${encodeURIComponent(message)}`
             return
         }
+
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
 
 
@@ -137,7 +144,7 @@ function TimeCategory({ name: time, modules }: { name: string, modules: Record<s
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 place-content-between">
             {avaliableModules.map(([name, modules]) =>
                 modules.map(module => {
-                    return <ModuleCard module={module} course={name} key={module.name} />
+                    return <ModuleCard module={module} course={name} key={module.name} showOpenDate={showOpenDate} />
                 })
             )}
         </ul>
@@ -149,7 +156,7 @@ function Dash({ available, isReady }: { available: GetAvailableModulesResponse, 
         {isReady ? <h1> Eai? Estes são os moodles do momento </h1> : <h1> Carregando... </h1>}
 
         <TimeCategory name="Moodles Abertos" modules={available.modules.current} />
-        <TimeCategory name="Moodles Futuros" modules={available.modules.future} />
+        <TimeCategory name="Moodles Futuros" modules={available.modules.future} showOpenDate />
     </div>
 }
 
