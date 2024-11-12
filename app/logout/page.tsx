@@ -4,13 +4,14 @@ import { useContext, useEffect } from "react";
 import { AuthContext } from "../AuthContext";
 import SuaveTitle from "../components/SuaveTitle";
 import Loading from "../components/Loading";
+import Link from "next/link";
 
 export default function Logout() {
     const { logout } = useContext(AuthContext)!;
 
     useEffect(() => {
         logout();
-    }, []);
+    }, [logout]);
 
 
     return <div className="items-center justify-items-center min-h-screen">
@@ -20,7 +21,8 @@ export default function Logout() {
 
                 <Loading message="Saindo..." />
                 <p> Você será redirecionado para a página inicial em instantes. </p>
-                <p> Se não for redirecionado, clique <a href="/" className="text-red-200">aqui</a>. </p>
+                <p> Se não for redirecionado, clique <Link href="/" className="text-red-200">aqui</Link>. </p>
+
                 <meta httpEquiv="refresh" content="1;url=/" />
             </main>
         </div>

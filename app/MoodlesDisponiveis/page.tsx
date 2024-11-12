@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Content from "../components/Content";
 import Loading from "../components/Loading";
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import TimedLoading from "../components/TimedLoading";
 import Image from "next/image";
@@ -71,9 +71,9 @@ function generatePrettyMessage(course: string, modules: Module[]) {
 
     let moodleContent = `📚 ${parent}\n`
 
-    for (const module of modules) {
-        moodleContent += `➤ ${emojis[module.kind as keyof typeof emojis]} ${module.name} (De: ${formatDate(new Date(module.allowSubmissionsFrom!))}, até ${formatDate(new Date(module.dueDate!))})\n`
-        moodleContent += `Acesse em ${module.url}\n`
+    for (const moodleModule of modules) {
+        moodleContent += `➤ ${emojis[moodleModule.kind as keyof typeof emojis]} ${moodleModule.name} (De: ${formatDate(new Date(moodleModule.allowSubmissionsFrom!))}, até ${formatDate(new Date(moodleModule.dueDate!))})\n`
+        moodleContent += `Acesse em ${moodleModule.url}\n`
     }
 
     return moodleContent
@@ -99,6 +99,7 @@ function generateFullMessage(all: Record<string, Module[]>) {
 
 
 function TimeCategory({ name: time, modules }: { name: string, modules: Record<string, Module[]> }) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const avaliableModules = Object.entries(modules).filter(([_, modules]) => modules.length > 0)
 
     if (avaliableModules.length === 0) return
@@ -139,17 +140,9 @@ function Dash({ available }: { available: GetAvailableModulesResponse }) {
     </div>
 }
 
-export default function MoodlesDisponiveis() {
+function Container() {
     const { passport } = useContext(AuthContext)!;
-
-    if (!passport) {
-        return <Content>
-            <Loading message="Você não está logado! Redirecionando a página inicial" />
-            <meta httpEquiv="refresh" content="1;url=/" />
-        </Content>
-    }
-
-    const bridge = new MoodleBridge(passport.moodleToken);
+    const bridge = new MoodleBridge(passport!.moodleToken);
 
     const { isLoading, error, data } = useQuery({
         queryKey: ['moodlesDisponiveis'],
@@ -164,4 +157,17 @@ export default function MoodlesDisponiveis() {
 
         {data ? Dash({ available: data }) : null}
     </Content>
+
+}
+export default function MoodlesDisponiveis() {
+    const { passport } = useContext(AuthContext)!;
+
+    if (!passport) {
+        return <Content>
+            <Loading message="Você não está logado! Redirecionando a página inicial" />
+            <meta httpEquiv="refresh" content="1;url=/" />
+        </Content>
+    }
+
+    return <Container />
 }

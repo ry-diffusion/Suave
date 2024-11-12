@@ -1,4 +1,4 @@
-import AuthenticatedMobileApi, { ContentData, ModuleData } from "@/moodle/AuthenticatedMobileApi";
+import AuthenticatedMobileApi, { ContentData } from "@/moodle/AuthenticatedMobileApi";
 import { PresencialIFGoiano } from "@/moodle/campus";
 
 // TODO: Split parseModules into smaller functions
@@ -13,22 +13,22 @@ export interface Module {
 }
 
 function parseModules(contents: ContentData[]): Module[] {
-    let found: Module[] = []
+    const found: Module[] = []
     for (const content of contents) {
-        for (const module of content.modules) {
-            if (module.modname == "label" || !module.uservisible)
+        for (const moodleModule of content.modules) {
+            if (moodleModule.modname == "label" || !moodleModule.uservisible)
                 continue
 
-            let baseOutput = {
-                name: module.name,
+            const baseOutput = {
+                name: moodleModule.name,
                 parent: content.name,
-                kind: module.modname,
-                url: module.url,
+                kind: moodleModule.modname,
+                url: moodleModule.url,
             }
 
-            if (module.dates && module.dates.length > 1) {
-                const allowSubmissionsFrom = new Date(module.dates[0].timestamp * 1000)
-                const dueDate = new Date(module.dates[1].timestamp * 1000)
+            if (moodleModule.dates && moodleModule.dates.length > 1) {
+                const allowSubmissionsFrom = new Date(moodleModule.dates[0].timestamp * 1000)
+                const dueDate = new Date(moodleModule.dates[1].timestamp * 1000)
 
                 found.push({
                     ...baseOutput,
@@ -39,8 +39,8 @@ function parseModules(contents: ContentData[]): Module[] {
                 continue
             }
 
-            if (null != module.customdata) {
-                const customData = JSON.parse(module.customdata)
+            if (null != moodleModule.customdata) {
+                const customData = JSON.parse(moodleModule.customdata)
                 if (!customData.customdata)
                     continue;
                 const dueDate = new Date(customData.customdata.duedate * 1000)
@@ -54,7 +54,7 @@ function parseModules(contents: ContentData[]): Module[] {
             }
 
             const regex = /(?<qNome>\w*. \d{1,2}) \((?<abre>\d{2}\/\d{2})\s*-\s*(?<fecha>\d{2}\/\d{2})\)/;
-            const match = module.name.match(regex);
+            const match = moodleModule.name.match(regex);
             if (match) {
                 const currentYear = new Date().getFullYear();
                 const dueDate = new Date(`${currentYear}/${match.groups?.fecha}`);
@@ -86,7 +86,7 @@ function organizeModules(modules: Module[]) {
 }
 
 function organizeEverything(allModules: Map<string, Module[]>): { past: Map<string, Module[]>, current: Map<string, Module[]>, future: Map<string, Module[]> } {
-    let organized = {
+    const organized = {
         past: new Map<string, Module[]>(),
         current: new Map<string, Module[]>(),
         future: new Map<string, Module[]>()
@@ -112,7 +112,7 @@ function organizeEverything(allModules: Map<string, Module[]>): { past: Map<stri
 
 
 function intoJson(organized: { past: Map<string, Module[]>, current: Map<string, Module[]>, future: Map<string, Module[]> }) {
-    let json: {
+    const json: {
         past: { [key: string]: Module[] },
         current: { [key: string]: Module[] },
         future: { [key: string]: Module[] }

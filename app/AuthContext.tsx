@@ -29,6 +29,9 @@ export const AuthContext = createContext<AuthManager | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [passport, setAuth] = useState<Passport | null>(null)
 
+    if (typeof window == "undefined") {
+        return <AuthContext.Provider value={{ passport, logout: () => { }, authenticate: () => { }, updateKnownInfo: () => { } }}>{children}</AuthContext.Provider>;
+    }
 
     if (window.localStorage.getItem('Passport.LoggedIn') && !passport) {
         const rawKnownInfo = window.localStorage.getItem('Passport.Knowninfo')

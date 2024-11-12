@@ -1,4 +1,4 @@
-import ApiClient from "@/core/APIClient";
+import ApiClient from "@/core/ApiClient";
 import SuapContext from "./SuapContext";
 type Aluno = {
     id: number;

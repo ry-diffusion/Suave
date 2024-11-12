@@ -53,8 +53,8 @@ function KnowninfoShow({ knownInfo }: { knownInfo: KnownInfo }) {
   </div>
 }
 
-export function Whoami({ passport }: { passport: Passport }) {
-  const { updateKnownInfo, logout } = useContext(AuthContext)!;
+function Whoami({ passport }: { passport: Passport }) {
+  const { updateKnownInfo } = useContext(AuthContext)!;
 
   const { isPending, error, data } = useQuery({
     queryKey: ['whoami'],
