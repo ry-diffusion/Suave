@@ -25,7 +25,7 @@ function formatDate(date: Date): string {
 }
 
 function Acessar({ url }: { url: string }) {
-    return <Link href={url} className="rounded-full bg-blue-500 text-black p-4 max-w-24 hover:scale-110 transition-all hover:bg-green-200">
+    return <Link href={url} className="rounded-full bg-blue-500 text-black p-4 max-w-24 hover:scale-110 transition-all hover:bg-green-200 mt-auto self-start">
         Acessar
     </Link>
 }
@@ -35,14 +35,23 @@ function ModuleCard({ module, course, showOpenDate }: { module: Module, course: 
 
     return <div className={`flex flex-col gap-4 p-8 rounded-sm bg-zinc-900`}>
 
-        <h2> {module.name} • {parent} </h2>
-        <div className="flex flex-col gap1">
-            {showOpenDate ? <h3> Abre em {formatDate(new Date(module.allowSubmissionsFrom!))} </h3> : null}
-            <h3> Fecha em {formatDate(new Date(module.dueDate!))} </h3>
+        <h2 className="uppercase text-blue-200"> {module.name} </h2>
+        <h3 className="text-balance"> {parent} </h3>
+
+        <div className="flex flex-col gap-1 mt-auto">
+            {showOpenDate ? <div className="flex gap-1">
+                <h3 className="text-green-200"> Abre </h3>
+                <h3> em {formatDate(new Date(module.allowSubmissionsFrom!))} </h3>
+            </div> : null}
+
+            <div className="flex gap-1">
+                <h3 className="text-red-200"> Fecha </h3>
+                <h3> em {formatDate(new Date(module.dueDate!))} </h3>
+            </div>
         </div>
 
         <Acessar url={module.url} />
-    </div>
+    </div >
 }
 
 
