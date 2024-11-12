@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, createContext } from "react";
+import { useState, createContext, useEffect } from "react";
 
 export const REVISION = 0x1;
 export type KnownInfo = {
@@ -27,42 +27,44 @@ export type AuthManager = {
 
 export const AuthContext = createContext<AuthManager | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [passport, setAuth] = useState<Passport | null>(null)
+    const [passport, setPassport] = useState<Passport | null>(null)
 
-    if (typeof window == "undefined") {
-        return <AuthContext.Provider value={{ passport, logout: () => { }, authenticate: () => { }, updateKnownInfo: () => { } }}>{children}</AuthContext.Provider>;
-    }
 
-    if (window.localStorage.getItem('Passport.LoggedIn') && !passport) {
-        const rawKnownInfo = window.localStorage.getItem('Passport.Knowninfo')
-        setAuth({
-            username: window.localStorage.getItem('Passport.user')!,
-            password: window.localStorage.getItem('Passport.password')!,
-            suapToken: window.localStorage.getItem('SUAP.token')!,
-            moodleToken: window.localStorage.getItem('Moodle.token')!,
-            knownInfo: rawKnownInfo ? JSON.parse(rawKnownInfo) : null,
-        })
-    }
+    useEffect(() => {
+        if (typeof window == "undefined") return;
+        if (window.localStorage.getItem('Passport.LoggedIn') && !passport) {
+            const rawKnownInfo = window.localStorage.getItem('Passport.Knowninfo')
+            setPassport({
+                username: window.localStorage.getItem('Passport.user')!,
+                password: window.localStorage.getItem('Passport.password')!,
+                suapToken: window.localStorage.getItem('SUAP.token')!,
+                moodleToken: window.localStorage.getItem('Moodle.token')!,
+                knownInfo: rawKnownInfo ? JSON.parse(rawKnownInfo) : null,
+            })
+        }
+    }, [passport, setPassport]);
 
     const authenticate = (data: Passport) => {
-        setAuth(data)
+        setPassport(data)
 
-        window.localStorage.setItem('Passport.user', data.username)
-        window.localStorage.setItem('Passport.password', data.password)
-        window.localStorage.setItem('Moodle.token', data.moodleToken)
-        window.localStorage.setItem('Passport.LoggedIn', 'YES');
-
-        if (data.suapToken)
-            window.localStorage.setItem('SUAP.Token', data.suapToken)
+        if (typeof window !== "undefined") {
+            window.localStorage.setItem('Passport.user', data.username)
+            window.localStorage.setItem('Passport.password', data.password)
+            window.localStorage.setItem('Moodle.token', data.moodleToken)
+            window.localStorage.setItem('Passport.LoggedIn', 'YES');
+            if (data.suapToken)
+                window.localStorage.setItem('SUAP.Token', data.suapToken)
+        }
     }
 
     const updateKnownInfo = (knownInfo: KnownInfo | null) => {
         if (!passport)
             throw new Error('User is not logged in.')
 
-        window.localStorage.setItem('Passport.Knowninfo', JSON.stringify(knownInfo))
+        if (typeof window !== "undefined")
+            window.localStorage.setItem('Passport.Knowninfo', JSON.stringify(knownInfo))
 
-        setAuth({
+        setPassport({
             ...passport,
             knownInfo
         })
@@ -70,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = () => {
         updateKnownInfo(null)
-        setAuth(null)
+        setPassport(null)
         window.localStorage.clear()
     }
 
