@@ -83,7 +83,8 @@ export const usePassport = () => {
         if (typeof window !== 'undefined' && window.localStorage.getItem('Passport.LoggedIn') && !context.passport) {
             const rawKnownInfo = window.localStorage.getItem('Passport.Knowninfo');
 
-            if (!window.localStorage.getItem('Passport.Institution')) {
+            // yeah, this is a bit of a mess
+            if (!window.localStorage.getItem('Passport.Institution') || window.localStorage.getItem('Passport.Institution') === 'null') {
                 console.warn('Invalid state: Institution not found in local storage.');
 
                 window.localStorage.clear();
