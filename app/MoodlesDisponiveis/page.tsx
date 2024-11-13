@@ -14,6 +14,7 @@ import SuaveTitle from "../components/SuaveTitle";
 import GCSS from "@/app/styles/Suave.module.css";
 import { Course } from "@/moodle/AuthenticatedMobileApi";
 import { useEffect, useState } from "react";
+import ErrorDialog from "../components/ErrorDialog";
 
 function formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0'); // %d
@@ -334,7 +335,7 @@ function Container() {
         <SuaveTitle />
 
         {isLoading ? <TimedLoading message="Analisando as matérias que você tem..." /> : null}
-        {error ? <p> Erro: {error.message} </p> : null}
+        {error ? <ErrorDialog error={error.message} /> : null}
 
         {data ? <LoadCourses courses={data.courses} bridge={bridge} /> : null}
     </Content>

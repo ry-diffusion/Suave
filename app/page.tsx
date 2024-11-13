@@ -10,6 +10,7 @@ import Loading from "./components/Loading";
 import Link from "next/link";
 import Content from "./components/Content";
 import { Institution, Providers } from "@/Support/Institutions";
+import ErrorDialog from "./components/ErrorDialog";
 
 function LoginForm({
   onSubmit
@@ -93,8 +94,8 @@ function Whoami({ passport }: { passport: Passport }) {
 
     if (error || (data && data.error)) {
       return <div className="flex flex-col gap-4">
-        {error ? <p> Erro: {error.message} </p> : null}
-        {data && data.error ? <p> Erro: {data.error} </p> : null}
+        {error ? <ErrorDialog error={error.message} /> : null}
+        {data && data.error ? <ErrorDialog error={data.error} /> : null}
 
       </div>
     }
