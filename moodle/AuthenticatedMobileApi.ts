@@ -55,6 +55,31 @@ export interface ContentData {
     modules: ModuleData[];
 }
 
+export interface Quiz {
+    id: number;
+    course: number;
+    coursemodule: number;
+    name: string;
+    intro: string;
+    introformat: number;
+    introfiles: unknown[]; // Array to store intro file objects if available
+    timeopen: number; // UNIX timestamp for opening time
+    timeclose: number; // UNIX timestamp for closing time
+    timelimit: number; // Time limit in seconds
+    preferredbehaviour: string;
+    attempts: number;
+    grademethod: number;
+    decimalpoints: number;
+    questiondecimalpoints: number;
+    sumgrades: number; // Total possible grades for all questions
+    grade: number; // Grade value for this module
+    hasfeedback: number; // Feedback availability flag
+    section: number;
+    visible: number; // Visibility flag
+    groupmode: number;
+    groupingid: number;
+}
+
 
 interface ApiErrorResponse {
     error: string;              // Description of the error
@@ -85,6 +110,62 @@ class MoodleApiError extends Error {
         Object.setPrototypeOf(this, MoodleApiError.prototype);
     }
 }
+
+export type AssignmentsResponse = {
+    courses: AssignmentCourse[];
+    warnings: unknown[]; // Adjust this export type based on the structure of warnings, if known
+};
+
+export type AssignmentCourse = {
+    id: number;
+    fullname: string;
+    shortname: string;
+    timemodified: number;
+    assignments: Assignment[];
+};
+
+export type Assignment = {
+    id: number;
+    cmid: number;
+    course: number;
+    name: string;
+    nosubmissions: number;
+    submissiondrafts: number;
+    sendnotifications: number;
+    sendlatenotifications: number;
+    sendstudentnotifications: number;
+    duedate: number;
+    allowsubmissionsfromdate: number;
+    grade: number;
+    timemodified: number;
+    completionsubmit: number;
+    cutoffdate: number;
+    gradingduedate: number;
+    teamsubmission: number;
+    requireallteammemberssubmit: number;
+    teamsubmissiongroupingid: number;
+    blindmarking: number;
+    hidegrader: number;
+    revealidentities: number;
+    attemptreopenmethod: string;
+    maxattempts: number;
+    markingworkflow: number;
+    markingallocation: number;
+    requiresubmissionstatement: number;
+    preventsubmissionnotingroup: number;
+    configs: AssignmentConfig[];
+    intro: string;
+    introformat: number;
+    introfiles: unknown[];
+    introattachments: unknown[];
+};
+
+type AssignmentConfig = {
+    plugin: string;
+    subtype: string;
+    name: string;
+    value: string;
+};
 
 
 export default class AuthenticatedMobileApi extends MobileApi {
@@ -123,6 +204,18 @@ export default class AuthenticatedMobileApi extends MobileApi {
         return await this.call('core_course_get_enrolled_courses_by_timeline_classification', {
             classification: "all",
             sort: "fullname",
+        })
+    }
+
+    async fetchQuizzes(courseId: number): Promise<{ quizzes: Quiz[] }> {
+        return await this.call('mod_quiz_get_quizzes_by_courses', {
+            courseids: [courseId]
+        })
+    }
+
+    async fetchAssignments(courseId: number): Promise<AssignmentsResponse> {
+        return await this.call('mod_assign_get_assignments', {
+            courseids: [courseId]
         })
     }
 

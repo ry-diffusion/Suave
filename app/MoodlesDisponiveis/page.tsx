@@ -21,11 +21,18 @@ function formatDate(date: Date): string {
     const hours = date.getHours().toString().padStart(2, '0'); // %H
     const minutes = date.getMinutes().toString().padStart(2, '0'); // %M
 
+    const dateYear = date.getFullYear()
+
+    if (dateYear !== new Date().getFullYear()) {
+        return `${day}/${month}/${dateYear} ás ${hours}:${minutes
+            }`;
+    }
+
     return `${day}/${month} ${hours}:${minutes}`;
 }
 
 function Acessar({ url }: { url: string }) {
-    return <Link href={url} className="rounded-full bg-blue-500 text-black p-4 max-w-24 hover:scale-110 transition-all hover:bg-green-200 mt-auto self-start">
+    return <Link href={url} className="rounded-full bg-blue-500 text-black p-4 max-w-24 hover:scale-110 transition-all hover:bg-green-200 mt-auto self-start" target="_blank">
         Acessar
     </Link>
 }
@@ -46,7 +53,7 @@ function ModuleCard({ module, course, showOpenDate }: { module: Module, course: 
 
             <div className="flex gap-1">
                 <h3 className="text-red-200"> Fecha </h3>
-                <h3 className="text-end"> em {formatDate(new Date(module.dueDate!))} </h3>
+                <h3 className="text-left"> em {formatDate(new Date(module.dueDate!))} </h3>
             </div>
         </div>
 
@@ -86,7 +93,14 @@ function generatePrettyMessage(course: string, modules: Module[]) {
     let moodleContent = `📚 ${parent}\n`
 
     for (const moodleModule of modules) {
-        moodleContent += `➤ ${emojis[moodleModule.kind as keyof typeof emojis]} ${moodleModule.name} (De: ${formatDate(new Date(moodleModule.allowSubmissionsFrom!))}, até ${formatDate(new Date(moodleModule.dueDate!))})\n`
+        let de = ""
+        const from = new Date(moodleModule.allowSubmissionsFrom!)
+        // verify if its is bigger than epoch
+        if (from > new Date(0)) {
+            de = `De: ${formatDate(from)}, `
+        }
+
+        moodleContent += ` ➤ ${emojis[moodleModule.kind as keyof typeof emojis]} ${moodleModule.name} (${de}até ${formatDate(new Date(moodleModule.dueDate!))})\n`
         moodleContent += `Acesse em ${moodleModule.url}\n`
     }
 
@@ -108,7 +122,7 @@ function generateFullMessage(title: string, all: Record<string, Module[]>) {
 
     let output = `📅✨ ${title} 🚀\n`
     output += `🎉 Eae, galera, suave na nave? ${verbTem} ${total} ${verbDisponiveis}! 🚀\n\n`
-    output += messages.join("\n")
+    output += messages.join("\n\n")
     output += "\n😃 Criado usando o Suave (https://suave-one.vercel.app/)."
 
     return output
@@ -184,7 +198,13 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
 
     useEffect(() => {
         const fetchCourse = async (course: Course) => {
-            const name = course.fullname.split(' - ')[1]
+            const pieces = course.fullname.split(' - ')
+            let name = course.fullname
+
+            if (pieces.length > 1) {
+                name = course.fullname.split(' - ')[1]
+            }
+
             const { modules } = await bridge.GetAvailableModules([course])
 
             // merge available modules

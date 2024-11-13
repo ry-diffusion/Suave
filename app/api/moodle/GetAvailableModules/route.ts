@@ -1,7 +1,5 @@
-import AuthenticatedMobileApi, { ContentData, ModuleData } from "@/moodle/AuthenticatedMobileApi";
+import AuthenticatedMobileApi, { Assignment, ContentData, ModuleData, Quiz } from "@/moodle/AuthenticatedMobileApi";
 import { moodleByName } from "@/Support/Institutions";
-
-// TODO: Split parseModules into smaller functions
 
 export interface Module {
     name: string,
@@ -74,11 +72,16 @@ function parseByRegex(moodleModule: ModuleData): ModuleExtDate | null {
 
 function parseModules(contents: ContentData[]): Module[] {
     const found: Module[] = []
+    const all = []
 
     for (const content of contents) {
         for (const moodleModule of content.modules) {
+
+            all.push(moodleModule)
             if (moodleModule.modname == "label" || !moodleModule.uservisible)
                 continue
+
+
 
             const queries = [parseByCustomData, parseByDate, parseByRegex]
 
@@ -179,6 +182,73 @@ export interface GetAvailableModulesInput {
     courses: { id: number, fullname: string }[]
 }
 
+
+function convertQuizToModule(quiz: Quiz, parent: string, baseUrl: string): Module {
+    return {
+        name: quiz.name,
+        parent,
+        kind: 'quiz',
+        url: `${baseUrl}/mod/quiz/view.php?id=${quiz.coursemodule}`,
+        allowSubmissionsFrom: new Date(quiz.timeopen * 1000),
+        dueDate: new Date(quiz.timeclose * 1000)
+    }
+}
+
+function convertAssignmentToModule(assign: Assignment, parent: string, baseUrl: string): Module {
+    return {
+        name: assign.name,
+        parent,
+        kind: 'assign',
+        url: `${baseUrl}/mod/assign/view.php?id=${assign.cmid}`,
+        allowSubmissionsFrom: new Date(assign.timemodified * 1000),
+        dueDate: new Date(assign.duedate * 1000)
+    }
+}
+
+async function fetchModernModules(courses: { id: number, fullname: string }[], moodle: AuthenticatedMobileApi): Promise<Map<string, Module[]>> {
+    const allModules = new Map<string, Module[]>();
+
+    for (const course of courses) {
+        const contents = await moodle.fetchCourseContents(course.id);
+
+        const modules = parseModules(contents)
+        allModules.set(course.fullname, modules)
+    }
+
+    return allModules
+}
+
+async function fetchLegacyModules(courses: { id: number, fullname: string }[], moodle: AuthenticatedMobileApi): Promise<Map<string, Module[]>> {
+    const allModules = new Map<string, Module[]>();
+
+    for (const course of courses) {
+        const quizzes = (await moodle.fetchQuizzes(course.id)).quizzes
+        const assignmentsCourse = (await moodle.fetchAssignments(course.id)).courses
+
+        const modules = quizzes.map(quiz => convertQuizToModule(quiz, course.fullname, moodle.baseURL))
+
+        for (const assignCourse of assignmentsCourse) {
+            for (const assign of assignCourse.assignments)
+                modules.push(convertAssignmentToModule(assign, course.fullname, moodle.baseURL))
+        }
+
+        allModules.set(course.fullname, modules)
+    }
+
+    return allModules
+
+}
+
+function getAllModulesCount(allModules: Map<string, Module[]>) {
+    let count = 0
+
+    for (const [, modules] of allModules) {
+        count += modules.length
+    }
+
+    return count
+}
+
 export async function POST(
     request: Request
 ) {
@@ -209,13 +279,10 @@ export async function POST(
 
     const input: GetAvailableModulesInput = await request.json();
 
-    const allModules = new Map<string, Module[]>();
+    let allModules = await fetchModernModules(input.courses, moodle)
 
-    for (const course of input.courses) {
-        const contents = await moodle.fetchCourseContents(course.id);
-
-        const modules = parseModules(contents)
-        allModules.set(course.fullname, modules)
+    if (getAllModulesCount(allModules) == 0) {
+        allModules = await fetchLegacyModules(input.courses, moodle)
     }
 
     const organized = organizeEverything(allModules)
