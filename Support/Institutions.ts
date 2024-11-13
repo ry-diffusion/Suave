@@ -26,6 +26,9 @@ export const Providers: Record<string, Provider> = {
             api: new MobileApi("https://presencial.ifgoiano.edu.br"),
             useBridge: (token: string) => new MoodleBridge(token, "Presencial IF Goiano")
         },
+        suap: {
+            api: new SuapContext("https://suap.ifgoiano.edu.br")
+        }
     },
 
     "Cefet AVA": {
@@ -33,6 +36,17 @@ export const Providers: Record<string, Provider> = {
         moodle: {
             api: new MobileApi("https://ava.cefetmg.br"),
             useBridge: (token: string) => new MoodleBridge(token, "Cefet AVA")
+        }
+    },
+
+    "IF Paraná AVA": {
+        features: [HAS_MOODLE_SUPPORT, HAS_SUAP_SUPPORT],
+        moodle: {
+            api: new MobileApi("https://ava.ifpr.edu.br"),
+            useBridge: (token: string) => new MoodleBridge(token, "IF Paraná AVA")
+        },
+        suap: {
+            api: new SuapContext("https://suap.ifpr.edu.br")
         }
     }
 }
