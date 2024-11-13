@@ -17,7 +17,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Suave",
-  description: "A sua ferramenta do IF Goiano",
+  description: "A sua ferramenta do IF",
 };
 
 export default function RootLayout({

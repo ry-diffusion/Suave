@@ -172,7 +172,7 @@ function Dash({ available, isReady }: { available: GetAvailableModulesResponse, 
 
 function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBridge }) {
     const [isLoading, setIsLoading] = useState(true)
-    const [text, setText] = useState("Seus cursos")
+    const [text, setText] = useState("Preparando-se...")
 
     const [available, setAvailable] = useState<{ modules: Record<string, Module[]> }>({
         modules: {
@@ -204,11 +204,19 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
                 return available
             });
 
-            setText(name)
+            setText(`Analisado: ${name}`)
         }
 
         const fetchModules = async () => {
             const tasks = courses.map(fetchCourse)
+
+            /** 
+             * Uma coisa que nunca vou entender
+             * É de porque ser mais rápido buscar curso por curso em várias requisições
+             * Do que buscar tudo de uma vez KKKKKKKKKKKKKKK?
+             * Foda.
+             * ~Moizes
+            */
             await Promise.all(tasks)
 
             setIsLoading(false)
@@ -219,7 +227,7 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
 
     return <div className="flex flex-col gap-4 items-center">
         {
-            isLoading ? <TimedLoading message={`Analisado: ${text}`} /> : null
+            isLoading ? <TimedLoading message={`${text}`} /> : null
         }
 
         {
@@ -249,13 +257,14 @@ function Container() {
     </Content>
 
 }
+
 export default function MoodlesDisponiveis() {
     const { passport } = usePassport();
 
     if (!passport) {
         return <Content>
-            <Loading message="Você não está logado! Redirecionando a página inicial" />
-            <meta httpEquiv="refresh" content="1;url=/" />
+            <Loading message="Sessão inválida! Redirecionando a página inicial" />
+            <meta httpEquiv="refresh" content="0;url=/" />
         </Content>
     }
 
