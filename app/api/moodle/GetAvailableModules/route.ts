@@ -1,4 +1,4 @@
-import AuthenticatedMobileApi, { ContentData } from "@/moodle/AuthenticatedMobileApi";
+import AuthenticatedMobileApi, { ContentData, ModuleData } from "@/moodle/AuthenticatedMobileApi";
 import { moodleByName } from "@/Support/Institutions";
 
 // TODO: Split parseModules into smaller functions
@@ -12,67 +12,90 @@ export interface Module {
     dueDate?: Date,
 }
 
+interface ModuleExtDate {
+    name?: string,
+    allowSubmissionsFrom: Date,
+    dueDate: Date
+}
+
+function parseByDate(moodleModule: ModuleData): ModuleExtDate | null {
+    if (moodleModule.dates && moodleModule.dates.length > 1) {
+        const allowSubmissionsFrom = new Date(moodleModule.dates[0].timestamp * 1000)
+        const dueDate = new Date(moodleModule.dates[1].timestamp * 1000)
+
+        return {
+            allowSubmissionsFrom,
+            dueDate
+        }
+    }
+
+    return null
+}
+
+function parseByCustomData(moodleModule: ModuleData): ModuleExtDate | null {
+    if (null != moodleModule.customdata) {
+        const payload = JSON.parse(moodleModule.customdata)
+        if (payload.customdata) {
+            const dueDate = new Date(payload.customdata.duedate * 1000)
+            const allowSubmissionsFrom = new Date(payload.customdata.allowsubmissionsfromdate * 1000)
+            return {
+                allowSubmissionsFrom,
+                dueDate
+            }
+        }
+    }
+
+    return null
+}
+
+function parseByRegex(moodleModule: ModuleData): ModuleExtDate | null {
+    const regex = /(?<qNome>\w* \d{1,2}) \((?<abre>\d{2}\/\d{2})\s*-\s*(?<fecha>\d{2}\/\d{2})\)/;
+    const match = moodleModule.name.match(regex);
+
+    const parse = (currentYear: number, abre: string) => {
+        const [day, month] = abre.split("/");
+        return new Date(`${currentYear}-${month}-${day}`);
+    };
+
+    if (match) {
+        const currentYear = new Date().getFullYear();
+        const dueDate = parse(currentYear, match.groups?.fecha as string);
+        const allowSubmissionsFrom = parse(currentYear, match.groups?.abre as string);
+
+        return {
+            name: match.groups?.qNome as string,
+            allowSubmissionsFrom,
+            dueDate
+        };
+    }
+
+    return null;
+}
+
 function parseModules(contents: ContentData[]): Module[] {
     const found: Module[] = []
+
     for (const content of contents) {
         for (const moodleModule of content.modules) {
             if (moodleModule.modname == "label" || !moodleModule.uservisible)
                 continue
 
-            const baseOutput = {
-                name: moodleModule.name,
-                parent: content.name,
-                kind: moodleModule.modname,
-                url: moodleModule.url,
-            }
+            const queries = [parseByCustomData, parseByDate, parseByRegex]
 
-            if (moodleModule.dates && moodleModule.dates.length > 1) {
-                const allowSubmissionsFrom = new Date(moodleModule.dates[0].timestamp * 1000)
-                const dueDate = new Date(moodleModule.dates[1].timestamp * 1000)
+            for (const doQuery of queries) {
+                const result = doQuery(moodleModule)
 
-                found.push({
-                    ...baseOutput,
-                    allowSubmissionsFrom,
-                    dueDate
-                })
-
-                continue
-            }
-
-            if (null != moodleModule.customdata) {
-                const payload = JSON.parse(moodleModule.customdata)
-                if (payload.customdata) {
-                    const dueDate = new Date(payload.customdata.duedate * 1000)
-                    const allowSubmissionsFrom = new Date(payload.customdata.allowsubmissionsfromdate * 1000)
+                if (result) {
                     found.push({
-                        ...baseOutput,
-                        allowSubmissionsFrom,
-                        dueDate
+                        name: moodleModule.name,
+                        parent: content.name,
+                        kind: moodleModule.modname,
+                        url: moodleModule.url,
+                        ...result
                     })
-                    continue;
+
+                    break
                 }
-            }
-
-            const regex = /(?<qNome>\w* \d{1,2}) \((?<abre>\d{2}\/\d{2})\s*-\s*(?<fecha>\d{2}\/\d{2})\)/;
-            const match = moodleModule.name.match(regex);
-
-            const parse = (currentYear: number, abre: string) => {
-                const [day, month] = abre.split("/");
-                return new Date(`${currentYear}-${month}-${day}`);
-            };
-
-
-            if (match) {
-                const currentYear = new Date().getFullYear();
-                const dueDate = parse(currentYear, match.groups?.fecha as string);
-                const allowSubmissionsFrom = parse(currentYear, match.groups?.abre as string);
-
-                found.push({
-                    ...baseOutput,
-                    name: match.groups?.qNome as string,
-                    allowSubmissionsFrom,
-                    dueDate
-                });
             }
         }
     }

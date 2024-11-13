@@ -184,7 +184,7 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
     useEffect(() => {
         const fetchModules = async () => {
             for (const course of courses) {
-                const name = course.displayname.split(' - ')[1]
+                const name = course.fullname.split(' - ')[1]
                 setText(name)
 
                 const { modules } = await bridge.GetAvailableModules([course])

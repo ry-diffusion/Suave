@@ -31,10 +31,9 @@ export async function GET(request: Request) {
     const token = rawToken.replace('Bearer', '').trim()
     const moodle = AuthenticatedMobileApi.fromUnauthenticated(moodleProvider.api, token);
 
-    const siteInfo = await moodle.fetchSiteInfo();
-    const userId = siteInfo.userid;
+    const response = await moodle.fetchEnrolledCoursesByTimelineClassification()
 
-    const courses = await moodle.fetchEnrolledCourses(userId);
+    response.courses = response.courses.filter(course => course.visible)
 
-    return Response.json({ courses })
+    return Response.json(response)
 }

@@ -99,7 +99,7 @@ export default class AuthenticatedMobileApi extends MobileApi {
         return new AuthenticatedMobileApi(parent.baseURL, token)
     }
 
-    override async call(task: string, params?: Record<string, any>): Promise<any> {
+    override async call<T>(task: string, params?: Record<string, unknown>): Promise<T> {
         const response = await super.call(task, params ?? {}, this.token)
 
         if (Object.keys(response).includes('error')) {
@@ -116,6 +116,13 @@ export default class AuthenticatedMobileApi extends MobileApi {
     async fetchEnrolledCourses(userId: string): Promise<Course[]> {
         return await this.call('core_enrol_get_users_courses', {
             userid: userId
+        })
+    }
+
+    async fetchEnrolledCoursesByTimelineClassification(): Promise<{ courses: Course[] }> {
+        return await this.call('core_course_get_enrolled_courses_by_timeline_classification', {
+            classification: "all",
+            sort: "fullname",
         })
     }
 
