@@ -8,7 +8,7 @@ export type SiteInfo = {
     userpictureurl: string,
     release: string,
     version: string,
-    userid: string,
+    userid: number,
 }
 
 export type Course = {
@@ -43,8 +43,11 @@ export type Course = {
 
 export interface ModuleData {
     name: string;
+    instance: number;
     modname: string;
     url: string;
+    completiondata: { state: number, timecompleted: number } | null;
+    completion: number;
     uservisible: boolean;
     dates?: { timestamp: number }[];
     customdata?: string;
@@ -168,6 +171,39 @@ type AssignmentConfig = {
 };
 
 
+interface ActivityStatus {
+    cmid: number; // Course Module ID
+    modname: string; // Module name (e.g., 'assign' for assignment)
+    instance: number; // Instance ID of the activity (e.g., assignment ID)
+    state: number; // State of the activity: 1 for completed, 0 for not completed
+    timecompleted: number; // Timestamp when the activity was completed (0 if not completed)
+    tracking: number; // Whether tracking is enabled (1 if enabled)
+    overrideby: string | null; // The user who overrode the completion (null if not overridden)
+    valueused: boolean; // Indicates whether a specific value was used in the completion process
+    hascompletion: boolean; // Whether the activity has completion tracking enabled
+    isautomatic: boolean; // Whether completion tracking is automatic
+    istrackeduser: boolean; // Whether the user is tracked for completion
+    uservisible: boolean; // Whether the activity is visible to the user
+    details: unknown[]; // Additional details (currently empty in your example)
+}
+
+interface MoodleStatusResponse {
+    statuses: ActivityStatus[]; // Array of activity statuses
+    warnings: string[]; // Any warnings (currently empty in your example)
+}
+
+export interface Attempt {
+    id: number;
+    quiz: number;
+    attempt: number;
+    state: 'inprogress' | 'overdue' | 'finished' | 'abandoned';
+}
+
+export interface MoodleUserAttemptsResponse {
+    attempts: Attempt[],
+    warnings: string[]
+}
+
 export default class AuthenticatedMobileApi extends MobileApi {
     private token: string
 
@@ -194,7 +230,7 @@ export default class AuthenticatedMobileApi extends MobileApi {
         return await this.call('core_webservice_get_site_info')
     }
 
-    async fetchEnrolledCourses(userId: string): Promise<Course[]> {
+    async fetchEnrolledCourses(userId: number): Promise<Course[]> {
         return await this.call('core_enrol_get_users_courses', {
             userid: userId
         })
@@ -210,6 +246,20 @@ export default class AuthenticatedMobileApi extends MobileApi {
     async fetchQuizzes(courseId: number): Promise<{ quizzes: Quiz[] }> {
         return await this.call('mod_quiz_get_quizzes_by_courses', {
             courseids: [courseId]
+        })
+    }
+
+    async fetchCourseCompletionStatus(courseId: number, userId: number): Promise<MoodleStatusResponse> {
+        return await this.call('core_completion_get_activities_completion_status', {
+            courseid: courseId,
+            userid: userId
+        })
+    }
+
+    async fetchUserAttemps(quizId: number, userId: number): Promise<MoodleUserAttemptsResponse> {
+        return await this.call('mod_quiz_get_user_attempts', {
+            quizid: quizId,
+            userid: userId
         })
     }
 

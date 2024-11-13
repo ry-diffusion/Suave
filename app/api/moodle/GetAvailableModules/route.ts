@@ -8,6 +8,8 @@ export interface Module {
     url: string,
     allowSubmissionsFrom?: Date,
     dueDate?: Date,
+    hasCompleted: boolean,
+    id: number
 }
 
 interface ModuleExtDate {
@@ -72,16 +74,11 @@ function parseByRegex(moodleModule: ModuleData): ModuleExtDate | null {
 
 function parseModules(contents: ContentData[]): Module[] {
     const found: Module[] = []
-    const all = []
 
     for (const content of contents) {
         for (const moodleModule of content.modules) {
-
-            all.push(moodleModule)
             if (moodleModule.modname == "label" || !moodleModule.uservisible)
                 continue
-
-
 
             const queries = [parseByCustomData, parseByDate, parseByRegex]
 
@@ -89,11 +86,19 @@ function parseModules(contents: ContentData[]): Module[] {
                 const result = doQuery(moodleModule)
 
                 if (result) {
+                    let hasCompleted = moodleModule.completion == 1
+
+                    if (moodleModule.completiondata) {
+                        hasCompleted = moodleModule.completiondata.state == 1
+                    }
+
                     found.push({
+                        id: moodleModule.instance,
                         name: moodleModule.name,
                         parent: content.name,
                         kind: moodleModule.modname,
                         url: moodleModule.url,
+                        hasCompleted,
                         ...result
                     })
 
@@ -107,7 +112,7 @@ function parseModules(contents: ContentData[]): Module[] {
 }
 
 function organizeModules(modules: Module[]) {
-    const past = modules.filter(module => module.dueDate && module.dueDate < new Date())
+    const past = modules.filter(module => module.dueDate && module.dueDate < new Date() || !module.dueDate || (!module.allowSubmissionsFrom && !module.dueDate))
     const current = modules.filter(module => module.dueDate && module.dueDate > new Date() && module.allowSubmissionsFrom && module.allowSubmissionsFrom < new Date())
     const future = modules.filter(module => module.allowSubmissionsFrom && module.allowSubmissionsFrom > new Date())
 
@@ -185,23 +190,27 @@ export interface GetAvailableModulesInput {
 
 function convertQuizToModule(quiz: Quiz, parent: string, baseUrl: string): Module {
     return {
+        id: quiz.id,
         name: quiz.name,
         parent,
         kind: 'quiz',
+        hasCompleted: quiz.attempts > 0,
         url: `${baseUrl}/mod/quiz/view.php?id=${quiz.coursemodule}`,
-        allowSubmissionsFrom: new Date(quiz.timeopen * 1000),
-        dueDate: new Date(quiz.timeclose * 1000)
+        allowSubmissionsFrom: quiz.timeopen != 0 ? new Date(quiz.timeopen * 1000) : undefined,
+        dueDate: quiz.timeopen != 0 ? new Date(quiz.timeclose * 1000) : undefined
     }
 }
 
 function convertAssignmentToModule(assign: Assignment, parent: string, baseUrl: string): Module {
     return {
+        id: assign.cmid,
         name: assign.name,
         parent,
+        hasCompleted: assign.completionsubmit > 0,
         kind: 'assign',
         url: `${baseUrl}/mod/assign/view.php?id=${assign.cmid}`,
-        allowSubmissionsFrom: new Date(assign.timemodified * 1000),
-        dueDate: new Date(assign.duedate * 1000)
+        allowSubmissionsFrom: assign.timemodified != 0 ? new Date(assign.timemodified * 1000) : undefined,
+        dueDate: assign.timemodified != 0 ? new Date(assign.duedate * 1000) : undefined
     }
 }
 
@@ -279,10 +288,41 @@ export async function POST(
 
     const input: GetAvailableModulesInput = await request.json();
 
+    const siteInfo = await moodle.fetchSiteInfo()
+
     let allModules = await fetchModernModules(input.courses, moodle)
 
     if (getAllModulesCount(allModules) == 0) {
         allModules = await fetchLegacyModules(input.courses, moodle)
+    }
+
+    const completionStatus = await moodle.fetchCourseCompletionStatus(input.courses[0].id, siteInfo.userid)
+
+    /**
+     * Verifica se o usuário já completou a atividade.
+     * Cara, é sério KKKK fiquei muito tempo debugando para ver pq krlhs o coiso não verifica as tentativas
+     * do Moodle de Biologia, e por algum motivo só funciona assim.
+     * Foda.
+     */
+    for (const [, modules] of allModules) {
+        for (const pModule of modules) {
+            const found = completionStatus.statuses.find(x => pModule.url.includes(x.cmid.toString()))
+
+            if (null != found) {
+                pModule.hasCompleted = found?.state == 1
+
+                if (pModule.dueDate == new Date(0)) {
+                    pModule.dueDate = new Date(found.timecompleted * 1000)
+                }
+                // O FALLBACK FINALLLLL porra.
+            } else if (pModule.kind == "quiz") {
+                const userAttempts = await moodle.fetchUserAttemps(pModule.id, siteInfo.userid)
+
+                if (userAttempts.attempts.length > 0) {
+                    pModule.hasCompleted = true
+                }
+            }
+        }
     }
 
     const organized = organizeEverything(allModules)
