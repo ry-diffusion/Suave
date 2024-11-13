@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og'
 
 // Image metadata
 export const size = {
-    width: 600,
+    width: 800,
     height: 200,
 }
 export const contentType = 'image/png'
