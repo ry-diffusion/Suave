@@ -3,8 +3,8 @@ import { ImageResponse } from 'next/og'
 
 // Image metadata
 export const size = {
-    width: 1200,
-    height: 630,
+    width: 600,
+    height: 200,
 }
 export const contentType = 'image/png'
 
@@ -21,35 +21,28 @@ export default async function Icon() {
                     width: '100%',
                     height: '100%',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'black',
 
+                    border: '1px solid #505050',
                 }}
             >
                 <h1 style={
                     {
-                        fontSize: 24,
-                        background: 'black',
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        fontSize: 32,
                         color: 'transparent',
                         backgroundImage: 'linear-gradient(140deg, #D2A8FF 12.09%, #F778BA 42.58%, #FF7B72 84.96%)',
                         backgroundClip: 'text',
                     }
                 }>
-                    Bem vindo ao Suave
+                    Suave - Sua ferramenta do IF
                 </h1>
 
                 <p style={{
-                    color: 'white',
-                    fontSize: 12,
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
+                    color: '#525252',
+                    fontSize: 20,
+
                     padding: 8,
 
                 }}> Por Moizes J. Sousa </p>
@@ -61,8 +54,6 @@ export default async function Icon() {
             // For convenience, we can re-use the exported icons size metadata
             // config to also set the ImageResponse's width and height.
             ...size,
-
-
         }
     )
 }
