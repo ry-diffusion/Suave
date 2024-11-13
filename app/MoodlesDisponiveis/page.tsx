@@ -172,7 +172,8 @@ function Dash({ available, isReady }: { available: GetAvailableModulesResponse, 
 
 function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBridge }) {
     const [isLoading, setIsLoading] = useState(true)
-    const [text, setText] = useState("")
+    const [text, setText] = useState("Seus cursos")
+
     const [available, setAvailable] = useState<{ modules: Record<string, Module[]> }>({
         modules: {
             current: [],
@@ -182,30 +183,33 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
     })
 
     useEffect(() => {
-        const fetchModules = async () => {
-            for (const course of courses) {
-                const name = course.fullname.split(' - ')[1]
-                setText(name)
+        const fetchCourse = async (course: Course) => {
+            const name = course.fullname.split(' - ')[1]
+            const { modules } = await bridge.GetAvailableModules([course])
 
-                const { modules } = await bridge.GetAvailableModules([course])
-
-                // merge available modules
-                setAvailable(a => {
-                    const available = { ...a }
-                    for (const [key, value] of Object.entries(modules)) {
-                        if (!available.modules[key]) {
-                            available.modules[key] = []
-                        }
-
-                        available.modules[key] = {
-                            ...available.modules[key],
-                            ...value
-                        }
+            // merge available modules
+            setAvailable(a => {
+                const available = { ...a }
+                for (const [key, value] of Object.entries(modules)) {
+                    if (!available.modules[key]) {
+                        available.modules[key] = []
                     }
 
-                    return available
-                });
-            }
+                    available.modules[key] = {
+                        ...available.modules[key],
+                        ...value
+                    }
+                }
+
+                return available
+            });
+
+            setText(name)
+        }
+
+        const fetchModules = async () => {
+            const tasks = courses.map(fetchCourse)
+            await Promise.all(tasks)
 
             setIsLoading(false)
         }
@@ -213,11 +217,9 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
         fetchModules()
     }, [courses, bridge])
 
-
-
     return <div className="flex flex-col gap-4 items-center">
         {
-            isLoading ? <TimedLoading message={`Analisando: ${text}`} /> : null
+            isLoading ? <TimedLoading message={`Analisado: ${text}`} /> : null
         }
 
         {
