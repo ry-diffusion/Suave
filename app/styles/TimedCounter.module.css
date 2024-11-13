@@ -1,7 +1,7 @@
 .counter {
     font-size: 1.5em;
-    background-image: linear-gradient(90deg, #FFBD35, #9A0680) text;
-    background-clip: text;
+    color: transparent;
+    background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00) text;
     text-shadow: 0 0 0.2em #555;
     font-weight: bold;
     text-align: center;
