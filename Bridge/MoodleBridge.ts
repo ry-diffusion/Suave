@@ -1,4 +1,4 @@
-import { GetAvailableModulesResponse, Module } from "@/app/api/moodle/GetAvailableModules/route";
+import { ApiModule, GetAvailableModulesResponse, Module } from "@/app/api/moodle/GetAvailableModules/route";
 import { Entry, QueryModule } from "@/app/api/moodle/GetCourseCompletionStatus/route";
 import { GetEnrolledCoursesResponse } from "@/app/api/moodle/GetEnrolledCourses/route";
 import { Course } from "@/Moodle/AuthenticatedMobileApi";
@@ -49,7 +49,7 @@ export class MoodleBridge {
     }
 
 
-    async GetCourseCompletionStatus(query: { courseId: number, modules: Module[] }[]): Promise<Entry[]> {
+    async GetCourseCompletionStatus(query: { courseId: number, modules: (ApiModule | Module)[] }[]): Promise<Entry[]> {
         // Reduce the size of the query by removing unnecessary fields
         const optimizedQuery: { courseId: number, modules: QueryModule[] }[] = query.map(({ courseId, modules }) => {
             return {

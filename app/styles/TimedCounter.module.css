@@ -1,8 +1,9 @@
 .counter {
     font-size: 1.5em;
     color: transparent;
-    background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00) text;
-    text-shadow: 0 0 0.2em #555;
+    background: linear-gradient(90deg, #fff, #ddd, #eee) text;
+    text-shadow: 0 0 0.5em #FFF;
+
     font-weight: bold;
     text-align: center;
     margin: 0;

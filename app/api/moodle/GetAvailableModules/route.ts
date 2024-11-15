@@ -13,6 +13,18 @@ export interface Module {
     instance: number
 }
 
+export interface ApiModule {
+    name: string,
+    parent: string,
+    kind: string,
+    url: string,
+    allowSubmissionsFrom?: Date,
+    dueDate?: number, // Timestamp
+    hasCompleted: boolean,
+    id: number,
+    instance: number
+}
+
 interface ModuleExtDate {
     name?: string,
     allowSubmissionsFrom: Date,

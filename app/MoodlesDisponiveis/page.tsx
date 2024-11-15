@@ -7,7 +7,7 @@ import { usePassport, useProvider } from "../AuthContext";
 import TimedLoading from "../components/TimedLoading";
 import Image from "next/image";
 import { MoodleBridge } from "@/Bridge/MoodleBridge";
-import { GetAvailableModulesResponse, Module } from "../api/moodle/GetAvailableModules/route";
+import { ApiModule } from "../api/moodle/GetAvailableModules/route";
 import Link from "next/link";
 import SuaveTitle from "../components/SuaveTitle";
 
@@ -18,7 +18,7 @@ import ErrorDialog from "../components/ErrorDialog";
 import { chunkedByToArray } from "@/Core/Iterators";
 import { useAsyncOnMount } from "@/Core/reactExtensions";
 
-type ModuleExt = Module & { course: string }
+type ModuleExt = ApiModule & { course: string }
 type AvailableModulesExt = {
     modules: {
         current: Record<number, ModuleExt[]>,
@@ -44,31 +44,31 @@ function formatDate(date: Date): string {
 }
 
 function Acessar({ url }: { url: string }) {
-    return <Link href={url} className="rounded-full bg-blue-500 text-black p-4 max-w-24 hover:scale-110 transition-all hover:bg-green-200 mt-auto self-start" target="_blank">
+    return <Link href={url} className="rounded-3xl bg-blue-500 text-black p-4 max-w-24 hover:scale-110 transition-all shadow-sm shadow-blue-800 hover:bg-green-200 mt-auto self-start" target="_blank">
         Acessar
     </Link>
 }
 
 function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
-    return <div className={`${className} flex text-center self-end px-2 shadow-sm rounded-xl absolute items-center gap-1 m-[-8px]`}> {children} </div>
+    return <div className={`${className} flex text-center self-start px-2 rounded-sm items-center gap-1 ml-4 mb-[-16px] z-10`}> {children} </div>
 }
 
 function Concluido() {
-    return <Badge className="text-black bg-green-400 shadow-green-200">
+    return <Badge className="text-black bg-green-400 shadow-green-200 shadow-sm">
         <Image className="black" src="/check.svg" alt="Check Icon" width={20} height={20} />
         Concluído
     </Badge>
 }
 
 function Pendente() {
-    return <Badge className="text-black bg-yellow-200 shadow-yellow-200">
+    return <Badge className="text-black bg-yellow-200 shadow-yellow-200 shadow-xl">
         <Image className="black" src="/sand-clock.svg" alt="Clock Icon" width={20} height={20} />
         Pendente
     </Badge>
 }
 
 function NãoFeito() {
-    return <Badge className="text-black bg-red-200">
+    return <Badge className="text-black bg-red-200 shadow-red-200 shadow-xl">
         <Image className="black" src="/sad-sit.svg" alt="Sad Icon" width={20} height={20} />
         Não Feito
     </Badge>
@@ -76,11 +76,11 @@ function NãoFeito() {
 
 function ModuleCard({ module, showOpenDate }: { module: ModuleExt, showOpenDate?: boolean }) {
 
-    return <div className="relative flex flex-col min-h-full">
+    return <div className="flex flex-col min-h-full p-2">
         {module.hasCompleted ? <Concluido /> :
             module.dueDate && new Date(module.dueDate) > new Date() ? <Pendente /> : <NãoFeito />}
 
-        <div className={`flex flex-col gap-4 p-8 rounded-sm bg-zinc-900 min-h-full`}>
+        <div className={`flex flex-col gap-4 p-8 rounded-sm bg-zinc-900 min-h-full z-1 shadow-inner shadow-neutral-800`}>
 
             <h2 className="uppercase text-blue-200"> {module.name} </h2>
             <div className="flex flex-col">
@@ -96,7 +96,9 @@ function ModuleCard({ module, showOpenDate }: { module: ModuleExt, showOpenDate?
                 </div> : null}
 
                 <div className="flex gap-1">
-                    <h3 className="text-red-200"> Fecha </h3>
+                    <h3 className="text-red-200"> {
+                        new Date() > new Date(module.dueDate!) ? "Fechado" : "Fecha"
+                    } </h3>
                     {module.dueDate ?
                         <h3 className="text-left"> em {formatDate(new Date(module.dueDate!))} </h3>
                         : <h3 className="text-left italic"> data desconhecida </h3>}
@@ -111,7 +113,7 @@ function ModuleCard({ module, showOpenDate }: { module: ModuleExt, showOpenDate?
 }
 
 
-function generatePrettyMessage(course: string, modules: Module[]) {
+function generatePrettyMessage(course: string, modules: ModuleExt[]) {
     const parent = course.split(' - ')[1]
 
     const emojis = {
@@ -156,7 +158,7 @@ function generatePrettyMessage(course: string, modules: Module[]) {
     return moodleContent
 }
 
-function generateFullMessage(title: string, all: Record<string, Module[]>) {
+function generateFullMessage(title: string, all: Record<string, ModuleExt[]>) {
     const messages = Object.entries(all).map(([course, modules]) => {
         return generatePrettyMessage(course, modules)
     }).filter(x => x.trim().length > 0)
@@ -223,7 +225,7 @@ function TimeCategory({ name, modules, showOpenDate }: { name: string, modules: 
     </div>
 }
 
-function Stats({ available }: { available: GetAvailableModulesResponse }) {
+function Stats({ available }: { available: AvailableModulesExt }) {
     let didMoodles = 0
     let total = 0
 
@@ -242,7 +244,7 @@ function Stats({ available }: { available: GetAvailableModulesResponse }) {
     const percentage = ((didMoodles / total) * 100).toFixed(2)
 
     return <div className="flex flex-col gap-4 items-center">
-        <h1> Eai? Estes são os moodles do momento. </h1>
+        <h1> E ai? Estes são os moodles do momento. </h1>
         <h2> Você fez {didMoodles} de {total} atividades, ou seja, {percentage}%! </h2>
     </div>
 }
@@ -361,7 +363,7 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
 
     useAsyncOnMount(async () => {
         console.time('useAsyncOnMount:LoadCourses()')
-        const tasks = chunkedByToArray(courses, 6).map(fetchCourses)
+        const tasks = chunkedByToArray(courses, 3).map(fetchCourses)
 
         /** 
          * Uma coisa que nunca vou entender
