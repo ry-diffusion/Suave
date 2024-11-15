@@ -245,7 +245,7 @@ function Stats({ available }: { available: AvailableModulesExt }) {
 
     return <div className="flex flex-col gap-4 items-center">
         <h1> E ai? Estes são os moodles do momento. </h1>
-        <h2> Você fez {didMoodles} de {total} atividades, ou seja, {percentage}%! </h2>
+        <h2 className="text-center"> Você fez {didMoodles} de {total} atividades, ou seja, {percentage}%! </h2>
     </div>
 }
 
@@ -258,10 +258,6 @@ function Dash({ available, isReady }: { available: AvailableModulesExt, isReady:
         <TimeCategory name="Moodles Passados" modules={available.modules.past} />
     </div>
 }
-
-
-
-
 
 function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBridge }) {
     const [isLoading, setIsLoading] = useState(true)
@@ -335,7 +331,7 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
             }
         });
 
-        const allStatus = await Promise.all(chunkedByToArray(query, 8).map(chunkedQuery => bridge.GetCourseCompletionStatus(chunkedQuery)))
+        const allStatus = await Promise.all(chunkedByToArray(query, 3).map(chunkedQuery => bridge.GetCourseCompletionStatus(chunkedQuery)))
         const status = allStatus.flat()
 
         setAvailable(oldModules => {
