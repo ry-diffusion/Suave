@@ -1,4 +1,4 @@
-import AuthenticatedMobileApi from "@/moodle/AuthenticatedMobileApi"
+import AuthenticatedMobileApi from "@/Moodle/AuthenticatedMobileApi"
 import { moodleByName } from "@/Support/Institutions"
 
 

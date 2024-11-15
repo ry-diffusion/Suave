@@ -1,4 +1,4 @@
-import AuthenticatedMobileApi, { Course } from "@/moodle/AuthenticatedMobileApi";
+import AuthenticatedMobileApi, { Course } from "@/Moodle/AuthenticatedMobileApi";
 import { moodleByName } from "@/Support/Institutions";
 
 export interface GetEnrolledCoursesResponse {

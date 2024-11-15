@@ -6,15 +6,26 @@ import Loading from "../components/Loading";
 import { usePassport, useProvider } from "../AuthContext";
 import TimedLoading from "../components/TimedLoading";
 import Image from "next/image";
-import { MoodleBridge } from "@/bridge/MoodleBridge";
+import { MoodleBridge } from "@/Bridge/MoodleBridge";
 import { GetAvailableModulesResponse, Module } from "../api/moodle/GetAvailableModules/route";
 import Link from "next/link";
 import SuaveTitle from "../components/SuaveTitle";
 
 import GCSS from "@/app/styles/Suave.module.css";
-import { Course } from "@/moodle/AuthenticatedMobileApi";
-import { useEffect, useState } from "react";
+import { Course } from "@/Moodle/AuthenticatedMobileApi";
+import { useState } from "react";
 import ErrorDialog from "../components/ErrorDialog";
+import { chunkedByToArray } from "@/Core/Iterators";
+import { useAsyncOnMount } from "@/Core/reactExtensions";
+
+type ModuleExt = Module & { course: string }
+type AvailableModulesExt = {
+    modules: {
+        current: Record<number, ModuleExt[]>,
+        future: Record<number, ModuleExt[]>,
+        past: Record<number, ModuleExt[]>,
+    }
+}
 
 function formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0'); // %d
@@ -63,8 +74,7 @@ function NãoFeito() {
     </Badge>
 }
 
-function ModuleCard({ module, course, showOpenDate }: { module: Module, course: string, showOpenDate?: boolean }) {
-    const parent = course.split(' - ')[1]
+function ModuleCard({ module, showOpenDate }: { module: ModuleExt, showOpenDate?: boolean }) {
 
     return <div className="relative flex flex-col min-h-full">
         {module.hasCompleted ? <Concluido /> :
@@ -74,7 +84,7 @@ function ModuleCard({ module, course, showOpenDate }: { module: Module, course: 
 
             <h2 className="uppercase text-blue-200"> {module.name} </h2>
             <div className="flex flex-col">
-                <h3 className="text-balance"> {parent} </h3>
+                <h3 className="text-balance"> {module.course} </h3>
             </div>
 
             <div className="flex flex-col gap-1 mt-auto">
@@ -95,7 +105,6 @@ function ModuleCard({ module, course, showOpenDate }: { module: Module, course: 
 
             <div className="flex flex-row place-content-between items-center">
                 <Acessar url={module.url} />
-
             </div>
         </div >
     </div>
@@ -169,14 +178,14 @@ function generateFullMessage(title: string, all: Record<string, Module[]>) {
 }
 
 
-function TimeCategory({ name: time, modules, showOpenDate }: { name: string, modules: Record<string, Module[]>, showOpenDate?: boolean }) {
+function TimeCategory({ name, modules, showOpenDate }: { name: string, modules: Record<number, ModuleExt[]>, showOpenDate?: boolean }) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const avaliableModules = Object.entries(modules).filter(([_, modules]) => modules.length > 0)
 
     if (avaliableModules.length === 0) return
 
     const shareWhatsapp = () => {
-        const message = generateFullMessage(time, modules)
+        const message = generateFullMessage(name, modules)
 
         if (message.trim().length === 0) {
             return
@@ -201,13 +210,13 @@ function TimeCategory({ name: time, modules, showOpenDate }: { name: string, mod
                 <Image src="/zap.svg" alt="Zap Icon" width={20} height={20} />
             </button>
 
-            <h2 className={`uppercase ${GCSS.blueGradientText} shadow-sm text-2xl`}> {time} </h2>
+            <h2 className={`uppercase ${GCSS.blueGradientText} shadow-sm text-2xl`}> {name} </h2>
         </div>
 
         <ul className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 place-content-between">
-            {avaliableModules.map(([name, modules]) =>
+            {avaliableModules.map(([, modules]) =>
                 modules.map(module => {
-                    return <ModuleCard module={module} course={name} key={module.url} showOpenDate={showOpenDate} />
+                    return <ModuleCard module={module} key={module.url} showOpenDate={showOpenDate} />
                 })
             )}
         </ul>
@@ -238,7 +247,7 @@ function Stats({ available }: { available: GetAvailableModulesResponse }) {
     </div>
 }
 
-function Dash({ available, isReady }: { available: GetAvailableModulesResponse, isReady: boolean }) {
+function Dash({ available, isReady }: { available: AvailableModulesExt, isReady: boolean }) {
     return <div className="flex flex-col gap-4 items-center">
         {isReady ? <Stats available={available} /> : <h1> Carregando... </h1>}
 
@@ -249,66 +258,125 @@ function Dash({ available, isReady }: { available: GetAvailableModulesResponse, 
 }
 
 
+
+
+
 function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBridge }) {
     const [isLoading, setIsLoading] = useState(true)
     const [text, setText] = useState("Preparando-se...")
 
-    const [available, setAvailable] = useState<{ modules: Record<string, Module[]> }>({
+    const [available, setAvailable] = useState<{ modules: Record<string, Record<number, ModuleExt[]>> }>({
         modules: {
-            current: [],
-            future: [],
-            past: []
+            current: {},
+            future: {},
+            past: {}
         }
     })
 
-    useEffect(() => {
-        const fetchCourse = async (course: Course) => {
-            const pieces = course.fullname.split(' - ')
-            let name = course.fullname
+    const courseNames = Object.fromEntries(courses.map(x => [x.id, x.fullname.split(' - ')[1] ?? x.fullname]))
 
-            if (pieces.length > 1) {
-                name = course.fullname.split(' - ')[1]
+    async function fetchCourses(courses: Course[]) {
+        const name = courses.map(x => {
+            const splices = x.fullname.split(' - ')
+            if (splices.length > 1) {
+                return splices[1]
+            }
+            return x.fullname
+        }).join(', ')
+
+        console.time(`fetchCourses(${name})`)
+
+
+        /**
+        * Cara, isso é bizzarro.
+        * Talvez eu deveria otimizar isso e fazer de um jeito menos hacky.
+        * Mas serve para hoje. 
+        */
+        const { modules: rawModules } = await bridge.GetAvailableModules(courses);
+        const modules = rawModules as unknown as Record<string, Record<number, ModuleExt[]>>
+
+        for (const coursesLoaded of Object.values(modules)) {
+            for (const [courseId, mods] of Object.entries(coursesLoaded)) {
+                for (const mod of mods) {
+                    mod.course = courseNames[courseId] ?? "Desconhecido"
+                }
+            }
+        }
+
+        // merge available modules
+        setAvailable(oldAvailable => {
+            const available = { ...oldAvailable }
+            for (const [key, value] of Object.entries(modules)) {
+                available.modules[key] = {
+                    ...available.modules[key],
+                    ...value,
+                }
             }
 
-            const { modules } = await bridge.GetAvailableModules([course])
+            return available
+        });
 
-            // merge available modules
-            setAvailable(a => {
-                const available = { ...a }
-                for (const [key, value] of Object.entries(modules)) {
-                    if (!available.modules[key]) {
-                        available.modules[key] = []
-                    }
+        setText(`Analisado: ${name}`)
 
-                    available.modules[key] = {
-                        ...available.modules[key],
-                        ...value
+        console.timeEnd(`fetchCourses(${name})`)
+    }
+
+    async function queryMoodleDoneStatus() {
+        console.time('queryMoodleDoneStatus()')
+        const query = courses.map(course => {
+            return {
+                courseId: course.id,
+                modules: [...Object.values(available.modules.current[course.id]),
+                ...Object.values(available.modules.future[course.id]),
+                ...Object.values(available.modules.past[course.id])
+                ]
+            }
+        });
+
+        const allStatus = await Promise.all(chunkedByToArray(query, 8).map(chunkedQuery => bridge.GetCourseCompletionStatus(chunkedQuery)))
+        const status = allStatus.flat()
+
+        setAvailable(oldModules => {
+            const available = { ...oldModules }
+
+            for (const timedModules of Object.values(available.modules)) {
+                for (const mods of Object.values(timedModules)) {
+                    for (const modId in mods) {
+                        const mod = mods[modId]
+                        const activity = status.find(x => x.activityId === mod.id)
+
+                        if (activity) {
+                            mod.hasCompleted = activity.hasCompleted
+                        }
                     }
                 }
+            }
 
-                return available
-            });
 
-            setText(`Analisado: ${name}`)
-        }
+            return available
+        })
 
-        const fetchModules = async () => {
-            const tasks = courses.map(fetchCourse)
+        console.timeEnd('queryMoodleDoneStatus()')
+    }
 
-            /** 
-             * Uma coisa que nunca vou entender
-             * É de porque ser mais rápido buscar curso por curso em várias requisições
-             * Do que buscar tudo de uma vez KKKKKKKKKKKKKKK?
-             * Foda.
-             * ~Moizes
-            */
-            await Promise.all(tasks)
+    useAsyncOnMount(async () => {
+        console.time('useAsyncOnMount:LoadCourses()')
+        const tasks = chunkedByToArray(courses, 6).map(fetchCourses)
 
-            setIsLoading(false)
-        }
+        /** 
+         * Uma coisa que nunca vou entender
+         * É de porque ser mais rápido buscar curso por curso em várias requisições
+         * Do que buscar tudo de uma vez KKKKKKKKKKKKKKK?
+         * Foda.
+         * ~Moizes
+        */
+        await Promise.all(tasks)
+        setText("Analisando o progresso dos cursos...")
+        await queryMoodleDoneStatus()
+        setIsLoading(false)
+        console.timeEnd('useAsyncOnMount:LoadCourses()')
+    });
 
-        fetchModules()
-    }, [courses, bridge])
 
     return <div className="flex flex-col gap-4 items-center">
         {
@@ -316,7 +384,7 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
         }
 
         {
-            available ? <Dash available={available as unknown as GetAvailableModulesResponse} isReady={!isLoading} /> : null
+            available ? <Dash available={available as unknown as AvailableModulesExt} isReady={!isLoading} /> : null
         }
     </div>
 }

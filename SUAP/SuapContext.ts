@@ -1,5 +1,5 @@
-import ApiClient from "@/core/ApiClient";
-import { LoginInput, SuapLoginOutput } from "@/core/typings";
+import ApiClient from "@/Core/ApiClient";
+import { LoginInput, SuapLoginOutput } from "@/Core/typings";
 
 export default class SuapContext extends ApiClient {
     async login(creds: LoginInput): Promise<SuapLoginOutput> {

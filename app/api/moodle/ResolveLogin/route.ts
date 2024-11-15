@@ -1,4 +1,4 @@
-import { LoginInput } from "@/core/typings"
+import { LoginInput } from "@/Core/typings"
 import { moodleByName } from "@/Support/Institutions"
 
 export async function POST(request: Request) {

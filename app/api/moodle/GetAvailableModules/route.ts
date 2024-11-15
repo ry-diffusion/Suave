@@ -1,4 +1,4 @@
-import AuthenticatedMobileApi, { Assignment, ContentData, ModuleData, Quiz } from "@/moodle/AuthenticatedMobileApi";
+import AuthenticatedMobileApi, { Assignment, ContentData, ModuleData, Quiz } from "@/Moodle/AuthenticatedMobileApi";
 import { moodleByName } from "@/Support/Institutions";
 
 export interface Module {
@@ -9,7 +9,8 @@ export interface Module {
     allowSubmissionsFrom?: Date,
     dueDate?: Date,
     hasCompleted: boolean,
-    id: number
+    id: number,
+    instance: number
 }
 
 interface ModuleExtDate {
@@ -93,7 +94,8 @@ function parseModules(contents: ContentData[]): Module[] {
                     }
 
                     found.push({
-                        id: moodleModule.instance,
+                        id: moodleModule.id,
+                        instance: moodleModule.instance,
                         name: moodleModule.name,
                         parent: content.name,
                         kind: moodleModule.modname,
@@ -123,11 +125,11 @@ function organizeModules(modules: Module[]) {
     }
 }
 
-function organizeEverything(allModules: Map<string, Module[]>): { past: Map<string, Module[]>, current: Map<string, Module[]>, future: Map<string, Module[]> } {
+function organizeEverything(allModules: Map<number, Module[]>): { past: Map<number, Module[]>, current: Map<number, Module[]>, future: Map<number, Module[]> } {
     const organized = {
-        past: new Map<string, Module[]>(),
-        current: new Map<string, Module[]>(),
-        future: new Map<string, Module[]>()
+        past: new Map<number, Module[]>(),
+        current: new Map<number, Module[]>(),
+        future: new Map<number, Module[]>()
     }
 
     for (const [course, modules] of allModules) {
@@ -149,11 +151,11 @@ function organizeEverything(allModules: Map<string, Module[]>): { past: Map<stri
 }
 
 
-function intoJson(organized: { past: Map<string, Module[]>, current: Map<string, Module[]>, future: Map<string, Module[]> }) {
+function intoJson(organized: { past: Map<number, Module[]>, current: Map<number, Module[]>, future: Map<number, Module[]> }) {
     const json: {
-        past: { [key: string]: Module[] },
-        current: { [key: string]: Module[] },
-        future: { [key: string]: Module[] }
+        past: { [key: number]: Module[] },
+        current: { [key: number]: Module[] },
+        future: { [key: number]: Module[] }
     } = {
         past: {},
         current: {},
@@ -177,9 +179,9 @@ function intoJson(organized: { past: Map<string, Module[]>, current: Map<string,
 
 export interface GetAvailableModulesResponse {
     modules: {
-        past: { [key: string]: Module[] },
-        current: { [key: string]: Module[] },
-        future: { [key: string]: Module[] }
+        past: { [key: number]: Module[] },
+        current: { [key: number]: Module[] },
+        future: { [key: number]: Module[] }
     }
 }
 
@@ -191,6 +193,7 @@ export interface GetAvailableModulesInput {
 function convertQuizToModule(quiz: Quiz, parent: string, baseUrl: string): Module {
     return {
         id: quiz.id,
+        instance: quiz.id,
         name: quiz.name,
         parent,
         kind: 'quiz',
@@ -203,7 +206,8 @@ function convertQuizToModule(quiz: Quiz, parent: string, baseUrl: string): Modul
 
 function convertAssignmentToModule(assign: Assignment, parent: string, baseUrl: string): Module {
     return {
-        id: assign.cmid,
+        id: assign.id,
+        instance: assign.cmid,
         name: assign.name,
         parent,
         hasCompleted: assign.completionsubmit > 0,
@@ -214,21 +218,21 @@ function convertAssignmentToModule(assign: Assignment, parent: string, baseUrl: 
     }
 }
 
-async function fetchModernModules(courses: { id: number, fullname: string }[], moodle: AuthenticatedMobileApi): Promise<Map<string, Module[]>> {
-    const allModules = new Map<string, Module[]>();
+async function fetchModernModules(courses: { id: number, fullname: string }[], moodle: AuthenticatedMobileApi): Promise<Map<number, Module[]>> {
+    const allModules = new Map<number, Module[]>();
 
     for (const course of courses) {
         const contents = await moodle.fetchCourseContents(course.id);
 
         const modules = parseModules(contents)
-        allModules.set(course.fullname, modules)
+        allModules.set(course.id, modules)
     }
 
     return allModules
 }
 
-async function fetchLegacyModules(courses: { id: number, fullname: string }[], moodle: AuthenticatedMobileApi): Promise<Map<string, Module[]>> {
-    const allModules = new Map<string, Module[]>();
+async function fetchLegacyModules(courses: { id: number, fullname: string }[], moodle: AuthenticatedMobileApi): Promise<Map<number, Module[]>> {
+    const allModules = new Map<number, Module[]>();
 
     for (const course of courses) {
         const quizzes = (await moodle.fetchQuizzes(course.id)).quizzes
@@ -241,14 +245,14 @@ async function fetchLegacyModules(courses: { id: number, fullname: string }[], m
                 modules.push(convertAssignmentToModule(assign, course.fullname, moodle.baseURL))
         }
 
-        allModules.set(course.fullname, modules)
+        allModules.set(course.id, modules)
     }
 
     return allModules
 
 }
 
-function getAllModulesCount(allModules: Map<string, Module[]>) {
+function getAllModulesCount(allModules: Map<number, Module[]>) {
     let count = 0
 
     for (const [, modules] of allModules) {
@@ -288,41 +292,10 @@ export async function POST(
 
     const input: GetAvailableModulesInput = await request.json();
 
-    const siteInfo = await moodle.fetchSiteInfo()
-
     let allModules = await fetchModernModules(input.courses, moodle)
 
     if (getAllModulesCount(allModules) == 0) {
         allModules = await fetchLegacyModules(input.courses, moodle)
-    }
-
-    const completionStatus = await moodle.fetchCourseCompletionStatus(input.courses[0].id, siteInfo.userid)
-
-    /**
-     * Verifica se o usuário já completou a atividade.
-     * Cara, é sério KKKK fiquei muito tempo debugando para ver pq krlhs o coiso não verifica as tentativas
-     * do Moodle de Biologia, e por algum motivo só funciona assim.
-     * Foda.
-     */
-    for (const [, modules] of allModules) {
-        for (const pModule of modules) {
-            const found = completionStatus.statuses.find(x => pModule.url.includes(x.cmid.toString()))
-
-            if (null != found) {
-                pModule.hasCompleted = found?.state == 1
-
-                if (pModule.dueDate == new Date(0)) {
-                    pModule.dueDate = new Date(found.timecompleted * 1000)
-                }
-                // O FALLBACK FINALLLLL porra.
-            } else if (pModule.kind == "quiz") {
-                const userAttempts = await moodle.fetchUserAttemps(pModule.id, siteInfo.userid)
-
-                if (userAttempts.attempts.length > 0) {
-                    pModule.hasCompleted = true
-                }
-            }
-        }
     }
 
     const organized = organizeEverything(allModules)

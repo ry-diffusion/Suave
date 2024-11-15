@@ -1,5 +1,5 @@
-import { LoginInput } from "@/core/typings";
-import UrlApiClient from "@/core/UrlApiClient";
+import { LoginInput } from "@/Core/typings";
+import UrlApiClient from "@/Core/UrlApiClient";
 
 type MoodleLoginOutput = {
     token: string,

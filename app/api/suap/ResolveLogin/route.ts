@@ -1,4 +1,4 @@
-import { LoginInput } from "@/core/typings"
+import { LoginInput } from "@/Core/typings"
 import { IFGoiano } from "@/SUAP/campus"
 
 export async function POST(request: Request) {

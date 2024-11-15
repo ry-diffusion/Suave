@@ -42,6 +42,7 @@ export type Course = {
 }
 
 export interface ModuleData {
+    id: number;
     name: string;
     instance: number;
     modname: string;
@@ -256,7 +257,7 @@ export default class AuthenticatedMobileApi extends MobileApi {
         })
     }
 
-    async fetchUserAttemps(quizId: number, userId: number): Promise<MoodleUserAttemptsResponse> {
+    async fetchUserAttempts(quizId: number, userId: number): Promise<MoodleUserAttemptsResponse> {
         return await this.call('mod_quiz_get_user_attempts', {
             quizid: quizId,
             userid: userId

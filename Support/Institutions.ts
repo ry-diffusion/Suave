@@ -1,7 +1,7 @@
-import MobileApi from "@/moodle/MobileApi"
+import MobileApi from "@/Moodle/MobileApi"
 import SuapContext from "@/SUAP/SuapContext"
 import { HAS_MOODLE_SUPPORT, HAS_SUAP_SUPPORT } from "./FeatureFlags"
-import { MoodleBridge } from "@/bridge/MoodleBridge"
+import { MoodleBridge } from "@/Bridge/MoodleBridge"
 
 export interface MoodleProvider {
     api: MobileApi,
