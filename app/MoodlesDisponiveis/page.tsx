@@ -114,7 +114,6 @@ function ModuleCard({ module, showOpenDate }: { module: ModuleExt, showOpenDate?
 
 
 function generatePrettyMessage(course: string, modules: ModuleExt[]) {
-    const parent = course.split(' - ')[1]
 
     const emojis = {
         "assign": "📝",
@@ -139,9 +138,7 @@ function generatePrettyMessage(course: string, modules: ModuleExt[]) {
         "h5pactivity": "🎮",
     }
 
-    if (modules.length === 0) return ""
-
-    let moodleContent = `📚 ${parent}\n`
+    let moodleContent = `📚 ${course}\n`
 
     for (const moodleModule of modules) {
         let de = ""
@@ -159,8 +156,9 @@ function generatePrettyMessage(course: string, modules: ModuleExt[]) {
 }
 
 function generateFullMessage(title: string, all: Record<string, ModuleExt[]>) {
-    const messages = Object.entries(all).map(([course, modules]) => {
-        return generatePrettyMessage(course, modules)
+    const messages = Object.entries(all).map(([, modules]) => {
+        if (modules.length === 0) return ""
+        return generatePrettyMessage(modules[0].course, modules)
     }).filter(x => x.trim().length > 0)
 
     let total = 0
