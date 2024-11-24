@@ -18,7 +18,7 @@ interface CurrentState {
     periodos: LetivosOut
 }
 
-function DownloadData({ setState }: { setState: (state: CurrentState) => void }) {
+function DownloadData({ setState, setUiState }: { setState: (state: CurrentState) => void, setUiState: (state: 'downloadContent' | 'readyToShow') => void }) {
     const provider = useProvider();
     const { passport } = usePassport();
 
@@ -70,6 +70,7 @@ function DownloadData({ setState }: { setState: (state: CurrentState) => void })
                 disciplinas: data.disciplinas,
                 periodos: data.periodoLetivos
             })
+            setUiState('readyToShow')
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
@@ -298,7 +299,7 @@ export default function DesempenhoAcademico() {
     }
 
     if (uiState === 'downloadContent') {
-        return <DownloadData setState={setState} />
+        return <DownloadData setState={setState} setUiState={setUiState} />
     }
 
     return <Content>
