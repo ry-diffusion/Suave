@@ -45,7 +45,7 @@ export default class AuthenticatedSuapContext extends ApiClient {
     }
 
     private async getAuthenticatedJson<T>(path: string): Promise<T> {
-        return await this.getJson(path, null, {
+        return await this.getJson(path, {
             'Authorization': `Bearer ${this.accessToken}`
         })
     }

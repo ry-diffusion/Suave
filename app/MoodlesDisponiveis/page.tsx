@@ -388,7 +388,7 @@ function LoadCourses({ courses, bridge }: { courses: Course[], bridge: MoodleBri
 function Container() {
     const { passport } = usePassport();
     const provider = useProvider();
-    const bridge = provider.moodle!.useBridge(passport!.moodleToken);
+    const bridge = provider.moodle!.makeBridge(passport!.moodleToken);
 
     const { isLoading, error, data } = useQuery({
         queryKey: ['courses'],

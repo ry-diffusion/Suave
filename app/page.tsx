@@ -68,7 +68,7 @@ function KnowninfoShow({ knownInfo }: { knownInfo: KnownInfo }) {
 function Whoami({ passport }: { passport: Passport }) {
   const { updateKnownInfo } = usePassport();
   const provider = useProvider();
-  const moodle = provider.moodle!.useBridge(passport.moodleToken);
+  const moodle = provider.moodle!.makeBridge(passport.moodleToken);
 
 
   const { isPending, error, data } = useQuery({

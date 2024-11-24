@@ -2,14 +2,16 @@ import MobileApi from "@/Moodle/MobileApi"
 import SuapContext from "@/SUAP/SuapContext"
 import { HAS_MOODLE_SUPPORT, HAS_SUAP_SUPPORT } from "./FeatureFlags"
 import { MoodleBridge } from "@/Bridge/MoodleBridge"
+import SuapBridge from "@/Bridge/SuapBridge"
 
 export interface MoodleProvider {
     api: MobileApi,
-    useBridge: (token: string) => MoodleBridge
+    makeBridge: (token: string) => MoodleBridge
 }
 
 export interface SuapProvider {
-    api: SuapContext
+    api: SuapContext,
+    makeBridge: (token: string) => SuapBridge
 }
 
 export interface Provider {
@@ -24,10 +26,11 @@ export const Providers: Record<string, Provider> = {
         features: [HAS_MOODLE_SUPPORT, HAS_SUAP_SUPPORT],
         moodle: {
             api: new MobileApi("https://presencial.ifgoiano.edu.br"),
-            useBridge: (token: string) => new MoodleBridge(token, "Presencial IF Goiano")
+            makeBridge: (token: string) => new MoodleBridge(token, "Presencial IF Goiano")
         },
         suap: {
-            api: new SuapContext("https://suap.ifgoiano.edu.br")
+            api: new SuapContext("https://suap.ifgoiano.edu.br"),
+            makeBridge: (token: string) => new SuapBridge(token, "Presencial IF Goiano")
         }
     },
 
@@ -35,7 +38,7 @@ export const Providers: Record<string, Provider> = {
         features: [HAS_MOODLE_SUPPORT],
         moodle: {
             api: new MobileApi("https://ava.cefetmg.br"),
-            useBridge: (token: string) => new MoodleBridge(token, "Cefet AVA")
+            makeBridge: (token: string) => new MoodleBridge(token, "Cefet AVA")
         }
     },
 
@@ -43,10 +46,11 @@ export const Providers: Record<string, Provider> = {
         features: [HAS_MOODLE_SUPPORT, HAS_SUAP_SUPPORT],
         moodle: {
             api: new MobileApi("https://ava.ifpr.edu.br"),
-            useBridge: (token: string) => new MoodleBridge(token, "IF Paraná AVA")
+            makeBridge: (token: string) => new MoodleBridge(token, "IF Paraná AVA")
         },
         suap: {
-            api: new SuapContext("https://suap.ifpr.edu.br")
+            api: new SuapContext("https://suap.ifpr.edu.br"),
+            makeBridge: (token: string) => new SuapBridge(token, "IF Paraná AVA")
         }
     }
 }

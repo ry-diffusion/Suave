@@ -18,7 +18,7 @@ export default abstract class ApiClient {
         this.baseURL = baseURL
     }
 
-    protected async post<T>(path: string, body: any): Promise<Awaited<T>> {
+    protected async post<T>(path: string, body: Record<string, string>): Promise<Awaited<T>> {
         const response = await fetch(`${this.baseURL}/${path}`, {
             ...this.POSTBuilder,
             body: new URLSearchParams(body),
@@ -27,13 +27,12 @@ export default abstract class ApiClient {
         return await response.json()
     }
 
-    protected async getJson<T>(path: string, body?: any, headers?: Record<string, string>): Promise<Awaited<T>> {
+    protected async getJson<T>(path: string, headers?: Record<string, string>): Promise<Awaited<T>> {
         const response = await fetch(`${this.baseURL}/${path}`, {
             headers: {
                 ...headers,
                 ...this.GETBuilder.headers
             },
-            body: body ? new URLSearchParams(body) : null,
         });
 
 
