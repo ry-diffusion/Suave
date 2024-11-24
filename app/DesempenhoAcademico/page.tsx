@@ -27,7 +27,7 @@ function DownloadData({ setState, setUiState }: { setState: (state: CurrentState
     }
 
     const { data, error } = useQuery({
-        queryKey: ['suap-ongoing-periodos', passport.username, passport.password],
+        queryKey: [],
         queryFn: async () => {
             const token = await fetch('/api/suap/ResolveLogin', {
                 method: 'POST',
@@ -93,11 +93,10 @@ const gatherGrades = (disciplina: ApiDisciplina) =>
 
 
 function Disciplinas({ disciplinas }: { disciplinas: Record<string, ApiDisciplina> }) {
-    const [setSort, setSortState] = useState<'cargaHoraria' | 'nota'>('cargaHoraria')
+    const [method, setSortState] = useState<'cargaHoraria' | 'nota'>('cargaHoraria')
     let entries = Object.entries(disciplinas)
 
-
-    switch (setSort) {
+    switch (method) {
         case 'cargaHoraria':
             entries = entries.sort((a, b) => (100 * (b[1].cargaHorariaCumprida / b[1].cargaHoraria)) - (100 * (a[1].cargaHorariaCumprida / a[1].cargaHoraria)))
             break;
@@ -116,7 +115,7 @@ function Disciplinas({ disciplinas }: { disciplinas: Record<string, ApiDisciplin
 
 
     return <div className="flex flex-col gap-4">
-        <div className="flex-row flex items-center gap-2 justify-evenly">
+        <div className="flex-row flex items-center gap-4 justify-evenly">
             <h2 className="text-2xl font-bold">Disciplinas</h2>
 
             <select className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2"
@@ -126,55 +125,70 @@ function Disciplinas({ disciplinas }: { disciplinas: Record<string, ApiDisciplin
             </select>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-2 ">
             {
-                entries.map(([nomeDisciplina, disciplina]) => {
-                    let progressColor = 'bg-green-500'
-                    let percentage = 0
-
-                    switch (setSort) {
-                        case 'cargaHoraria':
-                            progressColor = disciplina.cargaHorariaCumprida >= disciplina.cargaHoraria ? 'bg-green-800'
-                                : disciplina.cargaHorariaCumprida / disciplina.cargaHoraria > 0.8 ? 'bg-blue-900'
-                                    : disciplina.cargaHorariaCumprida / disciplina.cargaHoraria > 0.7 ? 'bg-orange-700' : 'bg-red-800';
-                            percentage = (100 * (disciplina.cargaHorariaCumprida / disciplina.cargaHoraria));
-                            break;
-                        case 'nota':
-                            const media = gatherGrades(disciplina).reduce((a, b) => a + b, 0) / gatherGrades(disciplina).length
-                            progressColor = media >= 8 ? 'bg-green-800'
-                                : media >= 6 ? 'bg-blue-900'
-                                    : media >= 3 ? 'bg-orange-700' : 'bg-red-800';
-                            percentage = media * 10;
-                            break;
-                    }
-
-                    const nome = nomeDisciplina.split(' - ')[1] ?? nomeDisciplina;
-
-                    return <div key={nomeDisciplina} className="flex relative min-h-full w-full items-center bg-zinc-900 rounded-md z-100">
-                        <div className="z-30 relative min-w-full h-full">
-                            <div className="relative flex flex-col m-4">
-                                <h3 className="text-lg font-bold">{nome}</h3>
-
-
-                                {setSort == 'cargaHoraria' ? <p className="text-lg">Aulas: {disciplina.cargaHorariaCumprida}/{disciplina.cargaHoraria}</p> : null}
-
-                                <p className="text-lg mt-auto">Média: {(gatherGrades(disciplina).reduce((a, b) => a + b, 0) / gatherGrades(disciplina).length).toFixed(2)}</p>
-                            </div>
-                        </div>
-
-                        {/* background */}
-                        <div className="absolute rounded-lg bg-zinc-800 ml-2 my-2 min-h-[90%] w-[95%] z-10"></div>
-
-                        {/* progress */}
-                        <div className={`absolute rounded-lg shadow-xl ${progressColor} ml-2 my-2 min-h-[90%] max-w-[95%] z-20`} style={{
-                            width: `${percentage}%`
-                        }}></div>
-
-                    </div>
-                })
+                entries.map(([nomeDisciplina, disciplina]) =>
+                    <Disciplina key={nomeDisciplina} method={method} disciplina={disciplina} nomeDisciplina={nomeDisciplina} />
+                )
             }
         </div>
     </div>
+}
+
+function sanitizeDisciplinaName(nomeDisciplina: string): string {
+    // get only the name (ONLY CHARACTERS!) May include unicode characters (like accents) and spaces
+
+    let name = nomeDisciplina.split(' - ')[1] ?? nomeDisciplina;
+    if (nomeDisciplina.startsWith("Atividade")) {
+        name = nomeDisciplina.split(' - ')[2] ?? nomeDisciplina;
+    }
+
+    return name.replace(/[^a-zA-ZÀ-ÿ\s]/g, '');
+}
+
+function Disciplina({ disciplina, nomeDisciplina, method }: { disciplina: ApiDisciplina, nomeDisciplina: string, method: 'cargaHoraria' | 'nota' }) {
+    let progressColor = 'bg-green-500';
+    let percentage = 0;
+
+    switch (method) {
+        case 'cargaHoraria':
+            progressColor = disciplina.cargaHorariaCumprida >= disciplina.cargaHoraria ? 'bg-green-500'
+                : disciplina.cargaHorariaCumprida / disciplina.cargaHoraria > 0.8 ? 'bg-blue-500'
+                    : disciplina.cargaHorariaCumprida / disciplina.cargaHoraria > 0.7 ? 'bg-orange-500' : 'bg-red-500';
+            percentage = (100 * (disciplina.cargaHorariaCumprida / disciplina.cargaHoraria));
+            break;
+        case 'nota':
+            const media = gatherGrades(disciplina).reduce((a, b) => a + b, 0) / gatherGrades(disciplina).length;
+            progressColor = media >= 8 ? 'bg-green-500'
+                : media >= 6 ? 'bg-blue-500'
+                    : media >= 3 ? 'bg-orange-500' : 'bg-red-500';
+            percentage = media * 10;
+            break;
+    }
+
+    const nome = sanitizeDisciplinaName(nomeDisciplina)
+
+    return <div key={nomeDisciplina} className="flex flex-col relative min-h-full w-full items-center bg-zinc-900 rounded-sm z-100 shadow-inner shadow-neutral-800">
+        <div className="flex flex-col w-full h-full">
+            {/* background */}
+            <div className="absolute top-0 bg-zinc-800 min-h-[24px] w-full z-10 shadow-inner shadow-zinc-900"></div>
+
+            {/* progress */}
+            <div className={`absolute top-0 shadow-inner  shadow-zinc-900 ${progressColor} min-h-[24px] max-w-full z-20`} style={{
+                width: `${percentage}%`
+            }}></div>
+        </div>
+
+        <div className="z-30 self-start mt-4 h-full">
+            <div className="flex flex-col m-4 h-full">
+                <h3 className="text-lg font-bold drop-shadow-xl shadow-red">{nome}</h3>
+
+                {method == 'cargaHoraria' ? <p className="text-lg">Aulas: {disciplina.cargaHorariaCumprida}/{disciplina.cargaHoraria}</p> : null}
+
+                <p className="text-lg mt-auto">Média: {(gatherGrades(disciplina).reduce((a, b) => a + b, 0) / gatherGrades(disciplina).length).toFixed(2)}</p>
+            </div>
+        </div>
+    </div>;
 }
 
 function Card({ title, children, className }: { title: string, children: React.ReactNode, className?: string }) {
@@ -184,13 +198,11 @@ function Card({ title, children, className }: { title: string, children: React.R
     </div>
 }
 
-
 function InfoCards({ disciplinas }: { disciplinas: Record<string, ApiDisciplina> }) {
     const sum = (values: number[]) => values.reduce((a, b) => a + b, 0)
     const allTimeFrequency = Object.values(disciplinas).reduce((a, b) => a + b.frequencia, 0) / Object.values(disciplinas).length
 
     const sortNota = Object.entries(disciplinas).sort((a, b) => {
-
         const sumGradesB = sum(gatherGrades(b[1]))
         const sumGradesA = sum(gatherGrades(a[1]))
 
@@ -202,34 +214,49 @@ function InfoCards({ disciplinas }: { disciplinas: Record<string, ApiDisciplina>
 
     const [melhorDisciplina, piorDisciplina] = [sortNota[0], sortNota[sortNota.length - 1]]
 
-    const melhorDisciplinaNome = melhorDisciplina[0].split(' - ')[1] ?? melhorDisciplina[0]
-    const piorDisciplinaNome = piorDisciplina[0].split(' - ')[1] ?? piorDisciplina[0]
+    const melhorDisciplinaNome = sanitizeDisciplinaName(melhorDisciplina[0])
+    const piorDisciplinaNome = sanitizeDisciplinaName(piorDisciplina[0])
 
     const disciplinasFreq = Object.entries(disciplinas).sort((a, b) => b[1].frequencia - a[1].frequencia)
     const disciplinaQueMaisFaltou = disciplinasFreq[disciplinasFreq.length - 1]
 
+    const geraTextoFrequencia = (frequencia: number) => {
+        if (frequencia > 98) return "Você é onipresente! Como faz isso? 😱"
+        if (frequencia > 90) return "Incrível! Você está sempre presente! 🌟"
+        if (frequencia > 80) return "Ótimo trabalho! Continue assim! 👍"
+        if (frequencia > 75) return "Bem no limite! 😐"
+        if (frequencia > 60) return "Você um turista? 🤔"
+        if (frequencia > 50) return "Eai, turista, por onde andou? 😅"
+        return "Você não é um turista mano.. É um fantasma 😱"
+    }
 
-
-    return <div className="flex flex-col gap-4">
+    return <div className="flex flex-col gap-4 md:max-w-[70%]">
         <h2 className="text-2xl font-bold">Informações Gerais</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card title="Sua melhor Disciplina" className="bg-blue-900 min-h-full">
-                <h2> {melhorDisciplinaNome}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <Card title="😃 Sua melhor Disciplina" className="bg-blue-800 min-h-full">
+                <h2> Wow, você parece ser bom em <span className="font-extrabold">{melhorDisciplinaNome}</span>! Parabéns 😉</h2>
                 <p className="mt-auto">Média: {sum(gatherGrades(melhorDisciplina[1])) / gatherGrades(melhorDisciplina[1]).length}</p>
             </Card>
 
-            <Card title="Sua pior Disciplina" className="bg-orange-800">
-                <h2> {piorDisciplinaNome}</h2>
+            <Card title="😔 Sua pior Disciplina" className="bg-orange-800">
+                <h2> Ops, parece que você não foi muito bem em <span className="font-extrabold">{piorDisciplinaNome}</span>... </h2>
                 <p className="mt-auto">Média: {sum(gatherGrades(piorDisciplina[1])) / gatherGrades(piorDisciplina[1]).length}</p>
             </Card>
 
-            <Card title="Frequência Média" className="bg-emerald-800">
+            <Card title="⏰ Frequência Média" className="bg-emerald-800">
+                <h2> {geraTextoFrequencia(allTimeFrequency)} </h2>
                 <p className="mt-auto">Frequência: {allTimeFrequency.toFixed(2)}%</p>
             </Card>
 
-            <Card title="Disciplina que mais faltou" className="bg-red-800">
-                <h2> {disciplinaQueMaisFaltou[0].split(' - ')[1] ?? disciplinaQueMaisFaltou[0]}</h2>
-                <p className="mt-auto">Frequência: {disciplinaQueMaisFaltou[1].frequencia.toFixed(2)}%</p>
+            <Card title="😅 Disciplina que mais faltou" className="bg-red-800">
+                {
+                    disciplinaQueMaisFaltou[1].frequencia > 75 ?
+                        <h2> As vezes deu preguiça de ir na aula de <span className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>, né?</h2>
+                        : disciplinaQueMaisFaltou[1].frequencia > 60 ?
+                            <h2> Pelo menos, você foi em alguma aula de <span className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>... </h2>
+                            : <h2> Você odeia <span className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>?</h2>
+                }
+                <p className="mt-auto">Frequência da disciplina: {disciplinaQueMaisFaltou[1].frequencia.toFixed(2)}%</p>
             </Card>
         </div>
 
@@ -252,7 +279,6 @@ function ShowEmAll({ state }: { state: CurrentState }) {
                     })
                 }
             </select>
-
         </div>
 
         <div className="flex flex-col-reverse gap-4 md:flex-row">

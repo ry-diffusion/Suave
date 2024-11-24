@@ -24,6 +24,14 @@ export default abstract class ApiClient {
             body: JSON.stringify(body),
         });
 
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('Unauthorized')
+            }
+
+            throw new Error('Bad Request')
+        }
+
         return await response.json()
     }
 

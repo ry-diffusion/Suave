@@ -1,3 +1,4 @@
+import { badAuthorizationError } from "@/Core/ApiErrors";
 import AuthenticatedMobileApi, { Assignment, ContentData, ModuleData, Quiz } from "@/Moodle/AuthenticatedMobileApi";
 import { moodleByName } from "@/Support/Institutions";
 
@@ -280,9 +281,7 @@ export async function POST(
     const rawToken = request.headers.get('Authorization')
     const institution = request.headers.get('X-Institution')
     if (!rawToken) {
-        return Response.json({
-            'error': 'UNAUTHORIZED'
-        })
+        return badAuthorizationError()
     }
 
     if (!institution) {

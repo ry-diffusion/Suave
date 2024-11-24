@@ -1,3 +1,4 @@
+import { badAuthorizationError } from "@/Core/ApiErrors"
 import { IFGoiano } from "@/SUAP/campus"
 import { Etapa } from "@/SUAP/SuapContext"
 
@@ -29,7 +30,7 @@ export async function GET(request: Request, { params }: {
 }) {
     const rawToken = request.headers.get("Authorization")
     if (rawToken == null) {
-        return new Response("Missing Authorization header", { status: 401 })
+        return badAuthorizationError()
     }
 
     const token = rawToken.replace("Bearer ", "")
