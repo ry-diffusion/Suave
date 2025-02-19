@@ -57,7 +57,7 @@ function Acessar({url}: { url: string }) {
     </Link>
 }
 
-export function Badge({children, className}: { children: React.ReactNode, className?: string }) {
+function Badge({children, className}: { children: React.ReactNode, className?: string }) {
     return <div
         className={`${className} flex text-center self-start px-2 rounded-sm items-center gap-1 ml-4 mb-[-16px] z-10`}> {children} </div>
 }

@@ -217,11 +217,11 @@ export default class AuthenticatedMobileApi extends MobileApi {
         return new AuthenticatedMobileApi(parent.baseURL, token)
     }
 
-    override async call<T>(task: string, params?: Record<string, unknown>): Promise<T> {
-        const response = await super.call(task, params ?? {}, this.token)
+    override async call<T>(task: string, params?: Record<string, string | number | object>): Promise<T> {
+        const response = await super.call<T>(task, params ?? {}, this.token)
 
-        if (Object.keys(response).includes('error')) {
-            throw new MoodleApiError(response)
+        if (Object.keys(response as object).includes('error')) {
+            throw new MoodleApiError(response as ApiErrorResponse)
         }
 
         return response
