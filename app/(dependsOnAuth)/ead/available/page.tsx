@@ -5,7 +5,6 @@ import GCSS from "@/app/styles/Suave.module.css";
 import Link from "next/link";
 import {ApiModule} from "@/app/(api)/api/moodle/GetAvailableModules/route";
 import React, {useState} from "react";
-import {useMoodleBridge} from "@/app/AuthContext";
 import {useQuery} from "@tanstack/react-query";
 import SuaveTitle from "@/components/SuaveTitle";
 import TimedLoading from "@/components/TimedLoading";
@@ -14,6 +13,7 @@ import {Course} from "@/lib/moodle/AuthenticatedMobileApi";
 import {MoodleBridge} from "@/Bridge/MoodleBridge";
 import {chunkedByToArray} from "@/lib/Iterators";
 import {useAsyncOnMount} from "@/types/reactExtensions";
+import {useMoodleBridge} from "@/lib/auth/client";
 
 type ModuleExt = ApiModule & { course: string }
 type AvailableModulesExt = {

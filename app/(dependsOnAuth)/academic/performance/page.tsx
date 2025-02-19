@@ -1,9 +1,7 @@
 "use client";
 
 import {useQuery} from "@tanstack/react-query";
-import {useProvider} from "../AuthContext";
 import Content from "@/components/Content";
-import Loading from "@/components/Loading";
 import SuaveTitle from "@/components/SuaveTitle";
 import ErrorDialog from "@/components/ErrorDialog";
 import {useEffect, useState} from "react";
@@ -11,7 +9,8 @@ import TimedLoading from "@/components/TimedLoading";
 import {LetivosOut} from "@/app/(api)/api/suap/Periodos/route";
 import {ApiDisciplina} from "@/app/(api)/api/suap/Boletim/[ano]/[periodo]/route";
 import Image from "next/image";
-import {useSession} from "@/lib/auth/client";
+import {useAuth} from "@/lib/auth/context";
+import {useProvider} from "@/lib/auth/client";
 
 interface CurrentState {
     // Ano -> Periodo -> Disciplinas
@@ -24,11 +23,8 @@ function DownloadData({setState, setUiState}: {
     setUiState: (state: 'downloadContent' | 'readyToShow') => void
 }) {
     const provider = useProvider();
-    const {session} = useSession();
+    const {passport} = useAuth();
 
-    if (!session?.isLoggedIn || !session) {
-        throw new Error('You are not logged in!');
-    }
 
     const {data, error} = useQuery({
         queryKey: [],
@@ -39,8 +35,8 @@ function DownloadData({setState, setUiState}: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: session!.passport!.username,
-                    password: session!.passport!.password
+                    username: passport!.username,
+                    password: passport!.password
                 })
             }).then(r => r.json()).then(r => r.access);
 
@@ -313,9 +309,7 @@ function ShowEmAll({state}: { state: CurrentState }) {
     </div>
 }
 
-export default function DesempenhoAcademico() {
-    const {session, isLoading} = useSession();
-
+export default function AcademicPerformance() {
     const [state, setState] = useState<CurrentState | null>(null)
     const [uiState, setUiState] = useState('welcome')
 
@@ -338,20 +332,6 @@ export default function DesempenhoAcademico() {
         }
 
     }, [state])
-
-
-    if (isLoading) {
-        return <Content>
-            <Loading message="Carregando sessão..."/>
-        </Content>
-    }
-
-    if (!session?.isLoggedIn || !session) {
-        return <Content>
-            <Loading message="Sessão inválida! Redirecionando a página inicial"/>
-            <meta httpEquiv="refresh" content="0;url=/"/>
-        </Content>
-    }
 
 
     if (uiState === 'downloadContent') {

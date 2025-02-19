@@ -4,13 +4,12 @@ import Image from "next/image";
 import SuaveTitle from "@/components/SuaveTitle";
 import SuaveCss from '@/app/styles/Suave.module.css'
 import {useEffect, useState} from "react";
-import {useProvider} from "./AuthContext";
 import Loading from "@/components/Loading";
 import Link from "next/link";
 import Content from "@/components/Content";
 import {Institution, Providers} from "@/Support/Institutions";
 import {KnownInfo} from "@/types/session-data";
-import {useSession} from "@/lib/auth/client";
+import {useProvider, useSession} from "@/lib/auth/client";
 
 function LoginForm({
                        onSubmit
@@ -82,7 +81,7 @@ function Whoami() {
 
 
         <div className="flex gap-4">
-            <Link href="/Inicio"
+            <Link href="/onboarding"
                   className={`hover:scale-110 rounded-full text-black transition-transform flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 bg-green-300`}
             >
                 <Image
@@ -150,23 +149,11 @@ export default function Home() {
         <Content>
             <SuaveTitle/>
 
-            {
-                state == 'welcome' ? <></> : null
-            }
+            {state == 'form' && <LoginForm onSubmit={submitLogin}/>}
 
-            {
-                state == 'form' ? <LoginForm onSubmit={submitLogin}/> : null
-            }
-
-            {
-                state == 'spin' ? <Loading message="Iniciando sessão..."/> : null
-            }
+            {state == 'spin' && <Loading message="Iniciando sessão..."/>}
 
             {state == 'whoami' && <Whoami/>}
-
-            {/*{*/}
-            {/*    state == 'whoami' ? <Whoami passport={passport!}/> : null*/}
-            {/*}*/}
         </Content>
     )
 }

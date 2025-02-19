@@ -6,7 +6,8 @@ import {SessionData} from "@/types/session-data";
 import {fetchJson, fetchNativeJSON} from "../fetchers";
 import {useMutation, useQuery, useSuspenseQuery} from "@tanstack/react-query";
 import {queryClient} from "../query";
-import {Institution} from "@/Support/Institutions";
+import {Institution, Providers} from "@/Support/Institutions";
+import {useAuth} from "@/lib/auth/context";
 
 const sessionApiRoute = process.env.NODE_ENV === "development" ? "http://localhost:3000/session" : "https://suave-one.vercel.app/session";
 
@@ -114,4 +115,19 @@ export function useSession() {
 
 
     return {session: data, logout, login, isLoading};
+}
+
+export const useMoodleBridge = () => {
+    const {passport} = useAuth();
+    if (!passport) throw new Error('User is not logged in.');
+    const provider = Providers[passport.institution];
+    if (!provider.moodle) throw new Error('Moodle is not supported by this institution.');
+    return provider.moodle?.makeBridge(passport.moodleToken);
+}
+
+export const useProvider = () => {
+    const {session} = useSession();
+    if (!session?.isLoggedIn || !session.passport) throw new Error('User is not logged in.');
+
+    return Providers[session.passport!.institution];
 }

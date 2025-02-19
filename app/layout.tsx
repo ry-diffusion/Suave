@@ -2,7 +2,7 @@ import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import NetProvider from "@/components/NetProvider";
-import {AuthProvider} from "./AuthContext";
+import React from "react";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -19,22 +19,18 @@ export const metadata: Metadata = {
     description: "A sua ferramenta do IF",
 };
 
-export default function RootLayout({
-                                       children,
-                                   }: Readonly<{
+export default function RootLayout({children}: Readonly<{
     children: React.ReactNode;
 }>) {
 
     return (
         <html lang="pt-BR">
         <NetProvider>
-            <AuthProvider>
-                <body
-                    className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#121212] text-slate-300`}
-                >
-                {children}
-                </body>
-            </AuthProvider>
+            <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#121212] text-slate-300`}
+            >
+            {children}
+            </body>
         </NetProvider>
         </html>
     );
