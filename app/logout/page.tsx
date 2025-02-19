@@ -1,6 +1,5 @@
 "use client";
 
-import {useEffect} from "react";
 import SuaveTitle from "@/components/SuaveTitle";
 import Loading from "@/components/Loading";
 import Link from "next/link";
