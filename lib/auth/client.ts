@@ -4,10 +4,12 @@ import "client-only";
 import {SessionData} from "@/types/session-data";
 
 import {fetchJson, fetchNativeJSON} from "../fetchers";
-import {useMutation, useQuery, useSuspenseQuery} from "@tanstack/react-query";
+import {useMutation, useQuery} from "@tanstack/react-query";
 import {queryClient} from "../query";
 import {Institution, Providers} from "@/Support/Institutions";
 import {useAuth} from "@/lib/auth/context";
+
+const QUERY_KEY = ['user', 'session'];
 
 const sessionApiRoute = process.env.NODE_ENV === "development" ? "http://localhost:3000/session" : "https://suave-one.vercel.app/session";
 
@@ -32,52 +34,10 @@ function doLogout(url: string) {
     });
 }
 
-export function useSuspenseSession() {
-    const {data} = useSuspenseQuery(
-        {
-            queryKey: ['session'],
-            queryFn: () => fetchJson<SessionData>(sessionApiRoute),
-        },
-    );
-
-    const triggerLogin = useMutation({
-        mutationFn: (authPair: AuthPair) => doLogin(sessionApiRoute, authPair),
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: ['session']
-            });
-        }
-    });
-
-    const triggerLogout = useMutation({
-        mutationFn: () => doLogout(sessionApiRoute),
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: ['session']
-            });
-        }
-    });
-
-    async function login(authPair: AuthPair) {
-        await triggerLogin.mutateAsync(authPair);
-
-        console.log("%c[Auth] %cSuccessfully authenticated with API.", "color: #ff00ff", "color: #ffffff");
-    }
-
-    async function logout() {
-        console.log("%c[Auth] %cLogging out...", "color: #ff00ff", "color: #ffffff");
-
-        await triggerLogout.mutateAsync();
-    }
-
-
-    return {session: data, logout, login};
-}
-
 export function useSession() {
     const {data, isLoading} = useQuery(
         {
-            queryKey: ['session'],
+            queryKey: QUERY_KEY,
             queryFn: () => fetchJson<SessionData>(sessionApiRoute),
         },
     );
@@ -87,24 +47,26 @@ export function useSession() {
         mutationFn: (arg: AuthPair) => doLogin(sessionApiRoute, arg),
         onSuccess: async () => {
             await queryClient.invalidateQueries({
-                queryKey: ['session']
+                queryKey: QUERY_KEY
             });
+            await queryClient.refetchQueries({
+                queryKey: QUERY_KEY
+            })
         }
     });
 
     const triggerLogout = useMutation({
         mutationFn: () => doLogout(sessionApiRoute),
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: ['session']
-            });
-        }
+        onSuccess: async () =>
+            queryClient.invalidateQueries({
+                queryKey: QUERY_KEY
+            })
     });
 
     async function login(arg: AuthPair) {
         await triggerLogin.mutateAsync(arg);
 
-        console.log("%c[Auth] %cSuccessfully authenticated with Discord.", "color: #ff00ff", "color: #ffffff");
+        console.log("%c[Auth] %cSuccessfully authenticated with API.", "color: #ff00ff", "color: #ffffff");
     }
 
     async function logout() {

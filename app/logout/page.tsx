@@ -6,14 +6,12 @@ import Loading from "@/components/Loading";
 import Link from "next/link";
 import Content from "@/components/Content";
 import {useSession} from "@/lib/auth/client";
+import {useAsyncOnMount} from "@/types/reactExtensions";
 
 export default function Logout() {
     const {logout} = useSession();
 
-
-    useEffect(() => {
-        logout();
-    }, [logout]);
+    useAsyncOnMount(logout);
 
     return <Content>
         <SuaveTitle/>
