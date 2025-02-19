@@ -7,11 +7,13 @@ import React from "react";
 const geistSans = Geist({
     variable: "--font-geist-sans",
     weight: "500",
+    subsets: ["latin"]
 });
 
 const geistMono = Geist_Mono({
     variable: "--font-geist-mono",
     weight: "400",
+    subsets: ["latin"]
 });
 
 export const metadata: Metadata = {
