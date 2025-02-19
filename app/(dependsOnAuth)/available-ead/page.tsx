@@ -4,7 +4,6 @@ import Image from "next/image";
 import GCSS from "@/app/styles/Suave.module.css";
 import Link from "next/link";
 import {ApiModule} from "@/app/(api)/api/moodle/GetAvailableModules/route";
-import Content from "@/components/Content";
 import React, {useState} from "react";
 import {useMoodleBridge} from "@/app/AuthContext";
 import {useQuery} from "@tanstack/react-query";
@@ -392,7 +391,7 @@ function LoadCourses({courses, bridge}: { courses: Course[], bridge: MoodleBridg
     </div>
 }
 
-export function Container() {
+export default function AvailableEad() {
     const bridge = useMoodleBridge();
 
     const {isLoading, error, data} = useQuery({
@@ -401,13 +400,12 @@ export function Container() {
     })
 
 
-    return <Content>
+    return <>
         <SuaveTitle/>
 
         {isLoading ? <TimedLoading message="Analisando as matérias que você tem..."/> : null}
         {error ? <ErrorDialog error={error.message}/> : null}
 
         {data ? <LoadCourses courses={data.courses} bridge={bridge}/> : null}
-    </Content>
-
+    </>
 }
