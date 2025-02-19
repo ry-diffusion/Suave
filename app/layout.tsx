@@ -4,6 +4,8 @@ import "./globals.css";
 import NetProvider from "@/components/NetProvider";
 import React from "react";
 
+import { Analytics } from "@vercel/analytics/react"
+
 const geistSans = Geist({
     variable: "--font-geist-sans",
     weight: "500",
@@ -33,6 +35,7 @@ export default function RootLayout({children}: Readonly<{
             >
             {children}
             </body>
+            <Analytics />
         </NetProvider>
         </html>
     );
