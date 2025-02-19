@@ -25,9 +25,9 @@ export default class MobileApi extends UrlApiClient {
         return response as MoodleLoginOutput
     }
 
-    async call(task: string, params: Record<string, any>, token?: string): Promise<any> {
+    async call<T = void>(task: string, params: Record<string, string>, token?: string): Promise<T> {
         const url = `${this.baseURL}/webservice/rest/server.php`;
-        const data: Record<string, any> = {
+        const data: Record<string, string> = {
             ...(token ? {wstoken: token} : {}),
             wsfunction: task,
             moodlewsrestformat: 'json',

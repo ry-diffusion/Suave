@@ -13,6 +13,6 @@ export function* chunkedBy<T>(iter: Iterable<T>, chunkSize: number): IterableIte
 }
 
 export function chunkedByToArray<T>(iter: Iterable<T>, chunkSize: number): T[][] {
-    let res = chunkedBy(iter, chunkSize);
+    const res = chunkedBy(iter, chunkSize);
     return Array.from(res);
 }
