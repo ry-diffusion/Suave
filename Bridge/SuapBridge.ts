@@ -1,7 +1,7 @@
-import { ApiDisciplina } from "@/app/api/suap/Boletim/[ano]/[periodo]/route";
-import { LetivosOut } from "@/app/api/suap/Periodos/route";
-import { LoginInput, SuapLoginOutput } from "@/Core/typings";
-import ApiClient from "@/Core/UrlApiClient";
+import { ApiDisciplina } from "@/app/(api)/api/suap/Boletim/[ano]/[periodo]/route";
+import { LetivosOut } from "@/app/(api)/api/suap/Periodos/route";
+import { LoginInput, SuapLoginOutput } from "@/types/typings";
+import ApiClient from "@/lib/api/url-api-client";
 
 
 export default class SuapBridge extends ApiClient {

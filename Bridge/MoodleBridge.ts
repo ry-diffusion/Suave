@@ -1,7 +1,7 @@
-import { ApiModule, GetAvailableModulesResponse, Module } from "@/app/api/moodle/GetAvailableModules/route";
-import { Entry, QueryModule } from "@/app/api/moodle/GetCourseCompletionStatus/route";
-import { GetEnrolledCoursesResponse } from "@/app/api/moodle/GetEnrolledCourses/route";
-import { Course } from "@/Moodle/AuthenticatedMobileApi";
+import { ApiModule, GetAvailableModulesResponse, Module } from "@/app/(api)/api/moodle/GetAvailableModules/route";
+import { Entry, QueryModule } from "@/app/(api)/api/moodle/GetCourseCompletionStatus/route";
+import { GetEnrolledCoursesResponse } from "@/app/(api)/api/moodle/GetEnrolledCourses/route";
+import { Course } from "@/lib/moodle/AuthenticatedMobileApi";
 import { Institution } from "@/Support/Institutions";
 
 export class MoodleBridge {

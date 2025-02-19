@@ -1,6 +1,6 @@
-import Content from "../components/Content";
+import Content from "@/components/Content";
 import UrlLink from "./Button";
-import SuaveTitle from "../components/SuaveTitle";
+import SuaveTitle from "@/components/SuaveTitle";
 import Image from "next/image";
 
 export default function Inicio() {

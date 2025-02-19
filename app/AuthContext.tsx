@@ -1,24 +1,11 @@
 "use client";
 
-import { Institution, Providers } from "@/Support/Institutions";
-import { useState, createContext, useContext, useEffect } from "react";
+import {Institution, Providers} from "@/Support/Institutions";
+import {createContext, useContext, useEffect, useState} from "react";
+import {KnownInfo, Passport} from "@/types/session-data";
+import {useSession} from "@/lib/auth/client";
 
 export const REVISION = 0x1;
-export type KnownInfo = {
-    revision: number,
-    firstName: string,
-    fullName: string,
-    pictureUrl: string | null,
-}
-
-export type Passport = {
-    username: string,
-    password: string,
-    moodleToken: string,
-    suapToken: string | null,
-    knownInfo: KnownInfo | null,
-    institution: Institution
-};
 
 export type AuthManager = {
     authenticate: (data: Passport) => void,
@@ -37,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (typeof window !== 'undefined') {
             window.localStorage.setItem('Passport.user', data.username);
             window.localStorage.setItem('Passport.password', data.password);
-            window.localStorage.setItem('Moodle.token', data.moodleToken);
+            window.localStorage.setItem('moodle.token', data.moodleToken);
             window.localStorage.setItem('Passport.LoggedIn', 'YES');
             window.localStorage.setItem('Passport.Institution', data.institution);
 
@@ -97,7 +84,7 @@ export const usePassport = () => {
                 username: window.localStorage.getItem('Passport.user')!,
                 password: window.localStorage.getItem('Passport.password')!,
                 suapToken: window.localStorage.getItem('SUAP.Token')!,
-                moodleToken: window.localStorage.getItem('Moodle.token')!,
+                moodleToken: window.localStorage.getItem('moodle.token')!,
                 institution: window.localStorage.getItem('Passport.Institution') as Institution,
                 knownInfo: rawKnownInfo ? JSON.parse(rawKnownInfo) : null,
             });
@@ -108,8 +95,8 @@ export const usePassport = () => {
 }
 
 export const useProvider = () => {
-    const { passport } = usePassport();
-    if (!passport) throw new Error('User is not logged in.');
+    const { session } = useSession();
+    if (!session?.isLoggedIn || !session.passport) throw new Error('User is not logged in.');
 
-    return Providers[passport!.institution];
+    return Providers[session.passport!.institution];
 }

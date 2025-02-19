@@ -1,16 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { usePassport, useProvider } from "../AuthContext";
-import Content from "../components/Content";
-import Loading from "../components/Loading";
-import SuaveTitle from "../components/SuaveTitle";
-import ErrorDialog from "../components/ErrorDialog";
-import { useEffect, useState } from "react";
-import TimedLoading from "../components/TimedLoading";
-import { LetivosOut } from "../api/suap/Periodos/route";
-import { ApiDisciplina } from "../api/suap/Boletim/[ano]/[periodo]/route";
+import {useQuery} from "@tanstack/react-query";
+import {useProvider} from "../AuthContext";
+import Content from "@/components/Content";
+import Loading from "@/components/Loading";
+import SuaveTitle from "@/components/SuaveTitle";
+import ErrorDialog from "@/components/ErrorDialog";
+import {useEffect, useState} from "react";
+import TimedLoading from "@/components/TimedLoading";
+import {LetivosOut} from "@/app/(api)/api/suap/Periodos/route";
+import {ApiDisciplina} from "@/app/(api)/api/suap/Boletim/[ano]/[periodo]/route";
 import Image from "next/image";
+import {useSession} from "@/lib/auth/client";
 
 interface CurrentState {
     // Ano -> Periodo -> Disciplinas
@@ -18,15 +19,18 @@ interface CurrentState {
     periodos: LetivosOut
 }
 
-function DownloadData({ setState, setUiState }: { setState: (state: CurrentState) => void, setUiState: (state: 'downloadContent' | 'readyToShow') => void }) {
+function DownloadData({setState, setUiState}: {
+    setState: (state: CurrentState) => void,
+    setUiState: (state: 'downloadContent' | 'readyToShow') => void
+}) {
     const provider = useProvider();
-    const { passport } = usePassport();
+    const {session} = useSession();
 
-    if (!passport) {
-        throw new Error('Passport is not defined');
+    if (!session?.isLoggedIn || !session) {
+        throw new Error('You are not logged in!');
     }
 
-    const { data, error } = useQuery({
+    const {data, error} = useQuery({
         queryKey: [],
         queryFn: async () => {
             const token = await fetch('/api/suap/ResolveLogin', {
@@ -35,8 +39,8 @@ function DownloadData({ setState, setUiState }: { setState: (state: CurrentState
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: passport.username,
-                    password: passport.password
+                    username: session!.passport!.username,
+                    password: session!.passport!.password
                 })
             }).then(r => r.json()).then(r => r.access);
 
@@ -56,7 +60,7 @@ function DownloadData({ setState, setUiState }: { setState: (state: CurrentState
                 disciplinas[parseInt(ano)] = boletimDisciplinas;
             }
 
-            return { periodoLetivos, disciplinas }
+            return {periodoLetivos, disciplinas}
         }
     });
 
@@ -77,22 +81,23 @@ function DownloadData({ setState, setUiState }: { setState: (state: CurrentState
 
     if (error) {
         return <Content>
-            <SuaveTitle />
-            <ErrorDialog error={error.message} />
+            <SuaveTitle/>
+            <ErrorDialog error={error.message}/>
         </Content>
     }
 
     return <Content>
-        <SuaveTitle />
-        <TimedLoading message="Baixando dados do SUAP..." />
+        <SuaveTitle/>
+        <TimedLoading message="Baixando dados do SUAP..."/>
     </Content>
 
 }
+
 const gatherGrades = (disciplina: ApiDisciplina) =>
     [disciplina.etapas["1"].nota, disciplina.etapas["2"].nota, disciplina.etapas["3"].nota, disciplina.etapas["4"].nota, disciplina.etapas["final"].nota].filter(n => n !== null)
 
 
-function Disciplinas({ disciplinas }: { disciplinas: Record<string, ApiDisciplina> }) {
+function Disciplinas({disciplinas}: { disciplinas: Record<string, ApiDisciplina> }) {
     const [method, setSortState] = useState<'cargaHoraria' | 'nota'>('cargaHoraria')
     let entries = Object.entries(disciplinas)
 
@@ -119,7 +124,7 @@ function Disciplinas({ disciplinas }: { disciplinas: Record<string, ApiDisciplin
             <h2 className="text-2xl font-bold">Disciplinas</h2>
 
             <select className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2"
-                onChange={e => setSortState(e.target.value as 'nota' | 'cargaHoraria')}>
+                    onChange={e => setSortState(e.target.value as 'nota' | 'cargaHoraria')}>
                 <option value="cargaHoraria">Carga horária</option>
                 <option value="nota">Nota</option>
             </select>
@@ -128,7 +133,8 @@ function Disciplinas({ disciplinas }: { disciplinas: Record<string, ApiDisciplin
         <div className="flex flex-col gap-2 ">
             {
                 entries.map(([nomeDisciplina, disciplina]) =>
-                    <Disciplina key={nomeDisciplina} method={method} disciplina={disciplina} nomeDisciplina={nomeDisciplina} />
+                    <Disciplina key={nomeDisciplina} method={method} disciplina={disciplina}
+                                nomeDisciplina={nomeDisciplina}/>
                 )
             }
         </div>
@@ -146,7 +152,11 @@ function sanitizeDisciplinaName(nomeDisciplina: string): string {
     return name.replace(/[^a-zA-ZÀ-ÿ\s]/g, '');
 }
 
-function Disciplina({ disciplina, nomeDisciplina, method }: { disciplina: ApiDisciplina, nomeDisciplina: string, method: 'cargaHoraria' | 'nota' }) {
+function Disciplina({disciplina, nomeDisciplina, method}: {
+    disciplina: ApiDisciplina,
+    nomeDisciplina: string,
+    method: 'cargaHoraria' | 'nota'
+}) {
     let progressColor = 'bg-green-500';
     let percentage = 0;
 
@@ -168,22 +178,26 @@ function Disciplina({ disciplina, nomeDisciplina, method }: { disciplina: ApiDis
 
     const nome = sanitizeDisciplinaName(nomeDisciplina)
 
-    return <div key={nomeDisciplina} className="flex flex-col relative min-h-full w-full items-center bg-zinc-900 rounded-sm z-100 shadow-inner shadow-neutral-800">
+    return <div key={nomeDisciplina}
+                className="flex flex-col relative min-h-full w-full items-center bg-zinc-900 rounded-sm z-100 shadow-inner shadow-neutral-800">
         <div className="flex flex-col w-full h-full">
             {/* background */}
             <div className="absolute top-0 bg-zinc-800 min-h-[24px] w-full z-10 shadow-inner shadow-zinc-900"></div>
 
             {/* progress */}
-            <div className={`absolute top-0 shadow-inner  shadow-zinc-900 ${progressColor} min-h-[24px] max-w-full z-20`} style={{
-                width: `${percentage}%`
-            }}></div>
+            <div
+                className={`absolute top-0 shadow-inner  shadow-zinc-900 ${progressColor} min-h-[24px] max-w-full z-20`}
+                style={{
+                    width: `${percentage}%`
+                }}></div>
         </div>
 
         <div className="z-30 self-start mt-4 h-full">
             <div className="flex flex-col m-4 h-full">
                 <h3 className="text-lg font-bold drop-shadow-xl shadow-red">{nome}</h3>
 
-                {method == 'cargaHoraria' ? <p className="text-lg">Aulas: {disciplina.cargaHorariaCumprida}/{disciplina.cargaHoraria}</p> : null}
+                {method == 'cargaHoraria' ?
+                    <p className="text-lg">Aulas: {disciplina.cargaHorariaCumprida}/{disciplina.cargaHoraria}</p> : null}
 
                 <p className="text-lg mt-auto">Média: {(gatherGrades(disciplina).reduce((a, b) => a + b, 0) / gatherGrades(disciplina).length).toFixed(2)}</p>
             </div>
@@ -191,14 +205,14 @@ function Disciplina({ disciplina, nomeDisciplina, method }: { disciplina: ApiDis
     </div>;
 }
 
-function Card({ title, children, className }: { title: string, children: React.ReactNode, className?: string }) {
+function Card({title, children, className}: { title: string, children: React.ReactNode, className?: string }) {
     return <div className={`flex flex-col gap-4 ${className} shadow-inner shadow-neutral-800 p-4 rounded-xl`}>
         <h3 className="text-lg font-bold">{title}</h3>
         {children}
     </div>
 }
 
-function InfoCards({ disciplinas }: { disciplinas: Record<string, ApiDisciplina> }) {
+function InfoCards({disciplinas}: { disciplinas: Record<string, ApiDisciplina> }) {
     const sum = (values: number[]) => values.reduce((a, b) => a + b, 0)
     const allTimeFrequency = Object.values(disciplinas).reduce((a, b) => a + b.frequencia, 0) / Object.values(disciplinas).length
 
@@ -234,12 +248,14 @@ function InfoCards({ disciplinas }: { disciplinas: Record<string, ApiDisciplina>
         <h2 className="text-2xl font-bold">Informações Gerais</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
             <Card title="😃 Sua melhor Disciplina" className="bg-blue-800 min-h-full">
-                <h2> Wow, você parece ser bom em <span className="font-extrabold">{melhorDisciplinaNome}</span>! Parabéns 😉</h2>
+                <h2> Wow, você parece ser bom em <span className="font-extrabold">{melhorDisciplinaNome}</span>!
+                    Parabéns 😉</h2>
                 <p className="mt-auto">Média: {sum(gatherGrades(melhorDisciplina[1])) / gatherGrades(melhorDisciplina[1]).length}</p>
             </Card>
 
             <Card title="😔 Sua pior Disciplina" className="bg-orange-800">
-                <h2> Ops, parece que você não foi muito bem em <span className="font-extrabold">{piorDisciplinaNome}</span>... </h2>
+                <h2> Ops, parece que você não foi muito bem em <span
+                    className="font-extrabold">{piorDisciplinaNome}</span>... </h2>
                 <p className="mt-auto">Média: {sum(gatherGrades(piorDisciplina[1])) / gatherGrades(piorDisciplina[1]).length}</p>
             </Card>
 
@@ -251,19 +267,24 @@ function InfoCards({ disciplinas }: { disciplinas: Record<string, ApiDisciplina>
             <Card title="😅 Disciplina que mais faltou" className="bg-red-800">
                 {
                     disciplinaQueMaisFaltou[1].frequencia > 75 ?
-                        <h2> As vezes deu preguiça de ir na aula de <span className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>, né?</h2>
+                        <h2> As vezes deu preguiça de ir na aula de <span
+                            className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>, né?
+                        </h2>
                         : disciplinaQueMaisFaltou[1].frequencia > 60 ?
-                            <h2> Pelo menos, você foi em alguma aula de <span className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>... </h2>
-                            : <h2> Você odeia <span className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>?</h2>
+                            <h2> Pelo menos, você foi em alguma aula de <span
+                                className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>...
+                            </h2>
+                            : <h2> Você odeia <span
+                                className="font-extrabold">{sanitizeDisciplinaName(disciplinaQueMaisFaltou[0])}</span>?</h2>
                 }
                 <p className="mt-auto">Frequência da disciplina: {disciplinaQueMaisFaltou[1].frequencia.toFixed(2)}%</p>
             </Card>
         </div>
 
-    </div >
+    </div>
 }
 
-function ShowEmAll({ state }: { state: CurrentState }) {
+function ShowEmAll({state}: { state: CurrentState }) {
     const [periodo, setPeriodo] = useState<string>(Object.keys(state.periodos)[0])
 
     const discPeriodo = state.disciplinas[parseInt(periodo)]
@@ -272,7 +293,8 @@ function ShowEmAll({ state }: { state: CurrentState }) {
 
         <div className="flex flex-row gap-4 items-center">
             <p> Selecione o período letivo: </p>
-            <select value={periodo} onChange={e => setPeriodo(e.target.value)} className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2">
+            <select value={periodo} onChange={e => setPeriodo(e.target.value)}
+                    className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2">
                 {
                     Object.keys(state.periodos).map(ano => {
                         return <option key={ano} value={ano}>{ano}</option>
@@ -283,16 +305,16 @@ function ShowEmAll({ state }: { state: CurrentState }) {
 
         <div className="flex flex-col-reverse gap-4 md:flex-row">
             <div className="">
-                <Disciplinas disciplinas={discPeriodo} />
+                <Disciplinas disciplinas={discPeriodo}/>
             </div>
 
-            <InfoCards disciplinas={discPeriodo} />
+            <InfoCards disciplinas={discPeriodo}/>
         </div>
     </div>
 }
 
 export default function DesempenhoAcademico() {
-    const { passport } = usePassport();
+    const {session, isLoading} = useSession();
 
     const [state, setState] = useState<CurrentState | null>(null)
     const [uiState, setUiState] = useState('welcome')
@@ -317,25 +339,35 @@ export default function DesempenhoAcademico() {
 
     }, [state])
 
-    if (!passport) {
+
+    if (isLoading) {
         return <Content>
-            <Loading message="Sessão inválida! Redirecionando a página inicial" />
-            <meta httpEquiv="refresh" content="0;url=/" />
+            <Loading message="Carregando sessão..."/>
         </Content>
     }
 
+    if (!session?.isLoggedIn || !session) {
+        return <Content>
+            <Loading message="Sessão inválida! Redirecionando a página inicial"/>
+            <meta httpEquiv="refresh" content="0;url=/"/>
+        </Content>
+    }
+
+
     if (uiState === 'downloadContent') {
-        return <DownloadData setState={setState} setUiState={setUiState} />
+        return <DownloadData setState={setState} setUiState={setUiState}/>
     }
 
     return <Content>
-        <SuaveTitle />
+        <SuaveTitle/>
 
         <Card title="Bem-vindo! Antes de começar..." className="bg-neutral-900">
             <div className="flex-row flex gap-4">
-                <Image className='invert rounded-full' src="/error.svg" alt="Error" width={48} height={48} />
+                <Image className='invert rounded-full' src="/error.svg" alt="Error" width={48} height={48}/>
 
-                <p> O Suave tenta ser o mais preciso possível, porém, nesta aba ele assume algumas coisas. Por exemplo, aqui ele faz uma média simples com as notas atuais. Então se o processor ainda não lançou a nota do segundo semestre ele só realizara a media simples com as notas do primeiro semestre. </p>
+                <p> O Suave tenta ser o mais preciso possível, porém, nesta aba ele assume algumas coisas. Por exemplo,
+                    aqui ele faz uma média simples com as notas atuais. Então se o processor ainda não lançou a nota do
+                    segundo semestre ele só realizara a media simples com as notas do primeiro semestre. </p>
             </div>
         </Card>
 
@@ -349,7 +381,7 @@ export default function DesempenhoAcademico() {
         }} className="bg-zinc-800 p-2 rounded-lg">Recarregar dados</button> : null}
 
         {
-            state ? <ShowEmAll state={state} /> : null
+            state ? <ShowEmAll state={state}/> : null
         }
     </Content>
 }

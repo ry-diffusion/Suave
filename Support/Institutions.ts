@@ -1,7 +1,7 @@
-import MobileApi from "@/Moodle/MobileApi"
-import SuapContext from "@/SUAP/SuapContext"
-import { HAS_MOODLE_SUPPORT, HAS_SUAP_SUPPORT } from "./FeatureFlags"
-import { MoodleBridge } from "@/Bridge/MoodleBridge"
+import MobileApi from "@/lib/moodle/MobileApi"
+import SuapContext from "@/lib/suap/SuapContext"
+import {HAS_MOODLE_SUPPORT, HAS_SUAP_SUPPORT} from "./FeatureFlags"
+import {MoodleBridge} from "@/Bridge/MoodleBridge"
 import SuapBridge from "@/Bridge/SuapBridge"
 
 export interface MoodleProvider {
@@ -65,7 +65,7 @@ export function suapByName(institution: string): SuapProvider | undefined {
     return Providers[institution]?.suap
 }
 
-/* Must support SUAP and Moodle */
+/* Must support SUAP and moodle */
 export function supportsOne(institution: string): boolean {
     return Providers[institution]?.features.length > 1
 }
