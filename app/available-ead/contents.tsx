@@ -1,21 +1,18 @@
-"use client";
+"use client"
 
-import {useQuery} from "@tanstack/react-query";
-import Content from "@/components/Content";
-import Loading from "@/components/Loading";
-import {useProvider} from "../AuthContext";
-import TimedLoading from "@/components/TimedLoading";
 import Image from "next/image";
-import {MoodleBridge} from "@/Bridge/MoodleBridge";
-import {ApiModule} from "@/app/(api)/api/moodle/GetAvailableModules/route";
-import Link from "next/link";
-import SuaveTitle from "@/components/SuaveTitle";
-
 import GCSS from "@/app/styles/Suave.module.css";
-import {Course} from "@/lib/moodle/AuthenticatedMobileApi";
-import {Suspense, useState} from "react";
+import Link from "next/link";
+import {ApiModule} from "@/app/(api)/api/moodle/GetAvailableModules/route";
+import Content from "@/components/Content";
+import React, {useState} from "react";
+import {useMoodleBridge} from "@/app/AuthContext";
+import {useQuery} from "@tanstack/react-query";
+import SuaveTitle from "@/components/SuaveTitle";
+import TimedLoading from "@/components/TimedLoading";
 import ErrorDialog from "@/components/ErrorDialog";
-import {useSession, useSuspenseSession} from "@/lib/auth/client";
+import {Course} from "@/lib/moodle/AuthenticatedMobileApi";
+import {MoodleBridge} from "@/Bridge/MoodleBridge";
 import {chunkedByToArray} from "@/lib/Iterators";
 import {useAsyncOnMount} from "@/types/reactExtensions";
 
@@ -27,6 +24,15 @@ type AvailableModulesExt = {
         past: Record<number, ModuleExt[]>,
     }
 }
+
+
+function NaoFeito() {
+    return <Badge className="text-black bg-red-200 shadow-red-200 shadow-xl">
+        <Image className="black" src="/sad-sit.svg" alt="Sad Icon" width={20} height={20}/>
+        Não Feito
+    </Badge>
+}
+
 
 function formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0'); // %d
@@ -52,7 +58,7 @@ function Acessar({url}: { url: string }) {
     </Link>
 }
 
-function Badge({children, className}: { children: React.ReactNode, className?: string }) {
+export function Badge({children, className}: { children: React.ReactNode, className?: string }) {
     return <div
         className={`${className} flex text-center self-start px-2 rounded-sm items-center gap-1 ml-4 mb-[-16px] z-10`}> {children} </div>
 }
@@ -71,18 +77,11 @@ function Pendente() {
     </Badge>
 }
 
-function NãoFeito() {
-    return <Badge className="text-black bg-red-200 shadow-red-200 shadow-xl">
-        <Image className="black" src="/sad-sit.svg" alt="Sad Icon" width={20} height={20}/>
-        Não Feito
-    </Badge>
-}
-
 function ModuleCard({module, showOpenDate}: { module: ModuleExt, showOpenDate?: boolean }) {
 
     return <div className="flex flex-col min-h-full p-2">
         {module.hasCompleted ? <Concluido/> :
-            module.dueDate && new Date(module.dueDate) > new Date() ? <Pendente/> : <NãoFeito/>}
+            module.dueDate && new Date(module.dueDate) > new Date() ? <Pendente/> : <NaoFeito/>}
 
         <div
             className={`flex flex-col gap-4 p-8 rounded-sm bg-zinc-900 min-h-full z-1 shadow-inner shadow-neutral-800`}>
@@ -116,7 +115,6 @@ function ModuleCard({module, showOpenDate}: { module: ModuleExt, showOpenDate?: 
         </div>
     </div>
 }
-
 
 function generatePrettyMessage(course: string, modules: ModuleExt[]) {
 
@@ -181,7 +179,6 @@ function generateFullMessage(title: string, all: Record<string, ModuleExt[]>) {
 
     return output
 }
-
 
 function TimeCategory({name, modules, showOpenDate}: {
     name: string,
@@ -372,7 +369,7 @@ function LoadCourses({courses, bridge}: { courses: Course[], bridge: MoodleBridg
         /**
          * Uma coisa que nunca vou entender
          * É de porque ser mais rápido buscar curso por curso em várias requisições
-         * Do que buscar tudo de uma vez KKKKKKKKKKKKKKK?
+         * Do que buscar tudo de uma vez HAHA?
          * Foda.
          * ~Moizes
          */
@@ -395,10 +392,8 @@ function LoadCourses({courses, bridge}: { courses: Course[], bridge: MoodleBridg
     </div>
 }
 
-function Container() {
-    const {session} = useSuspenseSession();
-    const provider = useProvider();
-    const bridge = provider.moodle!.makeBridge(session!.passport!.moodleToken);
+export function Container() {
+    const bridge = useMoodleBridge();
 
     const {isLoading, error, data} = useQuery({
         queryKey: ['courses'],
@@ -415,23 +410,4 @@ function Container() {
         {data ? <LoadCourses courses={data.courses} bridge={bridge}/> : null}
     </Content>
 
-}
-
-export default function MoodlesDisponiveis() {
-    const {isLoading, session} = useSession();
-
-    if (isLoading) {
-        return <Loading message="Iniciando sessão..."/>
-    }
-
-    if (!session?.isLoggedIn || !session?.passport) {
-        return <Content>
-            <Loading message="Sessão inválida! Redirecionando a página inicial"/>
-            <meta httpEquiv="refresh" content="0;url=/"/>
-        </Content>
-    }
-
-    return <Suspense fallback={<Loading message="Carregando..."/>}>
-        <Container/>
-    </Suspense>
 }

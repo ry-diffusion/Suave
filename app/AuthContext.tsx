@@ -4,6 +4,7 @@ import {Institution, Providers} from "@/Support/Institutions";
 import {createContext, useContext, useEffect, useState} from "react";
 import {KnownInfo, Passport} from "@/types/session-data";
 import {useSession} from "@/lib/auth/client";
+import {useAuth} from "@/lib/auth/context";
 
 export const REVISION = 0x1;
 
@@ -15,7 +16,7 @@ export type AuthManager = {
 }
 
 export const AuthContext = createContext<AuthManager | null>(null);
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [passport, setPassport] = useState<Passport | null>(null);
 
     const authenticate = (data: Passport) => {
@@ -56,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ passport, logout, authenticate, updateKnownInfo }}>
+        <AuthContext.Provider value={{passport, logout, authenticate, updateKnownInfo}}>
             {children}
         </AuthContext.Provider>
     );
@@ -94,8 +95,16 @@ export const usePassport = () => {
     return context;
 }
 
+export const useMoodleBridge = () => {
+    const {passport} = useAuth();
+    if (!passport) throw new Error('User is not logged in.');
+    const provider = Providers[passport.institution];
+    if (!provider.moodle) throw new Error('Moodle is not supported by this institution.');
+    return provider.moodle?.makeBridge(passport.moodleToken);
+}
+
 export const useProvider = () => {
-    const { session } = useSession();
+    const {session} = useSession();
     if (!session?.isLoggedIn || !session.passport) throw new Error('User is not logged in.');
 
     return Providers[session.passport!.institution];

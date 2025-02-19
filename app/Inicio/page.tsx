@@ -10,7 +10,7 @@ export default function Inicio() {
         <h1> Suavão fi? O quê você quer fazer hoje? </h1>
 
         <div className="grid gap-8">
-            <UrlLink url="/MoodlesDisponiveis" className="bg-yellow-200">
+            <UrlLink url="/available-ead" className="bg-yellow-200">
                 <Image src="/moodle.svg" alt="Logo do Moodle" width={20} height={20} />
                 Ver os moodles disponíveis
             </UrlLink>
