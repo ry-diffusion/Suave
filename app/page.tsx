@@ -3,17 +3,17 @@
 import Image from "next/image";
 import SuaveTitle from "@/components/SuaveTitle";
 import SuaveCss from '@/app/styles/Suave.module.css'
-import {useEffect, useState} from "react";
-import Loading from "@/components/Loading";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Content from "@/components/Content";
-import {Institution, Providers} from "@/Support/Institutions";
-import {KnownInfo} from "@/types/session-data";
-import {useProvider, useSession} from "@/lib/auth/client";
+import { Institution, Providers } from "@/Support/Institutions";
+import { KnownInfo } from "@/types/session-data";
+import { useProvider, useSession } from "@/lib/auth/client";
+import Spinner from "@/public/spinner.svg"
 
 function LoginForm({
-                       onSubmit
-                   }: { onSubmit: (matricula: string, password: string, provider: Institution) => void }) {
+    onSubmit
+}: { onSubmit: (matricula: string, password: string, provider: Institution) => void }) {
     const [matricula, setMatricula] = useState("")
     const [senha, setSenha] = useState("")
     const [provider, setProvider] = useState<Institution>("Presencial IF Goiano")
@@ -28,11 +28,11 @@ function LoginForm({
         </select>
 
         <input type="text" required minLength={2} placeholder="Insira sua matricula do SUAP"
-               className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2"
-               onChange={ev => setMatricula(ev.target.value)}/>
+            className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2"
+            onChange={ev => setMatricula(ev.target.value)} />
         <input type="password" required minLength={2} placeholder="Insira sua senha do SUAP"
-               className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2"
-               onChange={ev => setSenha(ev.target.value)}/>
+            className="rounded-lg p-2 bg-neutral-900 border-neutral-800 border-solid border-2"
+            onChange={ev => setSenha(ev.target.value)} />
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
             <button
@@ -54,10 +54,11 @@ function LoginForm({
 }
 
 
-function KnowninfoShow({knownInfo}: { knownInfo: KnownInfo }) {
+function KnowninfoShow({ knownInfo }: { knownInfo: KnownInfo }) {
     return <div className="flex flex-col gap-4 items-center">
         <Image src={knownInfo.pictureUrl ?? '/user.svg'} alt="User Picture" width={100} height={100}
-               className="rounded-full border-solid border-2 border-red-200"/>
+            className="rounded-full border-solid border-4 border-red-200"
+        />
 
         <div className="flex text-xl">
             <p className="flex text-xl gap-1">
@@ -70,19 +71,19 @@ function KnowninfoShow({knownInfo}: { knownInfo: KnownInfo }) {
 }
 
 function Whoami() {
-    const {session} = useSession()
+    const { session } = useSession()
     const provider = useProvider();
     if (!session?.isLoggedIn || !provider) {
         return <></>
     }
 
     return <div className="flex flex-col gap-4">
-        {session!.passport!.knownInfo ? <KnowninfoShow knownInfo={session!.passport!.knownInfo!}/> : <></>}
+        {session!.passport!.knownInfo ? <KnowninfoShow knownInfo={session!.passport!.knownInfo!} /> : <></>}
 
 
         <div className="flex gap-4">
             <Link href="/onboarding"
-                  className={`hover:scale-110 rounded-full text-black transition-transform flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 bg-green-300`}
+                className={`hover:scale-110 rounded-full text-black transition-transform flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 bg-green-300`}
             >
                 <Image
 
@@ -113,8 +114,14 @@ function Whoami() {
     </div>
 }
 
+function IniciandoSessao() {
+    return <div className="flex flex-col gap-4 items-center p-8">
+        <Image src={Spinner} alt="Spinner" width={62} height={62} className="animate-spin invert" loading="eager" decoding="sync" />
+    </div>
+}
+
 export default function Home() {
-    const {login, session, isLoading} = useSession();
+    const { login, session, isLoading } = useSession();
     const [state, setLoginState] = useState('welcome')
 
     const submitLogin = async (username: string, password: string, institution: Institution) => {
@@ -147,13 +154,13 @@ export default function Home() {
 
     return (
         <Content>
-            <SuaveTitle/>
+            <SuaveTitle />
 
-            {state == 'form' && <LoginForm onSubmit={submitLogin}/>}
+            {state == 'form' && <LoginForm onSubmit={submitLogin} />}
 
-            {state == 'spin' && <Loading message="Iniciando sessão..."/>}
+            {state == 'spin' && <IniciandoSessao />}
 
-            {state == 'whoami' && <Whoami/>}
+            {state == 'whoami' && <Whoami />}
         </Content>
     )
 }
