@@ -3,6 +3,40 @@
     background: linear-gradient(140deg, #D2A8FF 12.09%, #F778BA 42.58%, #FF7B72 84.96%) text;
 }
 
+
+.suave {
+    stroke-dasharray: 500;
+    stroke-dashoffset: 500;
+    animation: dash 2s linear forwards, filling 2s ease-in forwards;
+    font-size: 80px;
+}
+
+.suave text {
+    font-weight: normal;
+    font-style: normal;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes filling {
+
+    0%,
+    90% {
+        fill: #F778BA20;
+        fill-opacity: 0;
+    }
+
+    100% {
+        fill: #F778BA80;
+        fill-opacity: 1;
+    }
+}
+
+
 .gradientbg {
     background-image: linear-gradient(140deg, #D2A8FF 12.09%, #F778BA 42.58%, #FF7B72 84.96%);
 }
