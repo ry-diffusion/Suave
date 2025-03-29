@@ -1,42 +1,46 @@
-import type {Metadata} from "next";
-import {Geist, Geist_Mono} from "next/font/google";
+import type { Metadata } from "next";
 import "./globals.css";
+import "@radix-ui/themes/styles.css";
 import NetProvider from "@/components/NetProvider";
 import React from "react";
-
-import { Analytics } from "@vercel/analytics/react"
-
-const geistSans = Geist({
-    variable: "--font-geist-sans",
-    weight: "500",
-    subsets: ["latin"]
-});
-
-const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
-    weight: "400",
-    subsets: ["latin"]
-});
+import { Theme } from "@radix-ui/themes";
+import { Analytics } from "@vercel/analytics/react";
+import { displayFamily, dosis, oswald, condensed } from "./fonts";
+import NavBar from "@/components/global/nav-bar";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-    title: "Suave",
-    description: "A sua ferramenta do IF",
+  title: "Suave",
+  description: "A sua ferramenta do IF",
 };
 
-export default function RootLayout({children}: Readonly<{
-    children: React.ReactNode;
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
 }>) {
-
-    return (
-        <html lang="pt-BR">
-        <NetProvider>
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#121212] text-slate-300`}
-            >
-            {children}
-            </body>
-            <Analytics />
-        </NetProvider>
-        </html>
-    );
+  return (
+    <html
+      lang="pt-BR"
+      className={`${displayFamily.variable} ${condensed.variable}`}
+    >
+      <NetProvider>
+        <body className={`antialiased`}>
+          <Theme
+            accentColor="mint"
+            radius="small"
+            scaling="110%"
+            panelBackground="solid"
+            appearance="dark"
+          >
+            <div className={`flex flex-col min-h-screen mx-auto`}>
+              <NavBar />
+              <div className="flex-1">{children}</div>
+            </div>
+          </Theme>
+        </body>
+        <Analytics />
+      </NetProvider>
+    </html>
+  );
 }

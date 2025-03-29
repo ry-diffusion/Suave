@@ -5,6 +5,7 @@ export const size = {
     width: 32,
     height: 32,
 }
+
 export const contentType = 'image/png'
 
 // Image generation
@@ -24,7 +25,6 @@ export default function Icon() {
                     color: 'black',
                     borderRadius: '50%',
                     backgroundImage: 'linear-gradient(140deg, #D2A8FF 12.09%, #F778BA 42.58%, #FF7B72 84.96%)',
-
                 }}
             >
                 S
