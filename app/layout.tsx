@@ -33,7 +33,7 @@ export default function RootLayout({
             appearance="dark"
           >
             <div
-              className={`flex flex-col min-h-screen mx-auto bg-[var(--gray-2)]`}
+              className={`flex flex-col min-h-screen mx-auto bg-[var(--gray-2)] max-w-screen overflow-hidden`}
             >
               <NavBar />
 

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 import { TrendingUp, Award, TagsIcon, StarIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Text, Flex, Button } from "@radix-ui/themes";
+import { Text, Flex, Button, Spinner, Skeleton, Box } from "@radix-ui/themes";
 import { condensed } from "@/app/fonts";
 import React from "react";
 import Link from "next/link";
@@ -65,8 +65,18 @@ export default function OnBoarding() {
     }
   }, []);
 
+  const firstName = session?.passport?.knownInfo?.firstName;
+
   return (
-    <Flex className="items-center my-4 md:my-32" gap="8" direction="column">
+    <MotionFlex
+      className="items-center my-4 md:my-32"
+      gap="8"
+      direction="column"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      transition={{ duration: 0.5 }}
+    >
       <Text
         className={cn(
           condensed.className,
@@ -74,79 +84,109 @@ export default function OnBoarding() {
         )}
         size="8"
       >
-        {greeting} {session?.passport?.knownInfo?.firstName ?? "Desconhecido"}!
+        <Flex gap="2" align="center">
+          {greeting}{" "}
+          {isLoading ? (
+            <Skeleton className="w-32 h-16" />
+          ) : (
+            firstName ?? "desconhecido"
+          )}
+          !
+        </Flex>
       </Text>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {session?.isLoggedIn && (
-          <MotionFlex
-            gap="6"
-            align="center"
-            direction="column"
-            animate={{ opacity: 1, scale: 1 }}
-            initial={{ opacity: 0, scale: 0 }}
-            exit={{ opacity: 0, scale: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <AnimatePresence mode="popLayout">
             <MotionFlex
               gap="6"
               align="center"
-              direction={{ initial: "column", md: "row" }}
-              animate={{ opacity: 1, scale: 1 }}
-              initial={{ opacity: 0, scale: 0 }}
-              exit={{ opacity: 0, scale: 0 }}
+              direction="column"
+              key={"logged-in"}
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Element
-                icon={<TrendingUp />}
-                href="/academic/performance"
-                title="Acompanhe seu desempenho"
-                description="Veja como você está se saindo nas suas disciplinas e tire suas dúvidas."
-              />
-
-              <Element
-                icon={<TagsIcon />}
-                href="/ead/available"
-                title="Veja as tarefas disponíveis"
-                description="Veja as tarefas disponíveis para você e suas notas."
-              />
+              <MotionFlex
+                gap="6"
+                align="center"
+                direction={{ initial: "column", md: "row" }}
+                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, scale: 0 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Element
+                  icon={<TrendingUp />}
+                  href="/academic/performance"
+                  title="Acompanhe seu desempenho"
+                  description="Veja como você está se saindo nas suas disciplinas e tire suas dúvidas."
+                />
+                <Element
+                  icon={<TagsIcon />}
+                  href="/ead/available"
+                  title="Veja as tarefas disponíveis"
+                  description="Veja as tarefas disponíveis para você e suas notas."
+                />
+              </MotionFlex>
+              <MotionFlex
+                gap="6"
+                align="center"
+                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, scale: 0 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Element
+                  icon={<StarIcon />}
+                  href="https://nubank.com.br/cobrar/jk28o/67331f9e-cafa-416c-b3ef-bb0ca933c88e"
+                  title="Ajude o projeto"
+                  description="Ajude o projeto a crescer e se tornar mais forte."
+                />
+              </MotionFlex>
             </MotionFlex>
-
-            <MotionFlex
-              gap="6"
-              align="center"
-              animate={{ opacity: 1, scale: 1 }}
-              initial={{ opacity: 0, scale: 0 }}
-              exit={{ opacity: 0, scale: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Element
-                icon={<StarIcon />}
-                href="https://nubank.com.br/cobrar/jk28o/67331f9e-cafa-416c-b3ef-bb0ca933c88e"
-                title="Ajude o projeto"
-                description="Ajude o projeto a crescer e se tornar mais forte."
-              />
-            </MotionFlex>
-          </MotionFlex>
+          </AnimatePresence>
         )}
 
         {!session?.isLoggedIn && !isLoading && (
-          <MotionFlex
-            gap="6"
-            align="center"
-            animate={{ opacity: 1, scale: 1 }}
-            initial={{ opacity: 0, scale: 0 }}
-            exit={{ opacity: 0, scale: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Element
-              icon={<Award />}
-              href="/session/start"
-              title="Vamos começar!"
-              description="Entre com sua instituição e faça seu login."
-            />
-          </MotionFlex>
+          <AnimatePresence mode="popLayout">
+            <MotionFlex
+              gap="6"
+              align="center"
+              key={"unlogged"}
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Element
+                icon={<Award />}
+                href="/session/start"
+                title="Vamos começar!"
+                description="Entre com sua instituição e faça seu login."
+              />
+            </MotionFlex>
+          </AnimatePresence>
+        )}
+
+        {isLoading && (
+          <AnimatePresence mode="popLayout">
+            <MotionFlex
+              gap="6"
+              align="center"
+              key={"loading"}
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+            >
+              <Spinner />
+              <Text className="text-sm sm:text-base">
+                Parando para pensar...
+              </Text>
+            </MotionFlex>
+          </AnimatePresence>
         )}
       </AnimatePresence>
-    </Flex>
+    </MotionFlex>
   );
 }
