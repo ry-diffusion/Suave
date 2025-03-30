@@ -9,23 +9,42 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/themes": "^3.2.1",
+    "@tabler/icons-react": "^3.30.0",
     "@tanstack/react-query": "^5.59.20",
     "@vercel/analytics": "^1.5.0",
-    "framer-motion": "^12.4.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.18.2",
     "iron-session": "^8.0.4",
-    "next": "^15.1.7",
+    "lucide-react": "^0.477.0",
+    "motion": "^12.4.10",
+    "next": "^15.2.4",
+    "next-themes": "^0.4.6",
+    "next-view-transitions": "^0.3.4",
+    "ogl": "^1.0.11",
+    "postprocessing": "^6.36.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "react-qr-code": "^2.0.15",
+    "react-to-print": "^3.0.5",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7",
+    "three": "^0.167.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
+    "eslint": "^9.21.0",
     "eslint-config-next": "15.0.3",
     "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "tailwindcss": "^4.0.9",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af"
+  "packageManager": "pnpm@10.5.1+sha512.c424c076bd25c1a5b188c37bb1ca56cc1e136fbf530d98bcb3289982a08fd25527b8c9c4ec113be5e3393c39af04521dd647bcf1d0801eaf8ac6a7b14da313af"
 }
