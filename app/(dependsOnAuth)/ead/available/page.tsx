@@ -907,7 +907,7 @@ export default function AvailableEad() {
             gap="4"
             align="center"
             justify="center" // Center vertically
-            className="flex-1 mt-[100%]"
+            className="mt-[100%]"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}

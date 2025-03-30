@@ -163,14 +163,15 @@ export default function PrintSection({
           <View style={styles.footer} fixed>
             <View style={{ flex: 1, padding: 5, gap: 4 }}>
               <Text style={{ fontSize: 12 }}>
-                Gerado pelo Suave em{"  "}
-                {formatDate(new Date())}
+                Gerado em {formatDate(new Date())}
               </Text>
-              <Text style={{ fontSize: 12 }}>
-                Uma ferramenta por Moizes de Jesus Sousa
-              </Text>
+
               <Text style={{ fontSize: 12 }}>
                 Acesse lendo o QRCode ao lado.
+              </Text>
+
+              <Text style={{ fontSize: 12 }}>
+                Powered by "suave.", feito por Moizes Sousa.
               </Text>
             </View>
             <Image
