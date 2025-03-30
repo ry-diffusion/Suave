@@ -654,7 +654,7 @@ function LoadingImages() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % images.length);
-    }, 500); // Change image every second
+    }, 1000); // Change image every second
     return () => clearInterval(interval);
   }, [images.length]);
 
