@@ -3,12 +3,12 @@
 import { useSession } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
-import { Link } from "next-view-transitions";
 import { TrendingUp, Award, TagsIcon, StarIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Text, Flex, Button } from "@radix-ui/themes";
 import { condensed } from "@/app/fonts";
 import React from "react";
+import Link from "next/link";
 
 // // Welcome Section Component
 // function WelcomeSection({ session, isLoading }: { session?: SessionData, isLoading: boolean }) {

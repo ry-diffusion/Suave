@@ -1,14 +1,18 @@
 "use client";
 
-import { Flex, Spinner } from "@radix-ui/themes";
+import { Flex, Link, Spinner } from "@radix-ui/themes";
 
 import { condensed } from "@/app/fonts";
-import { Link } from "next-view-transitions";
 import { useSession } from "@/lib/auth/client";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import Aurora from "@/components/bits/backgrounds/Aurora/Aurora";
+import dynamic from "next/dynamic";
+
+const Aurora = dynamic(
+  () => import("@/components/bits/backgrounds/Aurora/Aurora"),
+  { ssr: false }
+);
 
 const MotionFlex = motion.create(Flex);
 
