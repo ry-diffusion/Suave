@@ -1,6 +1,7 @@
-import { Oswald, Dosis, Outfit, Roboto_Condensed } from "next/font/google";
+import { Font } from "@react-pdf/renderer";
+import { Inter, Dosis, Outfit, Roboto_Condensed } from "next/font/google";
 
-export const oswald = Oswald({
+export const inter = Inter({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-oswald",
@@ -24,4 +25,18 @@ export const condensed = Roboto_Condensed({
   variable: "--font-condensed",
 });
 
-export const displayFamily = dosis;
+Font.register({
+  family: "Inter",
+  fonts: [
+    {
+      src: "/Inter.ttf",
+    },
+
+    {
+      src: "/Inter-Bold.ttf",
+      fontWeight: "bold",
+    },
+  ],
+});
+
+export const displayFamily = inter;
