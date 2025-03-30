@@ -1,0 +1,6 @@
+.printSection {
+  display: none;
+  @media print {
+    display: block;
+  }
+}

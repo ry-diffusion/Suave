@@ -1,49 +1,40 @@
 "use client";
 
 import Image from "next/image";
-import GCSS from "@/app/styles/Suave.module.css";
-import Link from "next/link";
-import { ApiModule } from "@/app/(api)/api/moodle/GetAvailableModules/route";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import TimedLoading from "@/components/TimedLoading";
 import ErrorDialog from "@/components/ErrorDialog";
 import { Course } from "@/lib/moodle/AuthenticatedMobileApi";
 import { MoodleBridge } from "@/Bridge/MoodleBridge";
 import { chunkedByToArray } from "@/lib/Iterators";
 import { useAsyncOnMount } from "@/types/reactExtensions";
 import { useMoodleBridge } from "@/lib/auth/client";
-import { Loader, LoaderCircle } from "lucide-react";
-import { Flex, Spinner, Text } from "@radix-ui/themes";
+import { Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import {
+  Badge,
+  Box,
+  Button,
+  Card,
+  DataList,
+  Flex,
+  Progress,
+  Spinner,
+  Text,
+  Link as RadixLink,
+  HoverCard,
+  Select,
+} from "@radix-ui/themes";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  AvailableModulesExt,
+  ModuleExt,
+} from "@/app/(dependsOnAuth)/ead/available/typing";
+import PrintSection from "@/app/(dependsOnAuth)/ead/available/print/print-section";
 
 // Create motion versions of Radix UI components
-const MotionFlex = motion(Flex);
-const MotionText = motion(Text);
-
-type ModuleExt = ApiModule & { course: string };
-type AvailableModulesExt = {
-  modules: {
-    current: Record<number, ModuleExt[]>;
-    future: Record<number, ModuleExt[]>;
-    past: Record<number, ModuleExt[]>;
-  };
-};
-
-function NaoFeito() {
-  return (
-    <Badge className="text-black bg-red-200 shadow-red-200 shadow-xl">
-      <Image
-        className="black"
-        src="/sad-sit.svg"
-        alt="Sad Icon"
-        width={20}
-        height={20}
-      />
-      Não Feito
-    </Badge>
-  );
-}
+const MotionFlex = motion.create(Flex);
+const MotionText = motion.create(Text);
 
 function formatDate(date: Date): string {
   const day = date.getDate().toString().padStart(2, "0"); // %d
@@ -60,159 +51,147 @@ function formatDate(date: Date): string {
   return `${day}/${month} ${hours}:${minutes}`;
 }
 
-function Acessar({ url }: { url: string }) {
+function AbsoluteTime({ time }: { time: Date }) {
+  const [absoluteTime, setAbsoluteTime] = useState("");
+  useEffect(() => {
+    const formtter = Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+
+    setAbsoluteTime(formtter.format(time));
+  }, [time]);
+
   return (
-    <Link
-      href={url}
-      className="rounded-3xl bg-blue-500 text-black p-4 max-w-24 hover:scale-110 transition-all shadow-xs shadow-blue-800 hover:bg-green-200 mt-auto self-start"
-      target="_blank"
-    >
-      Acessar
-    </Link>
+    <Text size="3" color="gray">
+      {absoluteTime}
+    </Text>
   );
 }
 
-function Badge({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function RelativeTime({ time }: { time: Date }) {
+  const [relativeTime, setRelativeTime] = useState("");
+
+  useEffect(() => {
+    function update() {
+      const now = new Date();
+      const diffSec = Math.round((time.getTime() - now.getTime()) / 1000);
+      // if bigger than 45 days show absolute time
+      if (Math.abs(diffSec) > 3888000) {
+        setRelativeTime(formatDate(time));
+        return;
+      }
+      setRelativeTime(formatRelativeTime(diffSec));
+    }
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [time]);
+
   return (
-    <div
-      className={`${className} flex text-center self-start px-2 rounded-sm items-center gap-1 ml-4 mb-[-16px] z-10`}
-    >
-      {" "}
-      {children}{" "}
-    </div>
+    <HoverCard.Root>
+      <HoverCard.Trigger>
+        <Text size="3" color="gray">
+          {relativeTime}
+        </Text>
+      </HoverCard.Trigger>
+      <HoverCard.Content>
+        <Text size="3" color="gray">
+          {formatDate(time)}
+        </Text>
+      </HoverCard.Content>
+    </HoverCard.Root>
   );
 }
 
-function Concluido() {
-  return (
-    <Badge className="text-black bg-green-400 shadow-green-200 shadow-xs">
-      <Image
-        className="black"
-        src="/check.svg"
-        alt="Check Icon"
-        width={20}
-        height={20}
-      />
-      Concluído
-    </Badge>
-  );
+function formatRelativeTime(diffSec: number): string {
+  const isFuture = diffSec > 0;
+  const absDiff = Math.abs(diffSec);
+
+  const days = Math.floor(absDiff / 86400);
+  const hours = Math.floor((absDiff % 86400) / 3600);
+  const minutes = Math.floor((absDiff % 3600) / 60);
+  const seconds = Math.floor(absDiff % 60);
+
+  const parts: string[] = [];
+  if (days > 0) {
+    parts.push(`${days} ${days === 1 ? "dia" : "dias"}`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours} ${hours === 1 ? "hora" : "horas"}`);
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes} ${minutes === 1 ? "minuto" : "minutos"}`);
+  }
+  // Se não houver dias, horas ou minutos, mostra os segundos.
+  if (parts.length === 0) {
+    parts.push(`${seconds} ${seconds === 1 ? "segundo" : "segundos"}`);
+  }
+
+  if (parts.length === 1) {
+    return isFuture ? `Em ${parts[0]}` : `${parts[0]} atrás`;
+  } else {
+    const last = parts.pop();
+    const formatted = parts.join(", ") + " e " + last;
+    return isFuture ? `Em ${formatted}` : `${formatted} atrás`;
+  }
 }
 
-function Pendente() {
-  return (
-    <Badge className="text-black bg-yellow-200 shadow-yellow-200 shadow-xl">
-      <Image
-        className="black"
-        src="/sand-clock.svg"
-        alt="Clock Icon"
-        width={20}
-        height={20}
-      />
-      Pendente
-    </Badge>
-  );
-}
-function ModuleCard({
-  module,
-  showOpenDate,
-}: {
-  module: ModuleExt;
-  showOpenDate?: boolean;
-}) {
-  // Generate a slight random rotation between -3 and 3 degrees for a more natural look
-  const rotation = Math.floor(Math.random() * 6) - 3;
-
-  // Choose a sticky note color based on module completion status
-  let stickyColor = module.hasCompleted
-    ? "bg-green-200"
+function ModuleCard({ module }: { module: ModuleExt; showOpenDate?: boolean }) {
+  const color = module.hasCompleted
+    ? "green"
     : module.dueDate && new Date(module.dueDate) > new Date()
-    ? "bg-yellow-200"
-    : "bg-red-200";
+    ? "yellow"
+    : "red";
 
   return (
-    <div className="flex flex-col min-h-full p-2 relative">
-      <div
-        className={`flex flex-col gap-4 p-8 ${stickyColor} min-h-full rounded-sm shadow-lg 
-                   transform hover:scale-105 transition-all duration-200`}
-        style={{ transform: `rotate(${rotation}deg)` }}
-      >
-        {/* Status indicator at the top corner */}
-        <div className="absolute -top-2 -right-2">
-          {module.hasCompleted ? (
-            <span className="h-6 w-6 flex items-center justify-center rounded-full bg-green-500 text-white">
-              <Image src="/check.svg" alt="Completed" width={15} height={15} />
-            </span>
-          ) : module.dueDate && new Date(module.dueDate) > new Date() ? (
-            <span className="h-6 w-6 flex items-center justify-center rounded-full bg-yellow-500 text-white">
-              <Image
-                src="/sand-clock.svg"
-                alt="Pending"
-                width={15}
-                height={15}
-              />
-            </span>
-          ) : (
-            <span className="h-6 w-6 flex items-center justify-center rounded-full bg-red-500 text-white">
-              <Image src="/sad-sit.svg" alt="Not Done" width={15} height={15} />
-            </span>
-          )}
-        </div>
+    <Card>
+      <Flex direction="column" gap="4">
+        <Box>
+          <Text as="div" size="4" weight="bold">
+            {module.name}
+          </Text>
+          <Text as="div" size="3" color="gray">
+            {module.course}
+          </Text>
+        </Box>
+        <DataList.Root>
+          <DataList.Item align="center">
+            <DataList.Label minWidth="88px">Status</DataList.Label>
+            <DataList.Value>
+              <Badge color={color}>
+                {module.hasCompleted
+                  ? "Concluído"
+                  : module.dueDate && new Date(module.dueDate) > new Date()
+                  ? "Pendente"
+                  : "Não feito"}
+              </Badge>
+            </DataList.Value>
+          </DataList.Item>
 
-        {/* Content of the sticky note */}
-        <h2 className="font-bold text-black uppercase"> {module.name} </h2>
-        <div className="flex flex-col">
-          <h3 className="text-balance text-black"> {module.course} </h3>
-        </div>
-
-        <div className="flex flex-col gap-1 mt-auto text-black">
-          {showOpenDate ? (
-            <div className="flex gap-1">
-              <h3 className="font-semibold"> Abre </h3>
-              {module.allowSubmissionsFrom ? (
-                <h3>em {formatDate(new Date(module.allowSubmissionsFrom!))}</h3>
-              ) : (
-                <h3 className="italic"> data desconhecida </h3>
+          <DataList.Item align="center">
+            <DataList.Label>Abre</DataList.Label>
+            <DataList.Value>
+              {module.allowSubmissionsFrom && (
+                <AbsoluteTime time={new Date(module.allowSubmissionsFrom!)} />
               )}
-            </div>
-          ) : null}
+            </DataList.Value>
+          </DataList.Item>
+          <DataList.Item align="center">
+            <DataList.Label>Fecha</DataList.Label>
+            <DataList.Value>
+              {module.dueDate && (
+                <RelativeTime time={new Date(module.dueDate!)} />
+              )}
+            </DataList.Value>
+          </DataList.Item>
+        </DataList.Root>
 
-          <div className="flex gap-1">
-            <h3 className="font-semibold">
-              {new Date() > new Date(module.dueDate!) ? "Fechado" : "Fecha"}
-            </h3>
-            {module.dueDate ? (
-              <h3>em {formatDate(new Date(module.dueDate!))}</h3>
-            ) : (
-              <h3 className="italic"> data desconhecida </h3>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-row place-content-between items-center">
-          <Link
-            href={module.url}
-            className="rounded-full bg-white text-black py-2 px-4 hover:scale-110 
-                     transition-all shadow-sm border border-gray-300 mt-auto self-start 
-                     font-medium"
-            target="_blank"
-          >
-            Acessar
-          </Link>
-        </div>
-
-        {/* Simulated push pin */}
-        <div
-          className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-6 h-6 
-                      bg-gray-300 rounded-full border-2 border-gray-400 shadow-sm z-10"
-        />
-      </div>
-    </div>
+        <RadixLink href={module.url} target="_blank">
+          Acessar
+        </RadixLink>
+      </Flex>
+    </Card>
   );
 }
 
@@ -293,9 +272,14 @@ function TimeCategory({
   modules: Record<number, ModuleExt[]>;
   showOpenDate?: boolean;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const doPrint = useReactToPrint({
+    contentRef,
+  });
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const avaliableModules = Object.entries(modules).filter(
-    ([_, modules]) => modules.length > 0
+    ([, modules]) => modules.length > 0
   );
 
   if (avaliableModules.length === 0) return;
@@ -332,35 +316,52 @@ function TimeCategory({
   };
 
   return (
-    <div className={`flex flex-col gap-4 items-center min-w-full`}>
-      <div className="flex gap-2 justify-items-center items-center">
-        <button
-          className="bg-green-200 rounded-full p-2 hover:scale-110 transition-all text-black"
-          onClick={shareWhatsapp}
-        >
-          <Image src="/zap.svg" alt="Zap Icon" width={20} height={20} />
-        </button>
+    <Flex gap="4" direction="column" align="stretch" className="w-full">
+      <Flex gap="2" align="center" justify="between">
+        <Text className={`shadow-xs`} size="6">
+          {name}
+        </Text>
 
-        <h2 className={`uppercase ${GCSS.blueGradientText} shadow-xs text-2xl`}>
-          {" "}
-          {name}{" "}
-        </h2>
-      </div>
+        <Flex gap="2" align="center">
+          <Button onClick={shareWhatsapp} color="mint">
+            <Image src="/zap.svg" alt="Zap Icon" width={20} height={20} />
+            <span className="hidden md:block">Compartilhar</span>
+          </Button>
 
-      <ul className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 place-content-between">
-        {avaliableModules.map(([, modules]) =>
-          modules.map((module) => {
-            return (
-              <ModuleCard
-                module={module}
-                key={module.url}
-                showOpenDate={showOpenDate}
-              />
-            );
+          <Button color="sky" onClick={() => doPrint()}>
+            <Printer />
+
+            <span className="hidden md:block">Imprimir</span>
+          </Button>
+        </Flex>
+      </Flex>
+
+      <Flex className="w-full" justify="center" gap="4" wrap="wrap">
+        {avaliableModules
+          .sort((a, b) => {
+            // sort by title length
+            const aLength = a[1][0].name.length;
+            const bLength = b[1][0].name.length;
+
+            return aLength - bLength;
           })
-        )}
-      </ul>
-    </div>
+          .map(([, modules]) =>
+            modules.map((module) => {
+              return (
+                <ModuleCard
+                  module={module}
+                  key={module.url}
+                  showOpenDate={showOpenDate}
+                />
+              );
+            })
+          )}
+      </Flex>
+
+      <div id={`print-${name}`} ref={contentRef}>
+        <PrintSection modules={modules} />
+      </div>
+    </Flex>
   );
 }
 
@@ -383,14 +384,24 @@ function Stats({ available }: { available: AvailableModulesExt }) {
   const percentage = ((didMoodles / total) * 100).toFixed(2);
 
   return (
-    <div className="flex flex-col gap-4 items-center">
-      <h1> E ai? Estes são os moodles do momento. </h1>
-      <h2 className="text-center">
-        {" "}
-        Você fez {didMoodles} de {total} atividades, ou seja, {percentage}%!{" "}
-      </h2>
-    </div>
+    <Flex justify="center" align="center" direction="column" gap="4">
+      <Text size="6" align="center">
+        E ai? Estes são os moodles do momento.{" "}
+      </Text>
+
+      <Text align="center">
+        Você fez {didMoodles} de {total} atividades, ou seja,{" "}
+        <span className="bg-blue-400 rounded-md p-1 md:p-2">
+          {percentage}%!
+        </span>{" "}
+      </Text>
+    </Flex>
   );
+}
+
+interface FilterState {
+  course: string | "all";
+  status: string | "all";
 }
 
 function Dash({
@@ -400,22 +411,168 @@ function Dash({
   available: AvailableModulesExt;
   isReady: boolean;
 }) {
-  return (
-    <div className="flex flex-col gap-4 items-center">
-      {isReady ? <Stats available={available} /> : <h1> Carregando... </h1>}
+  // Add state for filters
+  const [filters, setFilters] = useState<FilterState>({
+    course: "all",
+    status: "all",
+  });
 
-      <TimeCategory
-        name="Moodles Abertos"
-        modules={available.modules.current}
-      />
+  // Get unique course names for filter options
+  const getUniqueCourses = () => {
+    const courses = new Set<string>();
+    Object.values(available.modules).forEach((category) => {
+      Object.values(category).forEach((modules) => {
+        modules.forEach((module) => courses.add(module.course));
+      });
+    });
+    return Array.from(courses);
+  };
+
+  // Filter modules based on current filter state
+  const filterModules = (modules: Record<number, ModuleExt[]>) => {
+    const filtered: Record<number, ModuleExt[]> = {};
+
+    Object.entries(modules).forEach(([courseId, moduleList]) => {
+      const filteredModules = moduleList.filter((module) => {
+        // Course filter
+        const courseMatch =
+          filters.course === "all" || module.course === filters.course;
+
+        // Status filter
+        let statusMatch = true;
+        if (filters.status !== "all") {
+          const now = new Date();
+          const dueDate = module.dueDate ? new Date(module.dueDate) : null;
+          const daysToDue = dueDate
+            ? Math.ceil(
+                (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+              )
+            : null;
+
+          switch (filters.status) {
+            case "Concluído":
+              statusMatch = module.hasCompleted;
+              break;
+            case "Pendente":
+              statusMatch =
+                (!module.hasCompleted && dueDate && dueDate > now) ?? false;
+              break;
+            case "Não feito":
+              statusMatch =
+                (!module.hasCompleted && dueDate && dueDate < now) ?? false;
+              break;
+            case "Perto de fechar":
+              statusMatch =
+                !module.hasCompleted &&
+                daysToDue !== null &&
+                daysToDue <= 3 &&
+                daysToDue >= 0;
+              break;
+          }
+        }
+
+        return courseMatch && statusMatch;
+      });
+
+      if (filteredModules.length > 0) {
+        filtered[courseId as unknown as number] = filteredModules;
+      }
+    });
+
+    return filtered;
+  };
+
+  // Filter all time categories
+  const filteredModules = {
+    current: filterModules(available.modules.current),
+    future: filterModules(available.modules.future),
+    past: filterModules(available.modules.past),
+  };
+
+  return (
+    <div className="flex flex-col gap-4 items-center w-full">
+      {isReady ? <Stats available={available} /> : <Spinner />}
+
+      {/* Filter Controls */}
+      <Flex
+        direction={{ initial: "column", md: "row" }}
+        gap="4"
+        className="w-full max-w-md md:max-w-3xl mx-auto"
+        justify={{ initial: "center", md: "between" }}
+        align="center"
+      >
+        <Flex gap="4" align="center">
+          <Text size="3" weight="bold">
+            Filtrar por disciplina:
+          </Text>
+
+          <Select.Root
+            defaultValue="all"
+            onValueChange={(value) => {
+              setFilters((prev) => ({ ...prev, course: value }));
+            }}
+          >
+            <Select.Trigger />
+            <Select.Content>
+              <Select.Item value="all">
+                <Text size="3">Todas as disciplinas</Text>
+              </Select.Item>
+              <Select.Separator />
+
+              {getUniqueCourses().map((course) => (
+                <Select.Item key={course} value={course}>
+                  {course}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </Flex>
+
+        <Flex gap="4" align="center">
+          <Text size="3" weight="bold">
+            Filtrar por status:
+          </Text>
+
+          <Select.Root
+            defaultValue="all"
+            onValueChange={(value) => {
+              setFilters((prev) => ({ ...prev, status: value }));
+            }}
+          >
+            <Select.Trigger />
+            <Select.Content>
+              <Select.Item value="all">
+                <Text size="3">Todos os status</Text>
+              </Select.Item>
+              <Select.Separator />
+
+              <Select.Item value="Concluído">Concluído</Select.Item>
+              <Select.Item value="Pendente">Pendente</Select.Item>
+              <Select.Item value="Não feito">Não feito</Select.Item>
+              {/* <Select.Item value="Perto de fechar">
+                Perto de fechar (≤ 3 dias)
+              </Select.Item> */}
+            </Select.Content>
+          </Select.Root>
+        </Flex>
+      </Flex>
+
+      <TimeCategory name="Moodles Abertos" modules={filteredModules.current} />
       <TimeCategory
         name="Moodles Futuros"
-        modules={available.modules.future}
+        modules={filteredModules.future}
         showOpenDate
       />
-      <TimeCategory name="Moodles Passados" modules={available.modules.past} />
+      <TimeCategory name="Moodles Passados" modules={filteredModules.past} />
     </div>
   );
+}
+
+function simplifyFullName(fullName: string) {
+  let name = fullName.replace(/^\d+ - /, "");
+  name = name.split(" - ")[0];
+  name = name.replace(/^SUAP\d+ - /, "");
+  return name.trim();
 }
 
 function LoadCourses({
@@ -439,19 +596,14 @@ function LoadCourses({
   });
 
   const courseNames = Object.fromEntries(
-    courses.map((x) => [x.id, x.fullname.split(" - ")[1] ?? x.fullname])
+    courses.map((x) => [x.id, simplifyFullName(x.fullname) ?? x.fullname])
   );
 
+  const [totalCourses, setTotalCourses] = useState<number>(courses.length);
+  const [loadedCourses, setLoadedCourses] = useState<number>(0);
+
   async function fetchCourses(courses: Course[]) {
-    const name = courses
-      .map((x) => {
-        const splices = x.fullname.split(" - ");
-        if (splices.length > 1) {
-          return splices[1];
-        }
-        return x.fullname;
-      })
-      .join(", ");
+    const name = courses.map((x) => simplifyFullName(x.fullname)).join(", ");
 
     console.time(`fetchCourses(${name})`);
 
@@ -487,7 +639,9 @@ function LoadCourses({
       return available;
     });
 
-    setText(`Analisado: ${name}`);
+    setText(`${name}`);
+
+    setLoadedCourses((old) => old + courses.length);
 
     console.timeEnd(`fetchCourses(${name})`);
   }
@@ -498,9 +652,9 @@ function LoadCourses({
       return {
         courseId: course.id,
         modules: [
-          ...Object.values(available.modules.current[course.id]),
-          ...Object.values(available.modules.future[course.id]),
-          ...Object.values(available.modules.past[course.id]),
+          ...Object.values(available.modules.current[course.id] ?? []),
+          ...Object.values(available.modules.future[course.id] ?? []),
+          ...Object.values(available.modules.past[course.id] ?? []),
         ],
       };
     });
@@ -536,7 +690,8 @@ function LoadCourses({
 
   useAsyncOnMount(async () => {
     console.time("useAsyncOnMount:LoadCourses()");
-    const tasks = chunkedByToArray(courses, 3).map(fetchCourses);
+    const tasks = chunkedByToArray(courses, 4).map(fetchCourses);
+    setTotalCourses(courses.length);
 
     /**
      * Uma coisa que nunca vou entender
@@ -567,7 +722,15 @@ function LoadCourses({
             transition={{ duration: 0.3 }}
             key="loading-courses"
           >
-            <Spinner size="3" />
+            <Box width="300px">
+              <Progress
+                variant="soft"
+                value={(loadedCourses / totalCourses) * 100}
+                key="progress"
+                duration="10s"
+              />
+            </Box>
+
             <AnimatePresence mode="wait">
               <MotionText
                 size="4"
@@ -599,12 +762,12 @@ function LoadCourses({
         )}
       </AnimatePresence>
 
-      {available ? (
+      {available && (
         <Dash
           available={available as unknown as AvailableModulesExt}
           isReady={!isLoading}
         />
-      ) : null}
+      )}
     </div>
   );
 }

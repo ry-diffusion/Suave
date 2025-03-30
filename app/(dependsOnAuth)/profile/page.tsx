@@ -1,6 +1,6 @@
 import Logout from "@/app/(dependsOnAuth)/profile/logout";
 import { getSession } from "@/lib/auth/server";
-import { Button, Flex, Text } from "@radix-ui/themes";
+import { Flex, Text } from "@radix-ui/themes";
 import { redirect } from "next/navigation";
 
 export default async function Page() {

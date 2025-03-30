@@ -1,10 +1,4 @@
-import {
-  Oswald,
-  Dosis,
-  Outfit,
-  Red_Hat_Text,
-  Roboto_Condensed,
-} from "next/font/google";
+import { Oswald, Dosis, Outfit, Roboto_Condensed } from "next/font/google";
 
 export const oswald = Oswald({
   weight: ["400", "500", "600", "700"],

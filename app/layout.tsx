@@ -5,9 +5,8 @@ import NetProvider from "@/components/NetProvider";
 import React from "react";
 import { Theme } from "@radix-ui/themes";
 import { Analytics } from "@vercel/analytics/react";
-import { displayFamily, dosis, oswald, condensed } from "./fonts";
+import { displayFamily, condensed } from "./fonts";
 import NavBar from "@/components/global/nav-bar";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Suave",
@@ -27,15 +26,18 @@ export default function RootLayout({
       <NetProvider>
         <body className={`antialiased`}>
           <Theme
-            accentColor="mint"
-            radius="small"
-            scaling="110%"
-            panelBackground="solid"
+            accentColor="purple"
+            radius="medium"
+            scaling="100%"
+            grayColor="mauve"
             appearance="dark"
           >
             <div className={`flex flex-col min-h-screen mx-auto`}>
               <NavBar />
-              <div className="flex-1">{children}</div>
+
+              <div className="flex flex-1 items-center justify-center">
+                {children}
+              </div>
             </div>
           </Theme>
         </body>
