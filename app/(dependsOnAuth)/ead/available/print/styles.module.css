@@ -1,6 +1,6 @@
 .printSection {
-  display: none;
+  display: flex;
   @media print {
-    display: block;
+    display: flex;
   }
 }

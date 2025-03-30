@@ -26,13 +26,15 @@ export default function RootLayout({
       <NetProvider>
         <body className={`antialiased`}>
           <Theme
-            accentColor="purple"
+            accentColor="bronze"
             radius="medium"
             scaling="100%"
-            grayColor="mauve"
+            grayColor="sage"
             appearance="dark"
           >
-            <div className={`flex flex-col min-h-screen mx-auto`}>
+            <div
+              className={`flex flex-col min-h-screen mx-auto bg-[var(--gray-2)]`}
+            >
               <NavBar />
 
               <div className="flex flex-1 items-center justify-center">

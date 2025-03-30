@@ -1,0 +1,22 @@
+@keyframes loadingAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-80px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-100px) translateX(-50px) rotate(-20deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120px) translateX(80px) rotate(30deg);
+  }
+}
+
+.loading-animation {
+  animation: loadingAnimation 1.2s cubic-bezier(0.6, -0.28, 0.735, 0.045)
+    infinite;
+}

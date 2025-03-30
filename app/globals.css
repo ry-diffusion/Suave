@@ -1,8 +1,6 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
-
-
 
 @custom-variant dark (&:is(.dark *));
 
@@ -55,7 +53,6 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-
   *,
   ::after,
   ::before,
@@ -80,22 +77,21 @@
     }
   }
 
-
   :root {
     --gap: 4px;
   }
 
   @keyframes marquee-up {
     0% {
-      transform: translateY(0)
+      transform: translateY(0);
     }
 
     50% {
-      transform: translateY(calc(-50% - var(--gap)))
+      transform: translateY(calc(-50% - var(--gap)));
     }
 
     100% {
-      transform: translateY(20%)
+      transform: translateY(20%);
     }
   }
 
@@ -123,20 +119,19 @@
 
   .page {
     animation: animated-bg infinite ease 10s;
-    background: linear-gradient(90deg,
-        rgba(62, 73, 61, 0.2) 0%,
-        rgba(52, 50, 91, 0.3) 50%,
-        rgba(83, 61, 104, 0.3) 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(62, 73, 61, 0.2) 0%,
+      rgba(52, 50, 91, 0.3) 50%,
+      rgba(83, 61, 104, 0.3) 100%
+    );
 
     background-size: 400% 400%;
   }
 }
 
-
-
 @layer base {
   :root {
-
     --background: 0 0% 100%;
 
     --foreground: 0 0% 3.9%;
@@ -185,11 +180,10 @@
 
     --chart-5: 27 87% 67%;
 
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
 
   .dark {
-
     --background: 0 0% 3.9%;
 
     --foreground: 0 0% 98%;
@@ -236,11 +230,9 @@
 
     --chart-4: 280 65% 60%;
 
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
 }
-
-
 
 @layer base {
   * {
@@ -252,7 +244,6 @@
   }
 }
 
-
 * {
   font-family: var(--font-outfit);
 }
@@ -262,13 +253,12 @@
   --em-font-family: var(--font-outfit);
 }
 
-
 @layer utils {
   .s-nav-item {
     @apply hover:bg-neutral-400 dark:hover:bg-neutral-700 p-4 rounded-md text-sm font-medium transition-colors hover:text-primary text-neutral-800 dark:text-neutral-200;
   }
 
-.s-nav-auth-action {
-  @apply rounded-md px-4 py-2 text-sm font-medium transition-colors bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700
-}
+  .s-nav-auth-action {
+    @apply rounded-md px-4 py-2 text-sm font-medium transition-colors bg-[var(--gray-4)];
+  }
 }

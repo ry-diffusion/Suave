@@ -20,12 +20,12 @@ export default function NavBar() {
   const { session, isLoading } = useSession();
 
   return (
-    <nav className="top-0 left-0 z-50 w-full sticky transition-all duration-300 shadow-sm border-b-2 border-neutral-800 bg-neutral-800/20 h-24">
+    <nav className="top-0 left-0 z-50 w-full sticky transition-all duration-300 shadow-sm border-b-2 border-[var(--gray-6)] bg-[var(--gray-1)]/20 h-24 max-w-[100vw] backdrop-blur-lg">
       <Aurora
-        colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
-        className="inset-0 -z-10 absolute"
-        blend={0.5}
-        amplitude={5.0}
+        colorStops={["#33AAFF", "#00FFB4", "#DDEEDD"]}
+        className="inset-0 -z-10 absolute max-w-[50vw]"
+        blend={1.0}
+        amplitude={0.5}
         speed={0.5}
       />
 

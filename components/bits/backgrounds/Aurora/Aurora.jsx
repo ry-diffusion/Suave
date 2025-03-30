@@ -179,8 +179,20 @@ export default function Aurora(props) {
     ctn.appendChild(gl.canvas);
 
     let animateId = 0;
+    let isFocused = true;
+    let lastFrameTime = 0; // Track the last frame time
+    const fpsInterval = 1000 / 24; // 24 fps
+
     const update = (t) => {
+      if (!isFocused) return;
       animateId = requestAnimationFrame(update);
+
+      const now = performance.now();
+      const elapsed = now - lastFrameTime;
+
+      if (elapsed < fpsInterval) return; // Skip frame if not enough time has passed
+      lastFrameTime = now;
+
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       program.uniforms.uTime.value = time * speed * 0.1;
       program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
@@ -192,13 +204,28 @@ export default function Aurora(props) {
       });
       renderer.render({ scene: mesh });
     };
-    animateId = requestAnimationFrame(update);
 
+    const handleFocus = () => {
+      isFocused = true;
+      animateId = requestAnimationFrame(update);
+    };
+
+    const handleBlur = () => {
+      isFocused = false;
+      cancelAnimationFrame(animateId);
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("blur", handleBlur);
+
+    animateId = requestAnimationFrame(update);
     resize();
 
     return () => {
       cancelAnimationFrame(animateId);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("blur", handleBlur);
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas);
       }
