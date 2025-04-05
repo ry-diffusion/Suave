@@ -116,6 +116,30 @@ export default function PrintSection({
     .flat()
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  if (moduleList.length === 0) {
+    return (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <View style={styles.header} fixed>
+            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+              Tarefas do Moodle disponíveis
+            </Text>
+          </View>
+
+          <View style={styles.gridContainer}>
+            <Text style={{ fontSize: 12 }}>Nenhuma tarefa disponível.</Text>
+          </View>
+
+          <View style={styles.footer} fixed>
+            <Text style={{ fontSize: 12 }}>
+              Gerado em {formatDate(new Date())}
+            </Text>
+          </View>
+        </Page>
+      </Document>
+    );
+  }
+
   // Chunk modules into groups of 6 (2×3 grid)
   const pages = [];
   for (let i = 0; i < moduleList.length; i += 6) {

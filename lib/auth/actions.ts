@@ -4,6 +4,17 @@ import AuthenticatedMobileApi from "@/lib/moodle/AuthenticatedMobileApi";
 import { moodleByName } from "@/Support/Institutions";
 import { getSession } from "@/lib/auth/server";
 
+export async function handleLogout() {
+  const session = await getSession();
+
+  session.destroy();
+
+  return {
+    status: "success",
+    message: "Successfully logged out",
+  };
+}
+
 export async function handleLogin({
   username,
   password,

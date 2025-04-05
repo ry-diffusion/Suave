@@ -8,7 +8,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "../query";
 import { Institution, Providers } from "@/Support/Institutions";
 import { useAuth } from "@/lib/auth/context";
-import { handleLogin } from "@/lib/auth/actions";
+import { handleLogin, handleLogout } from "@/lib/auth/actions";
 
 const QUERY_KEY = ["user", "session"];
 
@@ -57,7 +57,7 @@ export function useSession() {
   });
 
   const triggerLogout = useMutation({
-    mutationFn: () => doLogout(sessionApiRoute),
+    mutationFn: () => handleLogout(),
     onSuccess: async () =>
       queryClient.invalidateQueries({
         queryKey: QUERY_KEY,

@@ -6,7 +6,7 @@ export default function Logout() {
   const { logout } = useSession();
 
   async function handleLogout() {
-    logout();
+    await logout();
     window.location.href = "/";
   }
 

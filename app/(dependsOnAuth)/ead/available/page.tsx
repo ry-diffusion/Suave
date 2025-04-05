@@ -309,6 +309,7 @@ function TimeCategory({
   modules: Record<number, ModuleExt[]>;
   showOpenDate?: boolean;
 }) {
+  const [loading, setLoading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const avaliableModules = Object.entries(modules).filter(
     ([, modules]) => modules.length > 0
@@ -355,6 +356,16 @@ function TimeCategory({
     }
   }
 
+  async function handlePrint() {
+    setLoading(true);
+    const document = pdf(<PrintSection modules={modules} />);
+    const blob = await document.toBlob();
+
+    const url = URL.createObjectURL(blob);
+    setLoading(false);
+    showPrint(url);
+  }
+
   return (
     <Flex gap="4" direction="column" align="stretch" className="w-full">
       <Flex gap="2" align="center" justify="between">
@@ -367,32 +378,23 @@ function TimeCategory({
             <Image src="/zap.svg" alt="Zap Icon" width={20} height={20} />
             <span className="hidden md:block">Compartilhar</span>
           </Button>
-
-          <BlobProvider document={<PrintSection modules={modules} />}>
-            {({ url, loading }) => {
-              return (
-                <Button
-                  color="sky"
-                  onClick={() => url && showPrint(url)}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Spinner loading={loading} size="2" />
-                      <span className="hidden md:block">
-                        Carregando impressão...
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Printer />
-                      <span className="hidden md:block">Imprimir</span>
-                    </>
-                  )}
-                </Button>
-              );
-            }}
-          </BlobProvider>
+          {/* <BlobProvider document={<PrintSection modules={modules} />}>
+            {({ url, loading }) => { */}
+          <Button color="sky" onClick={() => handlePrint()} disabled={loading}>
+            {loading ? (
+              <>
+                <Spinner loading={loading} size="2" />
+                <span className="hidden md:block">Carregando impressão...</span>
+              </>
+            ) : (
+              <>
+                <Printer />
+                <span className="hidden md:block">Imprimir</span>
+              </>
+            )}
+          </Button>
+          {/* }} */}
+          {/* </BlobProvider> */}
         </Flex>
       </Flex>
 
