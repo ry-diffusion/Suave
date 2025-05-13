@@ -10,5 +10,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxt/ui",
     "@compodium/nuxt",
+    "nuxt-auth-utils",
+    "@pinia/nuxt",
   ],
 });
