@@ -91,7 +91,7 @@ function prevStep() {
     <div
         class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-900 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-primary-900 px-2 pb-20">
         <div
-            class="w-full max-w-md md:max-w-lg mx-auto rounded-xl shadow-lg p-4 md:p-8 bg-background dark:bg-background">
+            class="w-full max-w-md md:max-w-lg mx-auto rounded-xl shadow-lg p-4 md:p-8 bg-background/80 dark:bg-background/80 backdrop-blur-lg">
             <UStepper v-model="step" :items="steps" :orientation="isDesktop ? 'horizontal' : 'vertical'" class="mb-8" />
 
             <div v-if="step === 0">
