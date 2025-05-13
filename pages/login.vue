@@ -98,10 +98,12 @@ function prevStep() {
 
 <template>
     <div
-        class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-900 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-900 dark:to-primary-900 px-2 pb-20"
+        class="min-h-screen flex flex-col items-center justify-center px-2 pb-20 gap-8"
     >
+        <AnimatedBackground />
+        <h1 class="font-bangers text-4xl">Suave</h1>
         <div
-            class="w-full max-w-md md:max-w-lg mx-auto rounded-xl shadow-lg p-4 md:p-8 bg-background/80 dark:bg-background/80 backdrop-blur-lg"
+            class="w-full max-w-md md:max-w-lg mx-auto rounded-xl shadow-lg p-4 md:p-8 bg-neutral-300/20 dark:bg-neutral-900/40 backdrop-blur-lg"
         >
             <UStepper
                 v-model="step"

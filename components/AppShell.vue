@@ -10,8 +10,61 @@ interface Props {
 }
 
 defineProps<Props>();
-
 const route = useRoute();
+const { progress } = useLoadingIndicator({
+    duration: 2000,
+});
+
+// Smooth progress transition
+const smoothProgress = ref(0);
+const showProgress = ref(false);
+let progressAnimationFrame: number;
+
+watch(progress, (newValue) => {
+    if (newValue > 0) {
+        showProgress.value = true;
+    }
+
+    const startValue = smoothProgress.value;
+    const endValue = newValue;
+    const duration = 300; // 300ms transition
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease in-out function
+        const easeProgress =
+            progress < 0.5
+                ? 2 * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        smoothProgress.value =
+            startValue + (endValue - startValue) * easeProgress;
+
+        if (progress < 1) {
+            progressAnimationFrame = requestAnimationFrame(animate);
+        } else if (endValue === 100) {
+            // When progress reaches 100%, wait a bit then fade out
+            setTimeout(() => {
+                showProgress.value = false;
+            }, 200);
+        }
+    };
+
+    cancelAnimationFrame(progressAnimationFrame);
+    progressAnimationFrame = requestAnimationFrame(animate);
+});
+
+// Cleanup animation frame on component unmount
+onUnmounted(() => {
+    cancelAnimationFrame(progressAnimationFrame);
+});
+
+// Determine if we're on the homepage
+const isHomePage = computed(() => route.path === "/");
+
 const router = useRouter();
 const { isMobile } = useDeviceDetection();
 const isDrawerOpen = ref(false);
@@ -82,13 +135,24 @@ const mobileItems = computed(() => [
     <div>
         <!-- Header Component -->
         <header
-            class="sticky top-0 z-50 px-4 py-3 h-16 flex items-center"
+            class="sticky top-0 z-50 px-4 py-3 h-16 flex items-center transition-all duration-500 outline-neutral-200/80 dark:outline-neutral-800/80"
             :class="[
-                transparent
-                    ? ''
-                    : 'glass-effect bg-white/60 dark:bg-gray-900/60 border-b border-gray-200/80 dark:border-gray-800/80 backdrop-blur-lg',
+                isHomePage
+                    ? 'bg-transparent border-none'
+                    : transparent
+                      ? 'bg-transparent backdrop-blur-sm shadow-sm'
+                      : 'outline glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-md',
             ]"
         >
+            <!-- Loading Bar -->
+            <Transition name="fade">
+                <div
+                    v-if="showProgress"
+                    class="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50 animate-loading-bar"
+                    :style="{ width: `${smoothProgress}%` }"
+                />
+            </Transition>
+
             <!-- Mobile Layout -->
             <template v-if="isMobile">
                 <!-- Back button (Only on mobile) -->
@@ -154,20 +218,22 @@ const mobileItems = computed(() => [
         <!-- Mobile Bottom Navigation -->
         <div
             v-if="isMobile"
-            class="fixed bottom-0 left-0 right-0 glass-effect bg-white/60 dark:bg-gray-900/60 border-t border-gray-200/80 dark:border-gray-800/80 backdrop-blur-lg z-40"
+            class="fixed bottom-0 left-0 right-0 glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 z-40 shadow-[0_-1px_3px_rgba(0,0,0,0.1)]"
         >
-            <div class="grid grid-cols-3 h-16">
+            <div
+                class="grid grid-cols-3 h-16 border-t border-neutral-300 dark:border-neutral-800"
+            >
                 <NuxtLink
                     v-for="item in mobileItems"
                     :key="item.label"
                     :to="item.label === 'Ferramentas' ? undefined : item.to"
                     :class="[
-                        'flex flex-col items-center justify-center',
+                        'flex flex-col items-center justify-center relative',
                         route.path === item.to ||
-                    (item.label === 'Ferramentas' &&
-                        route.path.startsWith('/ferramentas'))
-                        ? 'text-primary'
-                        : 'text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary',
+                        (item.label === 'Ferramentas' &&
+                            route.path.startsWith('/ferramentas'))
+                            ? 'text-primary after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/3 after:h-0.5 after:bg-primary after:rounded-full'
+                            : 'text-neutral-600 hover:text-primary dark:text-neutral-400 dark:hover:text-primary',
                     ]"
                     @click="
                         item.label === 'Ferramentas'
@@ -184,11 +250,13 @@ const mobileItems = computed(() => [
         <!-- Ferramentas Drawer -->
         <UDrawer
             v-model:open="isDrawerOpen"
-            class="glass-effect bg-white/60 dark:bg-gray-900/60 backdrop-blur-lg"
-            overlay-class="bg-gray-900/60"
+            class="glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-lg"
+            overlay-class="bg-neutral-900/60"
         >
             <template #header>
-                <div class="flex items-center justify-between">
+                <div
+                    class="flex items-center justify-between border-b border-neutral-200/80 dark:border-neutral-800/80 pb-3"
+                >
                     <h3 class="text-xl font-semibold">Ferramentas</h3>
                     <UButton
                         icon="i-lucide-x"
@@ -199,14 +267,14 @@ const mobileItems = computed(() => [
                 </div>
             </template>
             <template #content>
-                <div class="space-y-4 p-4">
+                <div class="space-y-2 p-4">
                     <NuxtLink
                         v-for="child in items.find(
                             (item) => item.label === 'Ferramentas',
                         )?.children"
                         :key="child.label"
                         :to="child.to"
-                        class="block p-3 rounded-lg hover:bg-gray-100/70 dark:hover:bg-gray-800/70 hover-lift"
+                        class="block p-3 rounded-xl hover:bg-neutral-100/70 dark:hover:bg-neutral-800/70 hover-lift border border-neutral-200/50 dark:border-neutral-800/50 shadow-sm"
                         @click="isDrawerOpen = false"
                     >
                         <div class="flex items-center space-x-3">
@@ -217,7 +285,7 @@ const mobileItems = computed(() => [
                             <div>
                                 <div class="font-medium">{{ child.label }}</div>
                                 <p
-                                    class="text-sm text-gray-500 dark:text-gray-400"
+                                    class="text-sm text-neutral-500 dark:text-neutral-400"
                                 >
                                     {{ child.description }}
                                 </p>
@@ -236,7 +304,9 @@ const mobileItems = computed(() => [
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-    transition: all 0.2s ease;
+    transition-property: opacity, transform;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
 }
 
 .fade-enter-from,
@@ -248,7 +318,9 @@ const mobileItems = computed(() => [
 /* iOS-like animation for page transitions */
 :deep(.page-enter-active),
 :deep(.page-leave-active) {
-    transition: all 0.3s ease-out;
+    transition-property: opacity, transform;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
 }
 
 :deep(.page-enter-from) {
@@ -263,6 +335,100 @@ const mobileItems = computed(() => [
 
 /* Additional styles for glass-effect elements */
 :deep(.glass-effect) {
-    transition: all 0.3s ease;
+    transition-property: opacity, transform, backdrop-filter, box-shadow;
+    /* Removed border-color from transition-property */
+    transition-duration: 0.5s;
+    transition-timing-function: ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-color: transparent;
+}
+
+/* Header blur */
+header {
+    backdrop-filter: blur(0);
+    box-shadow: none;
+    transition-property: opacity, transform, backdrop-filter, box-shadow;
+    /* Removed border-bottom from transition-property */
+    transition-duration: 0.5s;
+    transition-timing-function: ease;
+}
+
+header.backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+}
+
+header.backdrop-blur-lg {
+    backdrop-filter: blur(12px);
+}
+
+header.shadow-sm {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+header.shadow-md {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading bar animation */
+@keyframes loading-bar {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animate-loading-bar {
+    background-size: 200% 100%;
+    animation: loading-bar 2s ease infinite;
+}
+
+/* Progress bar fade transition */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+/* iOS-style hover lift effect */
+.hover-lift {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* iOS-style drawer animation */
+:deep(.drawer-enter-active),
+:deep(.drawer-leave-active) {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.drawer-enter-from),
+:deep(.drawer-leave-to) {
+    transform: translateX(100%);
+}
+
+/* iOS-style button press effect */
+:deep(.u-button) {
+    transition: transform 0.1s ease;
+}
+
+:deep(.u-button:active) {
+    transform: scale(0.98);
 }
 </style>

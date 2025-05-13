@@ -12,6 +12,27 @@ const pageTitle = computed(() => {
     return "";
 });
 
+// Determine if header should be transparent
+const isTransparent = computed(() => {
+    return route.path === "/";
+});
+
+// Track page transitions for animations
+const isPageTransitioning = ref(false);
+
+// Watch route changes to trigger transition effects
+watch(
+    () => route.path,
+    (newPath, oldPath) => {
+        if (newPath !== oldPath) {
+            isPageTransitioning.value = true;
+            setTimeout(() => {
+                isPageTransitioning.value = false;
+            }, 600); // Match this with transition duration
+        }
+    },
+);
+
 // Determine if back button should be shown
 const showBackButton = computed(() => {
     return route.path !== "/";
@@ -32,15 +53,82 @@ const contentClass = computed(() => {
 </script>
 
 <template>
-    <div class="flex flex-col">
+    <div
+        class="flex flex-col min-h-screen bg-gradient"
+        :class="{ 'page-transitioning': isPageTransitioning }"
+    >
+        <!-- Animated background component -->
+        <AnimatedBackground />
+
         <AppShell
             :title="pageTitle"
             :show-back="showBackButton"
             :large-title="useLargeTitle"
+            :transparent="isTransparent"
         >
-            <main class="grow" :class="contentClass">
-                <slot />
+            <main class="grow relative z-10" :class="contentClass">
+                <div class="container mx-auto px-4">
+                    <slot />
+                </div>
             </main>
         </AppShell>
     </div>
 </template>
+
+<style scoped>
+/* Add overlay styles to ensure UI elements have enough contrast against the background */
+:deep(.glass-effect) {
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Background gradient */
+.bg-gradient {
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--color-primary-500-rgb), 0.08) 0%,
+        rgba(var(--color-primary-500-rgb), 0.01) 60%,
+        transparent 100%
+    );
+}
+
+/* Make content cards have glass effect */
+:deep(.card),
+:deep(.u-card) {
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+:deep(.dark .card),
+:deep(.dark .u-card) {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+}
+
+/* Page transition animations */
+:deep(.page-enter-active),
+:deep(.page-leave-active) {
+    transition: all 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+:deep(.page-enter-from) {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+:deep(.page-leave-to) {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Extra transition effects when navigating */
+.page-transitioning :deep(.animated-background) {
+    transform: scale(1.05);
+    filter: blur(8px);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-transitioning :deep(.shape) {
+    opacity: 0.3 !important;
+    transition: opacity 0.6s ease-out;
+}
+</style>
