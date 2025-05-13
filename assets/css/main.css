@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "./animations.css";
 
 @theme static {
     --font-sans: "Cal Sans", sans-serif;
+    --font-bangers: "Bangers", cursive;
 }
