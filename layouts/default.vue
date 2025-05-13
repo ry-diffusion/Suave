@@ -33,11 +33,7 @@ const contentClass = computed(() => {
 
 <template>
     <div>
-        <AppHeader 
-            :title="pageTitle" 
-            :show-back="showBackButton"
-            :large-title="useLargeTitle"
-        />
+        <AppHeader :title="pageTitle" :show-back="showBackButton" :large-title="useLargeTitle" />
         <AppNavBar />
         <div :class="contentClass">
             <slot />
