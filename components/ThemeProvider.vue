@@ -1,9 +1,30 @@
 <script setup lang="ts">
-import { useThemeStore } from '~/stores/theme';
-import { useAppConfig } from '#imports';
+import { useThemeStore, getServerTheme } from '~/stores/theme';
+import { useAppConfig, useHead } from '#imports';
 
 const themeStore = useThemeStore();
 const appConfig = useAppConfig();
+
+// Get server theme values
+const { theme, mode } = getServerTheme();
+
+// Set initial theme in app config
+appConfig.ui.colors = {
+    primary: theme.primary,
+    secondary: theme.secondary,
+    success: theme.success,
+    info: theme.info,
+    warning: theme.warning,
+    error: theme.error,
+    neutral: theme.neutral
+};
+
+// Set dark mode class during SSR and client-side
+useHead({
+    htmlAttrs: {
+        class: mode === 'dark' ? 'dark' : ''
+    }
+});
 
 // Function to update theme configuration
 const updateThemeConfig = () => {
@@ -25,27 +46,8 @@ watch(() => themeStore.currentTheme, () => {
 
 // Initialize theme on component mount
 onMounted(() => {
-    // Ensure we're using the latest values from localStorage
-    const savedTheme = localStorage.getItem('app-theme');
-    const savedColorMode = localStorage.getItem('app-color-mode');
-
-    if (savedTheme && savedTheme in themeStore.availableThemes) {
-        themeStore.setTheme(savedTheme as keyof typeof themeStore.availableThemes);
-    }
-
-    if (savedColorMode === 'dark' || savedColorMode === 'light') {
-        themeStore.colorMode = savedColorMode;
-    }
-
-    // Apply initial theme
-    updateThemeConfig();
-
-    // Apply color mode
-    if (themeStore.colorMode === 'dark') {
-        document.documentElement.classList.add('dark');
-    } else {
-        document.documentElement.classList.remove('dark');
-    }
+    // Initialize store with server values
+    themeStore.initializeFromServer(theme, mode as "light" | "dark");
 });
 </script>
 

@@ -140,17 +140,14 @@ const mobileItems = computed(() => [
                 isHomePage
                     ? 'bg-transparent border-none'
                     : transparent
-                      ? 'bg-transparent backdrop-blur-sm shadow-sm'
-                      : 'outline glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-md',
-            ]"
-        >
+                        ? 'bg-transparent backdrop-blur-sm shadow-sm'
+                        : 'outline glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-md',
+            ]">
             <!-- Loading Bar -->
             <Transition name="fade">
-                <div
-                    v-if="showProgress"
+                <div v-if="showProgress"
                     class="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50 animate-loading-bar"
-                    :style="{ width: `${smoothProgress}%` }"
-                />
+                    :style="{ width: `${smoothProgress}%` }" />
             </Transition>
 
             <!-- Mobile Layout -->
@@ -158,16 +155,9 @@ const mobileItems = computed(() => [
                 <!-- Back button (Only on mobile) -->
                 <div class="absolute left-4 z-10">
                     <transition name="fade" mode="out-in">
-                        <button
-                            v-if="showBack"
-                            class="flex items-center text-primary font-medium"
-                            aria-label="Go back"
-                            @click="goBack"
-                        >
-                            <UIcon
-                                name="i-lucide-chevron-left"
-                                class="h-5 w-5 mr-1"
-                            />
+                        <button v-if="showBack" class="flex items-center text-primary font-medium" aria-label="Go back"
+                            @click="goBack">
+                            <UIcon name="i-lucide-chevron-left" class="h-5 w-5 mr-1" />
                             <span>Voltar</span>
                         </button>
                     </transition>
@@ -176,14 +166,11 @@ const mobileItems = computed(() => [
                 <!-- Title (centered on mobile) -->
                 <div class="w-full text-center">
                     <transition name="fade" mode="out-in">
-                        <h1
-                            v-if="title"
-                            :key="title"
-                            :class="{
-                                'text-3xl font-semibold': largeTitle,
-                                'text-lg font-semibold': !largeTitle,
-                            }"
-                        >
+                        <h1 v-if="title" :key="title" :class="{
+                            'text-3xl font-semibold': largeTitle,
+                            'text-lg font-semibold': !largeTitle,
+                            'font-bangers text-4xl tracking-wider text-primary drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)] hover:drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)] transition-all duration-300': isHomePage,
+                        }">
                             {{ title }}
                         </h1>
                     </transition>
@@ -195,52 +182,39 @@ const mobileItems = computed(() => [
                 <!-- Title (left-aligned on desktop) -->
                 <div>
                     <transition name="fade" mode="out-in">
-                        <h1
-                            v-if="title"
-                            :key="title"
-                            :class="{
-                                'text-3xl font-semibold': largeTitle,
-                                'text-lg font-semibold': !largeTitle,
-                            }"
-                        >
+                        <h1 v-if="title" :key="title" :class="{
+                            'text-3xl font-semibold': largeTitle,
+                            'text-lg font-semibold': !largeTitle,
+                        }">
                             {{ title }}
                         </h1>
                     </transition>
                 </div>
 
                 <!-- Desktop Navigation -->
-                <div class="ml-auto">
-                    <UNavigationMenu :items="items" />
+                <div class="ml-auto ">
+                    <UNavigationMenu :items="items" :ui="{ childList: 'flex flex-col' }" />
                 </div>
             </template>
         </header>
 
         <!-- Mobile Bottom Navigation -->
-        <div
-            v-if="isMobile"
-            class="fixed bottom-0 left-0 right-0 glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 z-40 shadow-[0_-1px_3px_rgba(0,0,0,0.1)]"
-        >
-            <div
-                class="grid grid-cols-3 h-16 border-t border-neutral-300 dark:border-neutral-800"
-            >
-                <NuxtLink
-                    v-for="item in mobileItems"
-                    :key="item.label"
-                    :to="item.label === 'Ferramentas' ? undefined : item.to"
-                    :class="[
+        <div v-if="isMobile"
+            class="fixed bottom-0 left-0 right-0 glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 z-40 shadow-[0_-1px_3px_rgba(0,0,0,0.1)]">
+            <div class="grid grid-cols-3 h-16 border-t border-neutral-300 dark:border-neutral-800">
+                <NuxtLink v-for="item in mobileItems" :key="item.label"
+                    :to="item.label === 'Ferramentas' ? undefined : item.to" :class="[
                         'flex flex-col items-center justify-center relative',
                         route.path === item.to ||
-                        (item.label === 'Ferramentas' &&
-                            route.path.startsWith('/ferramentas'))
+                            (item.label === 'Ferramentas' &&
+                                route.path.startsWith('/ferramentas'))
                             ? 'text-primary after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/3 after:h-0.5 after:bg-primary after:rounded-full'
                             : 'text-neutral-600 hover:text-primary dark:text-neutral-400 dark:hover:text-primary',
-                    ]"
-                    @click="
+                    ]" @click="
                         item.label === 'Ferramentas'
                             ? toggleDrawer()
                             : undefined
-                    "
-                >
+                        ">
                     <UIcon :name="item.icon" class="h-6 w-6" />
                     <span class="text-xs mt-1">{{ item.label }}</span>
                 </NuxtLink>
@@ -248,45 +222,28 @@ const mobileItems = computed(() => [
         </div>
 
         <!-- Ferramentas Drawer -->
-        <UDrawer
-            v-model:open="isDrawerOpen"
+        <UDrawer v-model:open="isDrawerOpen"
             class="glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-lg"
-            overlay-class="bg-neutral-900/60"
-        >
+            overlay-class="bg-neutral-900/60">
             <template #header>
                 <div
-                    class="flex items-center justify-between border-b border-neutral-200/80 dark:border-neutral-800/80 pb-3"
-                >
+                    class="flex items-center justify-between border-b border-neutral-200/80 dark:border-neutral-800/80 pb-3">
                     <h3 class="text-xl font-semibold">Ferramentas</h3>
-                    <UButton
-                        icon="i-lucide-x"
-                        color="neutral"
-                        variant="ghost"
-                        @click="isDrawerOpen = false"
-                    />
+                    <UButton icon="i-lucide-x" color="neutral" variant="ghost" @click="isDrawerOpen = false" />
                 </div>
             </template>
             <template #content>
-                <div class="space-y-2 p-4">
-                    <NuxtLink
-                        v-for="child in items.find(
-                            (item) => item.label === 'Ferramentas',
-                        )?.children"
-                        :key="child.label"
-                        :to="child.to"
+                <div class="space-y-2 p-4 flex flex-col">
+                    <NuxtLink v-for="child in items.find(
+                        (item) => item.label === 'Ferramentas',
+                    )?.children" :key="child.label" :to="child.to"
                         class="block p-3 rounded-xl hover:bg-neutral-100/70 dark:hover:bg-neutral-800/70 hover-lift border border-neutral-200/50 dark:border-neutral-800/50 shadow-sm"
-                        @click="isDrawerOpen = false"
-                    >
+                        @click="isDrawerOpen = false">
                         <div class="flex items-center space-x-3">
-                            <UIcon
-                                :name="child.icon"
-                                class="flex-shrink-0 h-6 w-6 text-primary"
-                            />
+                            <UIcon :name="child.icon" class="flex-shrink-0 h-6 w-6 text-primary" />
                             <div>
                                 <div class="font-medium">{{ child.label }}</div>
-                                <p
-                                    class="text-sm text-neutral-500 dark:text-neutral-400"
-                                >
+                                <p class="text-sm text-neutral-500 dark:text-neutral-400">
                                     {{ child.description }}
                                 </p>
                             </div>

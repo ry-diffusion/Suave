@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { useCookie } from "#imports";
 
 type ColorTheme = {
   primary: string;
@@ -12,8 +13,8 @@ type ColorTheme = {
   preview: string;
 };
 
-const STORAGE_KEY = "app-theme";
-const COLOR_MODE_KEY = "app-color-mode";
+const THEME_COOKIE = "app-theme";
+const COLOR_MODE_COOKIE = "app-color-mode";
 
 const availableThemes: Record<string, ColorTheme> = {
   monochrome: {
@@ -142,56 +143,107 @@ const themeDisplayNames: Record<string, string> = {
   emerald: "Esmeralda",
 };
 
-// Get initial theme from localStorage or default to rose
-const getInitialTheme = (): ColorTheme => {
-  if (typeof window === "undefined") return availableThemes.rose;
-
-  const savedTheme = localStorage.getItem(STORAGE_KEY);
-  if (savedTheme && savedTheme in availableThemes) {
-    return availableThemes[savedTheme];
-  }
-  return availableThemes.rose;
+// Universal function to get theme by name
+export const getThemeByName = (name: string): ColorTheme | undefined => {
+  return availableThemes[name];
 };
 
-// Get initial color mode
-const getInitialColorMode = (): "light" | "dark" => {
-  if (typeof window === "undefined") return "dark";
+// Server-side theme initialization
+export const getServerTheme = () => {
+  const themeCookie = useCookie(THEME_COOKIE);
+  const modeCookie = useCookie(COLOR_MODE_COOKIE);
 
-  const savedMode = localStorage.getItem(COLOR_MODE_KEY);
-  return savedMode === "dark" || savedMode === "light" ? savedMode : "light";
+  return {
+    theme:
+      themeCookie.value && themeCookie.value in availableThemes
+        ? availableThemes[themeCookie.value]
+        : availableThemes.rose,
+    mode:
+      modeCookie.value === "dark" || modeCookie.value === "light"
+        ? modeCookie.value
+        : "light",
+  };
+};
+
+// Function to set CSS variables for theme
+const setThemeCSSVariables = (theme: ColorTheme) => {
+  if (import.meta.client) {
+    document.documentElement.style.setProperty(
+      "--color-primary",
+      `var(--color-${theme.primary}-500)`
+    );
+    document.documentElement.style.setProperty(
+      "--color-secondary",
+      `var(--color-${theme.secondary}-500)`
+    );
+    document.documentElement.style.setProperty(
+      "--color-success",
+      `var(--color-${theme.success}-500)`
+    );
+    document.documentElement.style.setProperty(
+      "--color-info",
+      `var(--color-${theme.info}-500)`
+    );
+    document.documentElement.style.setProperty(
+      "--color-warning",
+      `var(--color-${theme.warning}-500)`
+    );
+    document.documentElement.style.setProperty(
+      "--color-error",
+      `var(--color-${theme.error}-500)`
+    );
+    document.documentElement.style.setProperty(
+      "--color-neutral",
+      `var(--color-${theme.neutral}-500)`
+    );
+  }
 };
 
 export const useThemeStore = defineStore("theme", () => {
-  const currentTheme = ref<ColorTheme>(getInitialTheme());
-  const colorMode = ref<"light" | "dark">(getInitialColorMode());
+  // Initialize with default values, will be updated on client mount
+  const currentTheme = ref<ColorTheme>(availableThemes.rose);
+  const colorMode = ref<"light" | "dark">("light");
 
   function setTheme(themeName: keyof typeof availableThemes) {
     if (themeName in availableThemes) {
       currentTheme.value = availableThemes[themeName];
-      // Save to localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem(STORAGE_KEY, themeName);
-      }
+      // Save to cookie
+      const themeCookie = useCookie(THEME_COOKIE);
+      themeCookie.value = themeName;
+      // Update CSS variables
+      setThemeCSSVariables(currentTheme.value);
     }
   }
 
   function toggleColorMode() {
-    colorMode.value = colorMode.value === "light" ? "dark" : "light";
-    if (typeof window !== "undefined") {
-      localStorage.setItem(COLOR_MODE_KEY, colorMode.value);
-      document.documentElement.classList.toggle(
-        "dark",
-        colorMode.value === "dark"
-      );
-    }
+    // Add a small delay to ensure the transition is visible
+    setTimeout(() => {
+      colorMode.value = colorMode.value === "light" ? "dark" : "light";
+      const modeCookie = useCookie(COLOR_MODE_COOKIE);
+      modeCookie.value = colorMode.value;
+
+      if (import.meta.client) {
+        document.documentElement.classList.toggle(
+          "dark",
+          colorMode.value === "dark"
+        );
+      }
+    }, 50);
   }
 
-  // Initialize color mode
-  if (typeof window !== "undefined") {
-    document.documentElement.classList.toggle(
-      "dark",
-      colorMode.value === "dark"
-    );
+  // Initialize store with server values
+  function initializeFromServer(
+    serverTheme: ColorTheme,
+    serverMode: "light" | "dark"
+  ) {
+    currentTheme.value = serverTheme;
+    colorMode.value = serverMode;
+
+    if (import.meta.client) {
+      document.documentElement.classList.toggle("dark", serverMode === "dark");
+      // Set initial CSS variables
+      setThemeCSSVariables(serverTheme);
+    }
   }
 
   return {
@@ -199,6 +251,7 @@ export const useThemeStore = defineStore("theme", () => {
     colorMode,
     setTheme,
     toggleColorMode,
+    initializeFromServer,
     availableThemes,
     themeDisplayNames,
     getPreviewColor: (color: string) => {

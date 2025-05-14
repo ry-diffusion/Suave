@@ -2,51 +2,66 @@
 @import "@nuxt/ui";
 
 @theme static {
-    --font-sans: "Cal Sans", sans-serif;
-    --font-bangers: "Bangers", cursive;
+  --font-sans: "Cal Sans", sans-serif;
+  --font-bangers: "Bangers", cursive;
+}
+
+/* Theme transition variables */
+:root {
+  --theme-transition-duration: 0.3s;
+  --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Add smooth transitions for theme changes */
+* {
+  transition: background-color var(--theme-transition-duration)
+      var(--theme-transition-timing),
+    border-color var(--theme-transition-duration) var(--theme-transition-timing),
+    color var(--theme-transition-duration) var(--theme-transition-timing),
+    box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 /* Scrollbar styling - light and dark mode */
 :root {
-    /* Firefox */
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-primary-500) var(--color-neutral-200);
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-500) var(--color-neutral-200);
 }
 
 /* For Chrome, Safari, Edge */
 ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--color-neutral-200);
+  background: var(--color-neutral-200);
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--color-primary-500);
-    border-radius: 6px;
-    border: 2px solid var(--color-neutral-200);
+  background-color: var(--color-primary-500);
+  border-radius: 6px;
+  border: 2px solid var(--color-neutral-200);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-primary-600);
+  background-color: var(--color-primary-600);
 }
 
 /* Dark mode scrollbar */
 .dark {
-    scrollbar-color: var(--color-primary-400) var(--color-neutral-800);
+  scrollbar-color: var(--color-primary-400) var(--color-neutral-800);
 }
 
 .dark ::-webkit-scrollbar-track {
-    background: var(--color-neutral-800);
+  background: var(--color-neutral-800);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-    background-color: var(--color-primary-400);
-    border-color: var(--color-gray-800);
+  background-color: var(--color-primary-400);
+  border-color: var(--color-gray-800);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-primary-500);
+  background-color: var(--color-primary-500);
 }
