@@ -6,13 +6,13 @@
         <UCard>
           <div class="flex flex-col items-center">
             <div class="relative mb-4">
-              <img src="https://i.pravatar.cc/150?img=11" alt="Foto de perfil"
+              <img :src="user?.avatarUrl || 'https://i.pravatar.cc/150?img=11'" alt="Foto de perfil"
                 class="w-32 h-32 rounded-full object-cover border-4 border-primary-100" />
               <UButton color="primary" variant="soft" icon="i-lucide-camera" size="xs"
                 class="absolute bottom-0 right-0 rounded-full" />
             </div>
 
-            <h2 class="text-xl font-medium">Ana Luíza Martins</h2>
+            <h2 class="text-xl font-medium">{{ user?.fullName || 'Usuário' }}</h2>
             <p class="text-gray-500 dark:text-gray-400 mb-3">Estudante</p>
 
             <div class="flex space-x-2 mb-4">
@@ -207,6 +207,8 @@ import { useThemeStore } from '~/stores/theme'
 import { ref, computed } from 'vue'
 
 const themeStore = useThemeStore()
+const { user } = useUserSession()
+
 const isDarkMode = computed({
   get: () => themeStore.colorMode === 'dark',
   set: () => themeStore.toggleColorMode()
@@ -216,4 +218,9 @@ const notifMoodle = ref(true)
 const notifGrades = ref(true)
 const notifCalendar = ref(false)
 const notifEmails = ref(true)
+
+// Add middleware to protect this page
+definePageMeta({
+  middleware: ['auth']
+})
 </script>
