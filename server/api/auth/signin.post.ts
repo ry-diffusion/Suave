@@ -11,7 +11,7 @@ export const loginSchema = z.object({
 export default defineEventHandler(async (event) => {
   const { username, password, institution } = await readValidatedBody(
     event,
-    loginSchema.parse
+    loginSchema.parse,
   );
 
   const provider = getProviderById(institution);
@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
     });
     const client = provider.getMoodleClient(response.authToken);
     const info = await client.core.webservice.getSiteInfo();
-    console.log(info.fullname);
 
     await setUserSession(event, {
       user: {
