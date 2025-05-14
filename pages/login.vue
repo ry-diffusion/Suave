@@ -2,7 +2,7 @@
 import { ref, reactive } from "vue";
 import { useUserSession } from "#imports";
 import { useRouter } from "vue-router";
-import { useMediaQuery } from "@vueuse/core";
+import UISpinner from '~/components/UISpinner.vue';
 
 definePageMeta({ layout: false });
 
@@ -12,8 +12,8 @@ const router = useRouter();
 const step = ref(0);
 const loading = ref(false);
 const error = ref("");
-
-const isDesktop = useMediaQuery("(min-width: 768px)");
+const direction = ref<'left' | 'right'>('right');
+const success = ref(false);
 
 // Only one institution for now, but keep as array for future
 const institutions = [
@@ -21,7 +21,7 @@ const institutions = [
 ];
 
 const form = reactive({
-    institution: null,
+    institution: "",
     username: "",
     password: "",
 });
@@ -33,9 +33,9 @@ const steps = [
         icon: "i-lucide-building",
     },
     {
-        title: "Usuário",
-        description: "Informe seu usuário",
-        icon: "i-lucide-user",
+        title: "Matrícula",
+        description: "Informe sua matrícula",
+        icon: "i-lucide-id-card",
     },
     { title: "Senha", description: "Informe sua senha", icon: "i-lucide-lock" },
 ];
@@ -57,7 +57,10 @@ async function submitLogin() {
             },
         });
         await refreshSession();
-        router.push("/");
+        success.value = true;
+        setTimeout(() => {
+            router.push("/");
+        }, 2000);
     } catch (e: unknown) {
         if (
             typeof e === "object" &&
@@ -66,7 +69,7 @@ async function submitLogin() {
             typeof (e as Record<string, unknown>).data === "object" &&
             (e as { data?: { message?: unknown } }).data?.message &&
             typeof (e as { data: { message: unknown } }).data.message ===
-                "string"
+            "string"
         ) {
             error.value = (e as { data: { message: string } }).data.message;
         } else {
@@ -87,91 +90,173 @@ function nextStep() {
         return;
     }
     error.value = "";
+    direction.value = 'right';
     step.value++;
 }
 
 function prevStep() {
     error.value = "";
+    direction.value = 'left';
     step.value--;
 }
 </script>
 
 <template>
-    <div
-        class="min-h-screen flex flex-col items-center justify-center px-2 pb-20 gap-8"
-    >
+    <div class="min-h-screen flex flex-col items-center justify-center px-4">
         <AnimatedBackground />
-        <h1 class="font-bangers text-4xl">Suave</h1>
-        <div
-            class="w-full max-w-md md:max-w-lg mx-auto rounded-xl shadow-lg p-4 md:p-8 bg-neutral-300/20 dark:bg-neutral-900/40 backdrop-blur-lg"
-        >
-            <UStepper
-                v-model="step"
-                :items="steps"
-                :orientation="isDesktop ? 'horizontal' : 'vertical'"
-                class="mb-8"
-            />
 
-            <div v-if="step === 0">
-                <USelect
-                    v-model="form.institution"
-                    :items="institutions"
-                    placeholder="Selecione a instituição"
-                    size="lg"
-                    class="w-full mb-4"
-                />
-            </div>
-            <div v-else-if="step === 1">
-                <UInput
-                    v-model="form.username"
-                    placeholder="Usuário"
-                    size="lg"
-                    class="w-full mb-4"
-                    autofocus
-                />
-            </div>
-            <div v-else-if="step === 2">
-                <UInput
-                    v-model="form.password"
-                    type="password"
-                    placeholder="Senha"
-                    size="lg"
-                    class="w-full mb-4"
-                    @keyup.enter="submitLogin"
-                    autofocus
-                />
-            </div>
+        <div class="w-full max-w-md mx-auto relative z-10">
+            <h1 class="font-bangers text-5xl text-center mb-8 text-white drop-shadow-lg">
+                Suave
+            </h1>
 
-            <div v-if="error" class="text-red-600 mb-4 text-sm md:text-base">
-                {{ error }}
-            </div>
+            <div
+                class="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl shadow-xl p-4 md:p-6  flex flex-col justify-between min-h-[320px]">
+                <Transition name="fade-scale" mode="out-in">
+                    <div :key="success ? 'success' : loading ? 'loading' : 'form'"
+                        :class="(loading || success) ? 'flex flex-1 items-center justify-center h-full' : 'flex flex-col h-full justify-between gap-8'">
+                        <div v-if="loading" class="flex flex-col items-center">
+                            <UISpinner :size="48" color="var(--color-primary)" class="mb-2" />
+                            <span class="text-primary-500 font-medium mt-2">Entrando...</span>
+                        </div>
+                        <div v-else-if="success" class="flex flex-col items-center">
+                            <Icon name="lucide:check-circle" size="3em" class="mb-2 text-green-500" />
+                            <span class="text-green-500 font-medium mt-2">Sucesso!</span>
+                        </div>
+                        <template v-else>
+                            <div>
+                                <!-- Progress indicator -->
+                                <div class="flex justify-center gap-1 mb-8 mt-1">
+                                    <div v-for="(s, i) in steps" :key="i"
+                                        class="w-2 h-2 rounded-full transition-all duration-300"
+                                        :class="i === step ? 'bg-primary-500 w-4' : 'bg-neutral-300 dark:bg-neutral-600'">
+                                    </div>
+                                </div>
 
-            <div class="flex flex-col md:flex-row gap-2 justify-between">
-                <UButton
-                    v-if="step > 0"
-                    color="gray"
-                    variant="soft"
-                    class="w-full md:w-auto"
-                    @click="prevStep"
-                    >Voltar
-                </UButton>
-                <div class="flex-1 hidden md:block"></div>
-                <UButton
-                    v-if="step < 2"
-                    color="primary"
-                    class="w-full md:w-auto"
-                    @click="nextStep"
-                    >Próximo</UButton
-                >
-                <UButton
-                    v-else
-                    color="primary"
-                    class="w-full md:w-auto"
-                    :loading="loading"
-                    @click="submitLogin"
-                    >Entrar
-                </UButton>
+                                <!-- Step icon with direction-aware transition -->
+                                <div class="flex flex-col items-center mb-1">
+                                    <Transition :name="direction === 'right' ? 'slide-right' : 'slide-left'"
+                                        mode="out-in">
+                                        <Icon size="2.2em" :key="steps[step].icon"
+                                            :name="steps[step].icon.replace('i-', '')" class="mb-1 text-primary-500" />
+                                    </Transition>
+                                </div>
+
+                                <h2
+                                    class="text-lg font-semibold text-center text-neutral-800 dark:text-neutral-200 mb-2">
+                                    {{ steps[step].title }}
+                                </h2>
+                            </div>
+
+                            <div class="flex-1 flex flex-col justify-center">
+                                <div class="space-y-2">
+                                    <div v-if="step === 0">
+                                        <USelect v-model="form.institution" :items="institutions"
+                                            placeholder="Selecione a instituição" size="lg" class="w-full" />
+                                    </div>
+                                    <div v-else-if="step === 1">
+                                        <UInput v-model="form.username" placeholder="Matrícula" size="lg" class="w-full"
+                                            autofocus />
+                                    </div>
+                                    <div v-else-if="step === 2">
+                                        <UInput v-model="form.password" type="password" placeholder="Senha" size="lg"
+                                            class="w-full" @keyup.enter="submitLogin" autofocus />
+                                    </div>
+                                </div>
+                                <div v-if="error" class="text-red-500 text-sm text-center mt-2">
+                                    {{ error }}
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 pt-2 mt-4">
+                                <UButton v-if="step > 0" color="neutral" variant="soft"
+                                    class="flex-1 justify-center text-center" @click="prevStep">
+                                    <template #leading>
+                                        <Icon name="lucide:arrow-left" class="w-5 h-5" />
+                                    </template>
+                                    Voltar
+                                </UButton>
+                                <UButton v-if="step < 2" color="primary" class="flex-1 justify-center text-center"
+                                    @click="nextStep">
+                                    Próximo
+                                    <template #trailing>
+                                        <Icon name="lucide:arrow-right" class="w-5 h-5" />
+                                    </template>
+                                </UButton>
+                                <UButton v-else color="primary" class="flex-1 justify-center text-center"
+                                    :loading="loading" @click="submitLogin">
+                                    <template #leading>
+                                        <Icon name="lucide:log-in" class="w-5 h-5" />
+                                    </template>
+                                    Entrar
+                                </UButton>
+                            </div>
+                        </template>
+                    </div>
+                </Transition>
             </div>
         </div>
     </div>
 </template>
+
+<style>
+/* iOS-style smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* iOS-style input focus */
+input:focus,
+select:focus {
+    outline: none;
+}
+
+/* iOS-style button press effect */
+button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+}
+
+/* Slide right (next) */
+.slide-right-enter-active,
+.slide-right-leave-active {
+    transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
+}
+
+.slide-right-enter-from {
+    opacity: 0;
+    transform: translateX(40px) scale(0.9);
+}
+
+.slide-right-leave-to {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.9);
+}
+
+/* Slide left (back) */
+.slide-left-enter-active,
+.slide-left-leave-active {
+    transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
+}
+
+.slide-left-enter-from {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.9);
+}
+
+.slide-left-leave-to {
+    opacity: 0;
+    transform: translateX(40px) scale(0.9);
+}
+
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+    transition: all 0.25s cubic-bezier(.4, 0, .2, 1);
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+    opacity: 0;
+    transform: scale(0.96);
+}
+</style>

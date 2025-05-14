@@ -11,34 +11,41 @@ export const loginSchema = z.object({
 export default defineEventHandler(async (event) => {
   const { username, password, institution } = await readValidatedBody(
     event,
-    loginSchema.parse,
+    loginSchema.parse
   );
 
   const provider = getProviderById(institution);
+  try {
+    const response = await provider.login({
+      username,
+      password,
+    });
+    const client = provider.getMoodleClient(response.authToken);
+    const info = await client.core.webservice.getSiteInfo();
+    console.log(info.fullname);
 
-  const response = await provider.login({
-    username,
-    password,
-  });
-
-  const client = provider.getMoodleClient(response.authToken);
-  const info = await client.core.webservice.getSiteInfo();
-  console.log(info.fullname);
-
-  await setUserSession(event, {
-    user: {
-      institution: institution,
-      fullName: info.fullname,
-      avatarUrl: info.userpictureurl,
-    },
-    secure: {
-      moodle: {
-        apiKey: response.authToken,
+    await setUserSession(event, {
+      user: {
+        institution: institution,
+        fullName: info.fullname,
+        avatarUrl: info.userpictureurl,
       },
-    },
-  });
+      secure: {
+        moodle: {
+          apiKey: response.authToken,
+        },
+      },
+    });
 
-  return {
-    ok: true,
-  };
+    return {
+      ok: true,
+    };
+  } catch (error) {
+    console.error(error);
+    throw createError({
+      statusCode: 401,
+      statusMessage:
+        error instanceof Error ? error.message : "Erro desconhecido",
+    });
+  }
 });
