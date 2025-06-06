@@ -13,7 +13,24 @@ import AuthenticatedMobileApi from "@/lib/moodle/AuthenticatedMobileApi";
 export async function GET() {
   const session = await getSession();
 
+  console.log("GET /session", session);
   if (!session.isLoggedIn) {
+    return Response.json(defaultSession);
+  }
+
+  if (session.loggedInAt === undefined) {
+    console.log("Destruindo sessão por falta de loggedInAt");
+    session.destroy();
+    return Response.json(defaultSession);
+  }
+
+  // se o token tiver mais de um mês, destrói a sessão
+  const loggedInAt = new Date(session.loggedInAt);
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  if (loggedInAt < oneMonthAgo) {
+    console.log("Destruindo sessão... Token expirado");
+    session.destroy();
     return Response.json(defaultSession);
   }
 

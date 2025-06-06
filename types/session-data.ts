@@ -1,26 +1,27 @@
-import {Institution} from "@/Support/Institutions";
+import { Institution } from "@/Support/Institutions";
 
 export type KnownInfo = {
-    revision: number,
-    firstName: string,
-    fullName: string,
-    pictureUrl: string | null,
-}
+  revision: number;
+  firstName: string;
+  fullName: string;
+  pictureUrl: string | null;
+};
 
 export type Passport = {
-    username: string,
-    password: string,
-    moodleToken: string,
-    suapToken: string | null,
-    knownInfo: KnownInfo | null,
-    institution: Institution
+  username: string;
+  password: string;
+  moodleToken: string;
+  suapToken: string | null;
+  knownInfo: KnownInfo | null;
+  institution: Institution;
 };
 
 export type SessionData = {
-    isLoggedIn: boolean,
-    passport?: Passport
-}
+  isLoggedIn: boolean;
+  loggedInAt?: Date;
+  passport?: Passport;
+};
 
 export const defaultSession: SessionData = {
-    isLoggedIn: false
-}
+  isLoggedIn: false,
+};

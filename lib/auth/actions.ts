@@ -59,7 +59,13 @@ export async function handleLogin({
       moodleProvider.api,
       loginData.token
     );
-    const siteInfo = await authenticatedMobileApi.fetchSiteInfo();
+
+    const siteInfo = await authenticatedMobileApi.fetchSiteInfo().catch((e) => {
+      console.error("[login] Problema no moodle!", e);
+      throw new Error(
+        `Não foi possível obter informações do site moodle: ${e}`
+      );
+    });
 
     let pictureUrl = siteInfo.userpictureurl;
 
@@ -70,12 +76,16 @@ export async function handleLogin({
     // remove all ?rev=[number] from the url
     pictureUrl = pictureUrl.replace(/\?rev=\d+/, "");
 
+    // vrum vrum.. define a data da sessão!
+    session.loggedInAt = new Date();
+
     session.passport = {
       username,
       password,
       institution,
       moodleToken: loginData.token,
       suapToken: null,
+
       knownInfo: {
         pictureUrl,
         fullName: siteInfo.fullname,
