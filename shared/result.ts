@@ -105,6 +105,15 @@ export class PromiseResult<T> {
         return new PromiseResult(() => Promise.resolve(Result.fail<T>(error)));
     }
 
+    static all<T>(promises: PromiseResult<T>[]): PromiseResult<T[]> {
+        return new PromiseResult(() => Promise.all(promises.map(p => p.task())).then(results => {
+            if (results.some(result => result.isFailure)) {
+                return Result.fail<T[]>(results.find(result => result.isFailure)!.error!);
+            }
+            return Result.ok(results.map(result => result.value!));
+        }));
+    }
+
     map<U>(fn: (value: T) => U): PromiseResult<U> {
         return new PromiseResult(() =>
             this.task().then(result => result.map(fn))

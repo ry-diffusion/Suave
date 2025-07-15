@@ -29,5 +29,6 @@ export interface IProvider<TAuthSchema, TAuthContext> {
   alternateIdentity(): Promise<IIdentity>;
   // Why? Some providers may need to restore auth with different credentials (e.g. too short refresh token, so we need to re-login)
   restoreAuth(authContext: TAuthContext, creds: TAuthSchema): void | Promise<void>;
+  refreshAuth(authContext: TAuthContext): PromiseResult<TAuthContext>;
   getEadAssignments(): Promise<Result<IAssignment[]>>;
 }

@@ -1,4 +1,4 @@
-import type { MoodleAuthSchema, MoodleAuthContext, MoodleAssignment } from "../../types/moodle.d.ts";
+import type { ClassicAuthSchema, MoodleAuthContext, MoodleAssignment } from "../../types/moodle.d.ts";
 import { IEadProvider, IEadSiteInfo } from "./IEadProvider";
 import { PromiseResult, Result } from "../../shared/result";
 import { tryFetchJson } from "~~/shared/http";
@@ -6,14 +6,14 @@ import { AppException } from "~~/shared/errors";
 import { moodleFetchJson } from "~~/shared/moodle";
 
 
-export class MoodleEadProvider implements IEadProvider<MoodleAuthSchema, MoodleAuthContext, MoodleAssignment> {
+export class MoodleEadProvider implements IEadProvider<ClassicAuthSchema, MoodleAuthContext, MoodleAssignment> {
     private baseUrl: string;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
     }
 
-    authenticate(authSchema: MoodleAuthSchema): PromiseResult<MoodleAuthContext> {
+    authenticate(authSchema: ClassicAuthSchema): PromiseResult<MoodleAuthContext> {
         const url = `${this.baseUrl}/login/token.php`;
         const body = new URLSearchParams({
             username: authSchema.username,

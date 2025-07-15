@@ -1,4 +1,4 @@
-export type MoodleAuthSchema = {
+export type ClassicAuthSchema = {
     username: string;
     password: string;
 };
@@ -21,6 +21,13 @@ export type IFGoianoPresencialCredentials = {
     password: string;
 };
 
+export type SuapAuthContext = {
+    access: string;
+    refresh: string;
+};
+
 export type AuthContext = {
+    creds: ClassicAuthSchema | null;
     ead: MoodleAuthContext | null;
+    api: SuapAuthContext | null;
 }; 

@@ -20,7 +20,8 @@ declare module "#auth-utils" {
   interface SecureSessionData {
     moodle?: MoodleSecureData;
     suap?: SuapSecureData;
+    authContext?: any; // Added to match usage in session
   }
 }
 
-export {};
+export { };
