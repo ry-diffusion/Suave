@@ -1,5 +1,6 @@
 import { getProviderById } from "~~/server/lib/providers";
 import { institutionKind } from "~~/server/lib/institutions";
+import { IFGoianoPresencialProvider } from "~~/server/lib/providers/IFGoianoPresencial";
 // getUserSession and replaceUserSession are available as auto-imports in Nuxt 3, so no import is needed
 
 export default defineEventHandler(async (event) => {
@@ -14,9 +15,9 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const provider = getProviderById(institution as keyof typeof institutionKind.Values);
+    const provider = getProviderById(institution as keyof typeof institutionKind.Values) as IFGoianoPresencialProvider;
     // Always pass two arguments to restoreAuth for consistency
-    await provider.restoreAuth(authContext, authContext?.creds || {});
+    await provider.restoreAuth(authContext);
 
     const refreshResult = await provider.refreshAuth(authContext)
         .handle(Error, async (e) => {
@@ -27,15 +28,10 @@ export default defineEventHandler(async (event) => {
         })
         .toPromise();
 
-    if (!refreshResult.isSuccess) {
-        throw createError({
-            statusCode: 401,
-            message: refreshResult.error?.message || "Falha ao atualizar sessão. Faça login novamente.",
-        });
-    }
 
-    const refreshedAuthContext = refreshResult.value;
-    await provider.restoreAuth(refreshedAuthContext, refreshedAuthContext?.creds || {});
+
+    const refreshedAuthContext = refreshResult;
+    await provider.restoreAuth(refreshedAuthContext);
     const identity = await provider.getIdentity();
 
     await replaceUserSession(event, {

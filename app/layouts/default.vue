@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAuthRefresh } from "~/composables/useAuthRefresh";
 
 const route = useRoute();
 
@@ -59,22 +60,17 @@ const contentClass = computed(() => {
         "pt-0": useLargeTitle.value,
     };
 });
+
+useAuthRefresh();
 </script>
 
 <template>
-    <div
-        class="flex flex-col min-h-screen bg-gradient"
-        :class="{ 'page-transitioning': isPageTransitioning }"
-    >
+    <div class="flex flex-col min-h-screen bg-gradient" :class="{ 'page-transitioning': isPageTransitioning }">
         <!-- Animated background component -->
         <AnimatedBackground />
 
-        <AppShell
-            :title="pageTitle"
-            :show-back="showBackButton"
-            :large-title="useLargeTitle"
-            :transparent="isTransparent"
-        >
+        <AppShell :title="pageTitle" :show-back="showBackButton" :large-title="useLargeTitle"
+            :transparent="isTransparent">
             <main class="grow relative z-10" :class="contentClass">
                 <div class="container mx-auto px-4">
                     <slot />
@@ -93,12 +89,10 @@ const contentClass = computed(() => {
 
 /* Background gradient */
 .bg-gradient {
-    background: radial-gradient(
-        circle at center,
-        rgba(var(--color-primary-500-rgb), 0.08) 0%,
-        rgba(var(--color-primary-500-rgb), 0.01) 60%,
-        transparent 100%
-    );
+    background: radial-gradient(circle at center,
+            rgba(var(--color-primary-500-rgb), 0.08) 0%,
+            rgba(var(--color-primary-500-rgb), 0.01) 60%,
+            transparent 100%);
 }
 
 /* Make content cards have glass effect */
