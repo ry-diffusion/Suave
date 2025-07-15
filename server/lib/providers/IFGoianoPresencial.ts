@@ -1,28 +1,52 @@
-import type { LoginDetails, LoginResponse } from "../provider";
-import { Provider } from "../provider";
-import { MoodleApi, MoodleClient } from "@webhare/moodle-webservice";
+import type {
+  MoodleAuthSchema,
+  MoodleAuthContext,
+  MoodleAssignment,
+  IFGoianoPresencialCredentials,
+  AuthContext,
+} from "../../../types/moodle.d.ts";
+import { MoodleEadProvider } from "../MoodleEadProvider";
+import { IEadProvider } from "../IEadProvider";
+import { IProvider, IAssignment, IIdentity } from "../provider";
+import { PromiseResult, Result } from "../../../shared/result";
 
-export class IFGoianoPresencialProvider extends Provider {
-  private _baseUrl = "https://presencial.ifgoiano.edu.br/";
+export class IFGoianoPresencialProvider implements IProvider<IFGoianoPresencialCredentials, AuthContext> {
+  private eadProvider: IEadProvider<MoodleAuthSchema, MoodleAuthContext, MoodleAssignment>;
+  private authContext: AuthContext;
 
-  getMoodleClient(token: string) {
-    const api = MoodleApi({
-      baseUrl: this._baseUrl,
-      token,
-    });
-    return api;
-  }
-  async login(loginDetails: LoginDetails): Promise<LoginResponse> {
-    const { token } = await MoodleClient.authenticate({
-      baseUrl: this._baseUrl,
-      credentials: {
-        username: loginDetails.username,
-        password: loginDetails.password,
-      },
-    });
-
-    return {
-      authToken: token,
+  constructor() {
+    this.eadProvider = new MoodleEadProvider("https://presencial.ifgoiano.edu.br");
+    this.authContext = {
+      ead: null,
     };
+  }
+
+  login(creds: IFGoianoPresencialCredentials): PromiseResult<AuthContext> {
+    return this.eadProvider.authenticate({
+      username: creds.username,
+      password: creds.password,
+    }).map((ead) => {
+      this.authContext = { ead };
+      return this.authContext;
+    });
+  }
+
+  async restoreAuth(authContext: AuthContext): Promise<void> {
+    console.log(`Restoring auth for ${authContext.ead?.username}`);
+    this.authContext = authContext;
+  }
+
+  async getEadAssignments(): Promise<Result<IAssignment[]>> {
+    if (!this.authContext.ead) throw new Error("Not authenticated for EAD");
+    return this.eadProvider.getAssignments(this.authContext.ead);
+  }
+
+  async getIdentity(): Promise<IIdentity> {
+    if (!this.authContext.ead) throw new Error("Not authenticated for EAD");
+    throw new Error("Not implemented");
+  }
+
+  async alternateIdentity(): Promise<IIdentity> {
+    throw new Error("Not implemented");
   }
 }

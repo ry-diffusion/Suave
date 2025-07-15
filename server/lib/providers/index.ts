@@ -1,10 +1,12 @@
 import type { institutionKind } from "../institutions";
-import type { Provider } from "../provider";
+import type {
+  IProvider,
+} from "../provider";
 import { IFGoianoPresencialProvider } from "./IFGoianoPresencial";
 
 export function getProviderById(
   kind: keyof typeof institutionKind.Values,
-): Provider {
+): IProvider<any, any> {
   switch (kind) {
     case "ifgoiano-presencial":
       return new IFGoianoPresencialProvider();

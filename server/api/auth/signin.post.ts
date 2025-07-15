@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getProviderById } from "~~/server/lib/providers";
 import { institutionKind } from "~~/server/lib/institutions";
+import { AppException } from "~~/shared/errors";
 
 export const loginSchema = z.object({
   username: z.string().min(1, { message: "Campo obrigatório" }),
@@ -15,36 +16,51 @@ export default defineEventHandler(async (event) => {
   );
 
   const provider = getProviderById(institution);
-  try {
-    const response = await provider.login({
-      username,
-      password,
-    });
-    const client = provider.getMoodleClient(response.authToken);
-    const info = await client.core.webservice.getSiteInfo();
+  const loginResult = provider.login({
+    username,
+    password,
+  });
 
-    await setUserSession(event, {
-      user: {
-        institution: institution,
-        fullName: info.fullname,
-        avatarUrl: info.userpictureurl,
-      },
-      secure: {
-        moodle: {
-          apiKey: response.authToken,
-        },
-      },
-    });
+  const response = await loginResult
+    .handle(AppException, async (e) => {
+      throw createError({
+        statusCode: 417,
+        message: e.message,
+      });
+    })
+    .handle(Error, async (e) => {
+      throw createError({
+        statusCode: 503,
+        message: `[SERVIÇO INDISPONÍVEL] ${e.message}`,
+      });
+    })
+    .map(
+      async (authContext) => {
+        await provider.restoreAuth(authContext, {
+          username,
+          password,
+        });
 
-    return {
-      ok: true,
-    };
-  } catch (error) {
-    console.error(error);
-    throw createError({
-      statusCode: 401,
-      statusMessage:
-        error instanceof Error ? error.message : "Erro desconhecido",
-    });
-  }
+        const identity = await provider.getIdentity();
+        await setUserSession(event, {
+          user: {
+            institution: institution,
+            fullName: identity.name,
+            avatarUrl: identity.avatarUrl,
+            hasAlternativeIdentity: identity.hasAlternativeIdentity,
+          },
+          secure: {
+            provider: {
+              authContext,
+            },
+          },
+        });
+
+        return {
+          ok: true,
+        };
+      },
+    );
+
+  return response;
 });
