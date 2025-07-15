@@ -1,5 +1,7 @@
 <script setup lang="ts">
+
 const route = useRoute();
+
 
 // Compute title based on the current route
 const pageTitle = computed(() => {
@@ -11,6 +13,13 @@ const pageTitle = computed(() => {
     if (path === "/ferramentas/desempenho") return "Desempenho Acadêmico";
     return "";
 });
+
+useHead({
+    title: route.path === "/" ? "Suave | Deixando seu ensino mais suave" : `Suave - ${pageTitle.value}`,
+    meta: [
+        { name: "description", content: "Deixando seu ensino mais suave" },
+    ],
+})
 
 // Determine if header should be transparent
 const isTransparent = computed(() => {

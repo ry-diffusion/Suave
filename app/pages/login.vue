@@ -137,14 +137,14 @@ function prevStep() {
                                 <div class="flex flex-col items-center mb-1">
                                     <Transition :name="direction === 'right' ? 'slide-right' : 'slide-left'"
                                         mode="out-in">
-                                        <Icon size="2.2em" :key="steps[step].icon"
-                                            :name="steps[step].icon.replace('i-', '')" class="mb-1 text-primary-500" />
+                                        <Icon size="2.2em" :key="steps[step]?.icon"
+                                            :name="steps[step]?.icon.replace('i-', '')" class="mb-1 text-primary-500" />
                                     </Transition>
                                 </div>
 
                                 <h2
                                     class="text-lg font-semibold text-center text-neutral-800 dark:text-neutral-200 mb-2">
-                                    {{ steps[step].title }}
+                                    {{ steps[step]?.title }}
                                 </h2>
                             </div>
 

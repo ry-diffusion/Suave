@@ -201,12 +201,12 @@ const setThemeCSSVariables = (theme: ColorTheme) => {
 
 export const useThemeStore = defineStore("theme", () => {
   // Initialize with default values, will be updated on client mount
-  const currentTheme = ref<ColorTheme>(availableThemes.rose);
+  const currentTheme = ref<ColorTheme>(availableThemes.rose!);
   const colorMode = ref<"light" | "dark">("light");
 
   function setTheme(themeName: keyof typeof availableThemes) {
     if (themeName in availableThemes) {
-      currentTheme.value = availableThemes[themeName];
+      currentTheme.value = availableThemes[themeName]!;
       // Save to cookie
       const themeCookie = useCookie(THEME_COOKIE);
       themeCookie.value = themeName;
