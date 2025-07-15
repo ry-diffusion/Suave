@@ -81,22 +81,11 @@ export class Result<T> {
         return this.isSuccess ? onSuccess(this.value!) : onFailure(this.error!);
     }
 
-    // validator layer 
-    // example:
-    // 
-    // 
-    //  tryFetchJson
-    //  .before(handleMoodleError)
-    //  .ensure(
-    //      (data) => data.token,
-    //      new Error("[SERVIDOR] O moodle não retornou um token de acesso")
-    //  )
-
-    before(fn: (result: Result<T>) => Result<T>): Result<T> {
+    with(fn: (result: Result<T>) => Result<T>): Result<T> {
         return fn(this);
     }
 
-    beforeAsync(fn: (value: T) => Promise<Result<T>>): Promise<Result<T>> {
+    withAsync(fn: (value: T) => Promise<Result<T>>): Promise<Result<T>> {
         return fn(this.value!);
     }
 }
@@ -162,10 +151,10 @@ export class PromiseResult<T> {
         );
     }
 
-    before(fn: (result: Result<T>) => Result<T>): PromiseResult<T> {
+    with(fn: (result: Result<T>) => Result<T>): PromiseResult<T> {
         return new PromiseResult(async () => {
             const result = await this.task();
-            return result.before(fn);
+            return result.with(fn);
         });
     }
 
@@ -179,5 +168,9 @@ export class PromiseResult<T> {
         onrejected?: (reason: any) => TResult | PromiseLike<TResult>
     ): Promise<TResult> {
         return this.run().then(onfulfilled, onrejected);
+    }
+
+    toPromise(): Promise<T> {
+        return this.run().then(result => result.value!);
     }
 }

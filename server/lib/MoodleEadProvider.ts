@@ -1,8 +1,9 @@
 import type { MoodleAuthSchema, MoodleAuthContext, MoodleAssignment } from "../../types/moodle.d.ts";
-import { IEadProvider } from "./IEadProvider";
+import { IEadProvider, IEadSiteInfo } from "./IEadProvider";
 import { PromiseResult, Result } from "../../shared/result";
 import { tryFetchJson } from "~~/shared/http";
-import { AppException } from "~~/shared/errors.js";
+import { AppException } from "~~/shared/errors";
+import { moodleFetchJson } from "~~/shared/moodle";
 
 
 export class MoodleEadProvider implements IEadProvider<MoodleAuthSchema, MoodleAuthContext, MoodleAssignment> {
@@ -38,6 +39,15 @@ export class MoodleEadProvider implements IEadProvider<MoodleAuthSchema, MoodleA
                 token: data.token,
                 userId: data.userid,
                 username: authSchema.username,
+            }));
+    }
+
+    getSiteInfo(authContext: MoodleAuthContext): PromiseResult<IEadSiteInfo> {
+        const url = `${this.baseUrl}/webservice/rest/server.php?wsfunction=core_webservice_get_site_info&moodlewsrestformat=json&wstoken=${authContext.token}`;
+        return moodleFetchJson<any>(url)
+            .map((data) => ({
+                profilePictureUrl: data.userpictureurl,
+                name: data.fullname,
             }));
     }
 

@@ -22,6 +22,22 @@ export default defineEventHandler(async (event) => {
   });
 
   const response = await loginResult
+    .map(
+      async (authContext) => {
+        await provider.restoreAuth(authContext, {
+          username,
+          password,
+        });
+
+        const identity = await provider.getIdentity();
+
+        return {
+          ok: true,
+          authContext,
+          identity,
+        };
+      },
+    )
     .handle(AppException, async (e) => {
       throw createError({
         statusCode: 417,
@@ -33,34 +49,22 @@ export default defineEventHandler(async (event) => {
         statusCode: 503,
         message: `[SERVIÇO INDISPONÍVEL] ${e.message}`,
       });
-    })
-    .map(
-      async (authContext) => {
-        await provider.restoreAuth(authContext, {
-          username,
-          password,
-        });
+    }).toPromise();
 
-        const identity = await provider.getIdentity();
-        await setUserSession(event, {
-          user: {
-            institution: institution,
-            fullName: identity.name,
-            avatarUrl: identity.avatarUrl,
-            hasAlternativeIdentity: identity.hasAlternativeIdentity,
-          },
-          secure: {
-            provider: {
-              authContext,
-            },
-          },
-        });
+  const { ok, authContext, identity } = response;
 
-        return {
-          ok: true,
-        };
-      },
-    );
 
-  return response;
+  await replaceUserSession(event, {
+    user: {
+      institution: institution,
+      fullName: identity.name,
+      avatarUrl: identity.avatarUrl,
+      hasAlternativeIdentity: identity.hasAlternativeIdentity,
+    },
+    secure: {
+      authContext,
+    },
+  });
+
+  return { ok };
 });
