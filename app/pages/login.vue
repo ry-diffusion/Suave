@@ -105,6 +105,11 @@ function prevStep() {
     <div class="min-h-screen flex flex-col items-center justify-center px-4">
         <AnimatedBackground />
 
+        <!-- HACK: Preload step icons invisibly -->
+        <div style="display: none">
+            <Icon v-for="s in steps" :key="s.icon" :name="s.icon.replace('i-', '')" />
+        </div>
+
         <div class="w-full max-w-md mx-auto relative z-10">
             <h1 class="font-bangers text-5xl text-center mb-8 text-white drop-shadow-lg">
                 Suave
