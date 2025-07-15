@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { institutionKind } from "~/server/lib/institutions";
-import { getProviderById } from "~/server/lib/providers";
+import { getProviderById } from "~~/server/lib/providers";
+import { institutionKind } from "~~/server/lib/institutions";
 
 export const loginSchema = z.object({
   username: z.string().min(1, { message: "Campo obrigatório" }),
