@@ -102,7 +102,7 @@ function prevStep() {
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col items-center justify-center px-4">
+    <div class="min-h-screen flex flex-col items-center justify-start px-4 mt-[10vh] md:justify-center md:mt-0">
         <AnimatedBackground />
 
         <!-- HACK: Preload step icons invisibly -->

@@ -13,6 +13,8 @@ interface RefreshResponse {
 export function useAuthRefresh() {
     const authStore = useAuthStore();
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    const userSession = useUserSession()
+
 
     const refresh = async () => {
         try {
@@ -32,13 +34,24 @@ export function useAuthRefresh() {
                 throw new Error("Invalid refresh response");
             }
         } catch (e) {
-            authStore.clearSession();
-            await navigateTo("/login");
+            if (userSession.loggedIn) {
+                authStore.clearSession();
+                await navigateTo("/login");
+            } else {
+                console.error(e)
+            }
         }
     };
 
+    watch(userSession.ready, (newVal) => {
+        if (newVal) {
+            refresh(); // Initial refresh on mount
+        }
+    });
+
     onMounted(() => {
-        refresh(); // Initial refresh on mount
+
+
         intervalId = setInterval(refresh, 5 * 60 * 1000); // Every 5 minutes
     });
 
