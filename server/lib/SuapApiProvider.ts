@@ -2,6 +2,7 @@ import { PromiseResult } from "~~/shared/result";
 import { IInstitutionApiProvider } from "./IInstituitionApiProvider";
 import { ClassicAuthSchema, SuapAuthContext } from "~~/types/moodle";
 import { suapFetchJson } from "~~/shared/suap";
+import { Projetos } from "~~/shared/datatypes";
 
 export class SuapApiProvider implements IInstitutionApiProvider<ClassicAuthSchema, SuapAuthContext> {
     constructor(private readonly baseUrl: string) {
@@ -57,6 +58,22 @@ export class SuapApiProvider implements IInstitutionApiProvider<ClassicAuthSchem
                 access: data.access,
                 refresh: data.refresh,
             };
+        });
+    }
+
+    // https://suap.ifgoiano.edu.br/api/v2/meus-projetos
+    getProjetos(authContext: SuapAuthContext): PromiseResult<Projetos> {
+        return suapFetchJson<Projetos>(`${this.baseUrl}/api/v2/meus-projetos/`, {
+            headers: {
+                "Authorization": `Bearer ${authContext.access}`,
+            },
+        }).map(data => {
+            data.Extensao = (data as any)["Extensão"];
+            data.Pesquisa = (data as any)["Pesquisa"];
+            data.Ensino = (data as any)["Ensino"];
+            delete (data as any)["Extensão"];
+
+            return data;
         });
     }
 }

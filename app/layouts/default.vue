@@ -12,6 +12,7 @@ const pageTitle = computed(() => {
     if (path === "/ferramentas") return "Ferramentas";
     if (path === "/ferramentas/moodles") return "Moodles Disponíveis";
     if (path === "/ferramentas/desempenho") return "Desempenho Acadêmico";
+    if (path === "/projetos") return "Meus Projetos";
     return "";
 });
 
@@ -50,7 +51,7 @@ const showBackButton = computed(() => {
 
 // Determine if large title should be used (iOS style)
 const useLargeTitle = computed(() => {
-    return route.path === "/" || route.path === "/ferramentas";
+    return route.path === "/" || route.path === "/ferramentas" || route.path === "/projetos";
 });
 
 // Add padding to content based on page

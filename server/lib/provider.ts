@@ -1,5 +1,6 @@
 import type { MoodleApiClient } from "@webhare/moodle-webservice";
 import { PromiseResult, Result } from "../../shared/result";
+import { Projetos } from "~~/shared/datatypes";
 
 export interface IAssignment {
   id: string | number;
@@ -31,4 +32,6 @@ export interface IProvider<TAuthSchema, TAuthContext> {
   restoreAuth(authContext: TAuthContext, creds: TAuthSchema): void | Promise<void>;
   refreshAuth(authContext: TAuthContext): PromiseResult<TAuthContext>;
   getEadAssignments(): Promise<Result<IAssignment[]>>;
+
+  getProjetos(): PromiseResult<Projetos>;
 }

@@ -10,10 +10,11 @@ import { MoodleEadProvider } from "../MoodleEadProvider";
 import { IEadProvider } from "../IEadProvider";
 import { IProvider, IAssignment, IIdentity } from "../provider";
 import { PromiseResult, Result } from "../../../shared/result";
-import { AppException } from "~~/shared/errors.js";
-import { IInstitutionApiProvider } from "../IInstituitionApiProvider.js";
-import { SuapApiProvider } from "../SuapApiProvider.js";
+import { AppException } from "~~/shared/errors";
+import { IInstitutionApiProvider } from "../IInstituitionApiProvider";
+import { SuapApiProvider } from "../SuapApiProvider";
 import { ShouldReloginError } from "../provider";
+import { Projetos } from "~~/shared/datatypes";
 
 export class IFGoianoPresencialProvider implements IProvider<IFGoianoPresencialCredentials, AuthContext> {
   private eadProvider: IEadProvider<ClassicAuthSchema, MoodleAuthContext, MoodleAssignment>;
@@ -136,5 +137,11 @@ export class IFGoianoPresencialProvider implements IProvider<IFGoianoPresencialC
 
   async alternateIdentity(): Promise<IIdentity> {
     throw new Error("Not implemented");
+  }
+
+
+  getProjetos(): PromiseResult<Projetos> {
+    if (!this.authContext.api) throw new AppException("Você não está autenticado para o SUAP", "NOT_AUTHENTICATED");
+    return this.apiProvider.getProjetos(this.authContext.api);
   }
 }

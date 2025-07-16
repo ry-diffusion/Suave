@@ -14,8 +14,7 @@
 
 /* Add smooth transitions for theme changes */
 * {
-  transition: background-color var(--theme-transition-duration)
-      var(--theme-transition-timing),
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
     border-color var(--theme-transition-duration) var(--theme-transition-timing),
     color var(--theme-transition-duration) var(--theme-transition-timing),
     box-shadow var(--theme-transition-duration) var(--theme-transition-timing);

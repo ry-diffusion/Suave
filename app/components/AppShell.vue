@@ -102,6 +102,12 @@ const items = ref<NavigationMenuItem[]>([
                 icon: "i-lucide-bar-chart-2",
                 to: "/ferramentas/desempenho",
             },
+            {
+                label: "Meus Projetos",
+                description: "Visualize seus projetos acadêmicos",
+                icon: "i-lucide-folder",
+                to: "/projetos",
+            },
         ],
     },
     {
@@ -207,7 +213,7 @@ const mobileItems = computed(() => [
                         'flex flex-col items-center justify-center relative',
                         route.path === item.to ||
                             (item.label === 'Ferramentas' &&
-                                route.path.startsWith('/ferramentas'))
+                                (route.path.startsWith('/ferramentas') || route.path === '/projetos'))
                             ? 'text-primary after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/3 after:h-0.5 after:bg-primary after:rounded-full'
                             : 'text-neutral-600 hover:text-primary dark:text-neutral-400 dark:hover:text-primary',
                     ]" @click="
