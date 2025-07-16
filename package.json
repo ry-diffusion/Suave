@@ -15,6 +15,7 @@
     "@nuxt/fonts": "0.11.3",
     "@nuxt/icon": "1.12.0",
     "@nuxt/image": "1.10.0",
+    "@nuxt/rspack-builder": "^4.0.0",
     "@nuxt/ui": "3.1.1",
     "@pinia/nuxt": "0.11.1",
     "@webhare/moodle-webservice": "^1.9.0",
