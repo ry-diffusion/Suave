@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { useAuthRefresh } from "~/composables/useAuthRefresh";
+import { storeToRefs } from 'pinia'
+import { useAppHeaderStore } from '~/stores/appHeader'
+import { computed } from 'vue'
 
 const route = useRoute();
 
+const appHeader = useAppHeaderStore()
+const { title, subtitle, showBack, onBack } = storeToRefs(appHeader)
 
 // Compute title based on the current route
 const pageTitle = computed(() => {
@@ -16,8 +21,18 @@ const pageTitle = computed(() => {
     return "";
 });
 
+const fallbackOnBack = () => {
+    // fallback para router.back()
+    const router = useRouter();
+    router.back();
+}
+
+const showBackButton = computed(() => {
+    return route.path !== "/";
+});
+
 useHead({
-    title: route.path === "/" ? "Suave | Deixando seu ensino mais suave" : `Suave - ${pageTitle.value}`,
+    title: route.path === "/" ? "Suave | Deixando seu ensino mais suave" : `Suave - ${title.value || pageTitle.value}`,
     meta: [
         { name: "description", content: "Deixando seu ensino mais suave" },
     ],
@@ -44,14 +59,9 @@ watch(
     },
 );
 
-// Determine if back button should be shown
-const showBackButton = computed(() => {
-    return route.path !== "/";
-});
-
 // Determine if large title should be used (iOS style)
 const useLargeTitle = computed(() => {
-    return route.path === "/" || route.path === "/ferramentas" || route.path === "/projetos";
+    return route.path === "/" || route.path === "/ferramentas";
 });
 
 // Add padding to content based on page
@@ -70,8 +80,8 @@ useAuthRefresh();
         <!-- Animated background component -->
         <AnimatedBackground />
 
-        <AppShell :title="pageTitle" :show-back="showBackButton" :large-title="useLargeTitle"
-            :transparent="isTransparent">
+        <AppShell :title="title || pageTitle" :subtitle="subtitle" :show-back="showBack || showBackButton"
+            :onBack="onBack || fallbackOnBack" :large-title="useLargeTitle" :transparent="isTransparent">
             <main class="grow relative z-10" :class="contentClass">
                 <div class="container mx-auto px-4">
                     <slot />

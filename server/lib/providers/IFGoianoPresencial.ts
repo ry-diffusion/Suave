@@ -67,7 +67,7 @@ export class IFGoianoPresencialProvider implements IProvider<IFGoianoPresencialC
           moodleRefreshed = true;
         } else {
           // Try reauthenticate
-          const creds = { username: authContext.ead.username, password: "" } as ClassicAuthSchema;
+          const creds = { username: authContext.creds?.username, password: authContext.creds?.password } as ClassicAuthSchema;
           // Password is not available, so reauth will likely fail, but try
           const reauthResult = await this.eadProvider.authenticate(creds).run();
           if (reauthResult.isSuccess) {

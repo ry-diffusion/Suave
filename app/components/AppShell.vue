@@ -7,9 +7,11 @@ interface Props {
     showBack?: boolean;
     transparent?: boolean;
     largeTitle?: boolean;
+    subtitle?: string; // Adicionando prop opcional subtitle
+    onBack?: () => void; // Nova prop opcional para handler customizado
 }
 
-defineProps<Props>();
+const props = defineProps<Props>()
 const route = useRoute();
 const { progress } = useLoadingIndicator({
     duration: 2000,
@@ -76,7 +78,11 @@ const toggleDrawer = () => {
 
 // Function to go back in navigation history
 function goBack() {
-    router.back();
+    if (typeof props.onBack === 'function') {
+        props.onBack();
+    } else {
+        router.back();
+    }
 }
 
 const items = ref<NavigationMenuItem[]>([
@@ -141,7 +147,7 @@ const mobileItems = computed(() => [
     <div>
         <!-- Header Component -->
         <header
-            class="sticky top-0 z-50 px-4 py-3 h-16 flex items-center transition-all duration-500 outline-neutral-200/80 dark:outline-neutral-800/80"
+            class="sticky top-0 z-50 px-4 py-3 h-16 flex flex-col justify-center transition-all duration-500 outline-neutral-200/80 dark:outline-neutral-800/80"
             :class="[
                 isHomePage
                     ? 'bg-transparent border-none'
@@ -158,48 +164,51 @@ const mobileItems = computed(() => [
 
             <!-- Mobile Layout -->
             <template v-if="isMobile">
-                <!-- Back button (Only on mobile) -->
-                <div class="absolute left-4 z-10">
-                    <transition name="fade" mode="out-in">
-                        <button v-if="showBack" class="flex items-center text-primary font-medium" aria-label="Go back"
-                            @click="goBack">
-                            <UIcon name="i-lucide-chevron-left" class="h-5 w-5 mr-1" />
-                            <span>Voltar</span>
-                        </button>
-                    </transition>
-                </div>
-
-                <!-- Title (centered on mobile) -->
-                <div class="w-full text-center">
-                    <transition name="fade" mode="out-in">
-                        <h1 v-if="title" :key="title" :class="{
-                            'text-3xl font-semibold': largeTitle,
-                            'text-lg font-semibold': !largeTitle,
-                            'font-bangers text-4xl tracking-wider text-primary drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)] hover:drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)] transition-all duration-300': isHomePage,
-                        }">
-                            {{ title }}
-                        </h1>
-                    </transition>
+                <div class="flex items-center justify-center w-full relative">
+                    <!-- Back button (Only on mobile) -->
+                    <div class="absolute left-0 z-10">
+                        <transition name="fade" mode="out-in">
+                            <button v-if="showBack" class="flex items-center text-primary font-medium"
+                                aria-label="Go back" @click="goBack">
+                                <UIcon name="i-lucide-chevron-left" class="h-5 w-5 mr-1" />
+                                <span>Voltar</span>
+                            </button>
+                        </transition>
+                    </div>
+                    <!-- Title (centered on mobile) -->
+                    <div class="flex flex-col items-center w-full">
+                        <transition name="fade" mode="out-in">
+                            <h1 v-if="title" :key="title" :class="{
+                                'text-3xl font-semibold': largeTitle,
+                                'text-lg font-semibold': !largeTitle,
+                                'font-bangers text-4xl tracking-wider text-primary drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)] hover:drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)] transition-all duration-300': isHomePage,
+                            }">
+                                {{ title }}
+                            </h1>
+                        </transition>
+                        <span v-if="subtitle" class="text-xs text-muted mt-0.5 font-normal text-center">{{ subtitle
+                        }}</span>
+                    </div>
                 </div>
             </template>
 
             <!-- Desktop Layout -->
             <template v-else>
-                <!-- Title (left-aligned on desktop) -->
-                <div>
-                    <transition name="fade" mode="out-in">
-                        <h1 v-if="title" :key="title" :class="{
-                            'text-3xl font-semibold': largeTitle,
-                            'text-lg font-semibold': !largeTitle,
-                        }">
-                            {{ title }}
-                        </h1>
-                    </transition>
-                </div>
-
-                <!-- Desktop Navigation -->
-                <div class="ml-auto ">
-                    <UNavigationMenu :items="items" :ui="{ childList: 'flex flex-col' }" />
+                <div class="flex items-center min-h-[4.5rem] py-2 w-full">
+                    <div class="flex flex-col justify-center items-start">
+                        <transition name="fade" mode="out-in">
+                            <h1 v-if="title" :key="title" :class="{
+                                'text-3xl font-semibold': largeTitle,
+                                'text-lg font-semibold': !largeTitle,
+                            }">
+                                {{ title }}
+                            </h1>
+                        </transition>
+                        <span v-if="subtitle" class="text-sm text-muted font-normal mt-1">{{ subtitle }}</span>
+                    </div>
+                    <div class="ml-auto flex items-center">
+                        <UNavigationMenu :items="items" :ui="{ childList: 'flex flex-col' }" />
+                    </div>
                 </div>
             </template>
         </header>

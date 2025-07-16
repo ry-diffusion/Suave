@@ -1,5 +1,50 @@
 <template>
     <div class="p-4">
+        <!-- Tabs para filtrar projetos -->
+        <div v-if="!selectedProjeto && projetos" class="mb-4">
+            <UTabs v-model="selectedTab" :items="tabItems" :content="false" color="primary" variant="pill"
+                class="w-full" />
+        </div>
+        <!-- Estatísticas visuais -->
+        <div v-if="!selectedProjeto && projetos" class="mb-6">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <UCard
+                    class="flex flex-1 flex-col items-center justify-center text-center py-4 shadow-none border-0 bg-primary/10 dark:bg-primary/20">
+                    <div class="flex flex-col flex-1 items-center justify-center h-full w-full">
+                        <UIcon name="i-lucide-folder" class="w-8 h-8 sm:w-10 sm:h-10 text-primary mb-1" />
+                        <div class="text-4xl sm:text-5xl font-extrabold text-primary">{{ totalProjetos }}</div>
+                        <div class="text-xs sm:text-base text-primary/80 font-medium mt-1">Total</div>
+                    </div>
+                </UCard>
+                <UCard
+                    class="flex flex-1 flex-col items-center justify-center text-center py-4 shadow-none border-0 bg-success/10 dark:bg-success/20">
+                    <div class="flex flex-col flex-1 items-center justify-center h-full w-full">
+                        <UIcon name="i-lucide-check-circle" class="w-8 h-8 sm:w-10 sm:h-10 text-success mb-1" />
+                        <div class="text-4xl sm:text-5xl font-extrabold text-success">{{ projetosConcluidos }}</div>
+                        <div class="text-xs sm:text-base text-success/80 font-medium mt-1">Concluídos</div>
+                    </div>
+                </UCard>
+                <UCard
+                    class="flex flex-1 flex-col items-center justify-center text-center py-4 shadow-none border-0 bg-info/10 dark:bg-info/20">
+                    <div class="flex flex-col flex-1 items-center justify-center h-full w-full">
+                        <UIcon name="i-lucide-clock" class="w-8 h-8 sm:w-10 sm:h-10 text-info mb-1" />
+                        <div class="text-4xl sm:text-5xl font-extrabold text-info">{{ projetosEmAndamento }}</div>
+                        <div class="text-xs sm:text-base text-info/80 font-medium mt-1">Em Andamento</div>
+                    </div>
+                </UCard>
+                <UCard
+                    class="flex flex-1 flex-col items-center justify-center text-center py-4 shadow-none border-0 bg-purple-500/10 dark:bg-purple-500/20">
+                    <div class="flex flex-col flex-1 items-center justify-center h-full w-full">
+                        <UIcon name="i-lucide-target"
+                            class="w-8 h-8 sm:w-10 sm:h-10 text-purple-500 dark:text-purple-400 mb-1" />
+                        <div class="text-4xl sm:text-5xl font-extrabold text-purple-500 dark:text-purple-400">{{
+                            totalMetas }}</div>
+                        <div class="text-xs sm:text-base text-purple-500/80 dark:text-purple-400/80 font-medium mt-1">
+                            Metas</div>
+                    </div>
+                </UCard>
+            </div>
+        </div>
         <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-12">
             <UISpinner size="lg" />
@@ -22,462 +67,161 @@
         <!-- Projects Content -->
         <Transition name="fade" mode="out-in">
             <div v-if="!selectedProjeto && projetos" key="projects-list" class="space-y-6">
-                <!-- Statistics Cards -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <UCard class="p-4 sm:p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div
-                                    class="w-10 h-10 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl flex items-center justify-center">
-                                    <UIcon name="i-lucide-folder" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <!-- Lista de projetos filtrada pela tab -->
+                <div class="mt-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                        v-if="filteredProjetos.length > 0">
+                        <UCard v-for="projeto in filteredProjetos" :key="projeto.id"
+                            class="group cursor-pointer border-0 shadow-none bg-elevated/60 hover:bg-elevated/80 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/60"
+                            @click="openProjectDetail(projeto)" tabindex="0">
+                            <div class="p-6 flex flex-col gap-4 h-full">
+                                <div class="flex items-start justify-between mb-2">
+                                    <h3
+                                        class="text-lg sm:text-xl font-bold text-default leading-tight break-words flex-1 mr-3 group-hover:text-primary transition-colors">
+                                        {{ projeto.titulo }}</h3>
+                                    <UBadge :color="getStatusColor(projeto.status)" variant="soft" size="sm"
+                                        class="flex-shrink-0">
+                                        {{ getStatusText(projeto.status) }}
+                                    </UBadge>
                                 </div>
-                            </div>
-                            <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Total</p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">{{
-                                    totalProjetos }}</p>
-                            </div>
-                        </div>
-                    </UCard>
-
-                    <UCard class="p-4 sm:p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div
-                                    class="w-10 h-10 bg-green-500/10 dark:bg-green-500/20 rounded-xl flex items-center justify-center">
-                                    <UIcon name="i-lucide-check-circle"
-                                        class="w-5 h-5 text-green-600 dark:text-green-400" />
-                                </div>
-                            </div>
-                            <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Concluídos
-                                </p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">{{
-                                    projetosConcluidos }}</p>
-                            </div>
-                        </div>
-                    </UCard>
-
-                    <UCard class="p-4 sm:p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div
-                                    class="w-10 h-10 bg-amber-500/10 dark:bg-amber-500/20 rounded-xl flex items-center justify-center">
-                                    <UIcon name="i-lucide-clock" class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                                </div>
-                            </div>
-                            <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Em Andamento
-                                </p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">{{
-                                    projetosEmAndamento }}</p>
-                            </div>
-                        </div>
-                    </UCard>
-
-                    <UCard class="p-4 sm:p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div
-                                    class="w-10 h-10 bg-purple-500/10 dark:bg-purple-500/20 rounded-xl flex items-center justify-center">
-                                    <UIcon name="i-lucide-target"
-                                        class="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                                </div>
-                            </div>
-                            <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Metas</p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-none">{{
-                                    totalMetas }}</p>
-                            </div>
-                        </div>
-                    </UCard>
-                </div>
-
-                <!-- Project Categories -->
-                <div class="space-y-6">
-                    <!-- Extensão -->
-                    <div v-if="projetos.Extensao.length > 0">
-                        <UCard>
-                            <template #header>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <UIcon name="i-lucide-users" class="mr-2 h-5 w-5" />
-                                        <h2 class="font-medium">Projetos de Extensão</h2>
-                                        <UBadge color="warning" variant="soft" class="ml-2">{{ projetos.Extensao.length
-                                            }}
-                                        </UBadge>
+                                <div class="flex flex-col gap-2 text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <UIcon name="i-lucide-calendar" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        <span class="text-muted">{{ formatDate(projeto.inicio_execucao) }} - {{
+                                            formatDate(projeto.fim_execucao) }}</span>
                                     </div>
-                                    <UButton color="neutral" variant="ghost" icon="i-lucide-refresh-cw" size="sm"
-                                        @click="fetchProjetos" />
-                                </div>
-                            </template>
-
-                            <div class="space-y-3">
-                                <UCard v-for="projeto in projetos.Extensao" :key="projeto.id"
-                                    class="group hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer border-0 shadow-sm"
-                                    @click="openProjectDetail(projeto)">
-                                    <div class="p-5 sm:p-6">
-                                        <div class="flex items-start justify-between mb-4">
-                                            <h3
-                                                class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white leading-tight break-words flex-1 mr-3">
-                                                {{ projeto.titulo }}
-                                            </h3>
-                                            <UBadge :color="getStatusColor(projeto.status)" variant="soft" size="sm"
-                                                class="flex-shrink-0">
-                                                {{ getStatusText(projeto.status) }}
-                                            </UBadge>
-                                        </div>
-
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                            <div class="space-y-3">
-                                                <div class="flex items-center gap-2">
-                                                    <UIcon name="i-lucide-calendar"
-                                                        class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                                    <div class="min-w-0 flex-1">
-                                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                                            Período</p>
-                                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{
-                                                            formatDate(projeto.inicio_execucao) }} - {{
-                                                                formatDate(projeto.fim_execucao)
-                                                            }}</p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex items-center gap-2">
-                                                    <UIcon name="i-lucide-target"
-                                                        class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                                    <div class="min-w-0 flex-1">
-                                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                                            Metas</p>
-                                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{
-                                                            projeto.metas.length }}
-                                                            metas</p>
-                                                    </div>
-                                                </div>
+                                    <div class="flex items-center gap-2">
+                                        <UIcon name="i-lucide-target" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        <span class="text-muted">{{ projeto.metas.length }} metas</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <UIcon name="i-lucide-users" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        <span class="text-muted">{{ projeto.participacao.length }}
+                                            participantes</span>
+                                        <div v-if="projeto.participacao.length > 0" class="flex -space-x-2 ml-2">
+                                            <div v-for="(participante, idx) in projeto.participacao.slice(0, 3)"
+                                                :key="participante.id"
+                                                class="w-7 h-7 rounded-full bg-primary/80 text-white flex items-center justify-center text-xs font-bold border-2 border-white dark:border-gray-900 shadow">
+                                                {{ participante.nome.charAt(0).toUpperCase() }}
                                             </div>
-
-                                            <div class="space-y-3">
-                                                <div v-if="'area_conhecimento' in projeto"
-                                                    class="flex items-center gap-2">
-                                                    <UIcon name="i-lucide-book-open"
-                                                        class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                                    <div class="min-w-0 flex-1">
-                                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                                            Área</p>
-                                                        <p
-                                                            class="text-sm font-medium text-gray-900 dark:text-white break-words">
-                                                            {{
-                                                                projeto.area_conhecimento }}</p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex items-center gap-2">
-                                                    <UIcon name="i-lucide-users"
-                                                        class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                                    <div class="min-w-0 flex-1">
-                                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                                            Participantes</p>
-                                                        <div class="flex items-center gap-2">
-                                                            <p
-                                                                class="text-sm font-medium text-gray-900 dark:text-white">
-                                                                {{
-                                                                    projeto.participacao.length }}</p>
-                                                            <div v-if="projeto.participacao.length > 0"
-                                                                class="flex -space-x-1">
-                                                                <div v-for="(participante, index) in projeto.participacao.slice(0, 3)"
-                                                                    :key="participante.id"
-                                                                    class="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white dark:border-gray-900 shadow-sm">
-                                                                    {{ participante.nome.charAt(0).toUpperCase() }}
-                                                                </div>
-                                                                <div v-if="projeto.participacao.length > 3"
-                                                                    class="w-6 h-6 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white dark:border-gray-900 shadow-sm">
-                                                                    +{{ projeto.participacao.length - 3 }}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <div v-if="projeto.participacao.length > 3"
+                                                class="w-7 h-7 rounded-full bg-gray-400 text-white flex items-center justify-center text-xs font-bold border-2 border-white dark:border-gray-900 shadow">
+                                                +{{ projeto.participacao.length - 3 }}
                                             </div>
                                         </div>
                                     </div>
-                                </UCard>
+                                </div>
                             </div>
                         </UCard>
                     </div>
-
-                    <!-- Pesquisa -->
-                    <div v-if="projetos.Pesquisa.length > 0">
-                        <UCard>
-                            <template #header>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <UIcon name="i-lucide-microscope" class="mr-2 h-5 w-5" />
-                                        <h2 class="font-medium">Projetos de Pesquisa</h2>
-                                        <UBadge color="info" variant="soft" class="ml-2">{{ projetos.Pesquisa.length }}
-                                        </UBadge>
-                                    </div>
-                                    <UButton color="neutral" variant="ghost" icon="i-lucide-refresh-cw" size="sm"
-                                        @click="fetchProjetos" />
-                                </div>
-                            </template>
-
-                            <div class="space-y-3">
-                                <UCard v-for="projeto in projetos.Pesquisa" :key="projeto.id"
-                                    class="group hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer border-0 shadow-sm"
-                                    @click="openProjectDetail(projeto)">
-                                    <div class="p-5 sm:p-6">
-                                        <div class="flex items-start justify-between mb-3">
-                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                                {{ projeto.titulo }}
-                                            </h3>
-                                            <UBadge :color="getStatusColor(projeto.status)" variant="soft" size="sm">
-                                                {{ getStatusText(projeto.status) }}
-                                            </UBadge>
-                                        </div>
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">Período</p>
-                                                <p class="font-medium">{{ formatDate(projeto.inicio_execucao) }} - {{
-                                                    formatDate(projeto.fim_execucao) }}</p>
-                                            </div>
-
-                                            <div>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">Metas</p>
-                                                <p class="font-medium">{{ projeto.metas.length }} metas</p>
-                                            </div>
-
-                                            <div>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">Participantes</p>
-                                                <div class="flex items-center gap-1">
-                                                    <p class="font-medium">{{ projeto.participacao.length }}
-                                                        participantes
-                                                    </p>
-                                                    <div v-if="projeto.participacao.length > 0"
-                                                        class="flex -space-x-1 ml-2">
-                                                        <div v-for="(participante, index) in projeto.participacao.slice(0, 3)"
-                                                            :key="participante.id"
-                                                            class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white dark:border-gray-900">
-                                                            {{ participante.nome.charAt(0).toUpperCase() }}
-                                                        </div>
-                                                        <div v-if="projeto.participacao.length > 3"
-                                                            class="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white dark:border-gray-900">
-                                                            +{{ projeto.participacao.length - 3 }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </UCard>
-                            </div>
-                        </UCard>
-                    </div>
-
-                    <!-- Ensino -->
-                    <div v-if="projetos.Ensino.length > 0">
-                        <UCard>
-                            <template #header>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <UIcon name="i-lucide-graduation-cap" class="mr-2 h-5 w-5" />
-                                        <h2 class="font-medium">Projetos de Ensino</h2>
-                                        <UBadge color="success" variant="soft" class="ml-2">{{ projetos.Ensino.length }}
-                                        </UBadge>
-                                    </div>
-                                    <UButton color="neutral" variant="ghost" icon="i-lucide-refresh-cw" size="sm"
-                                        @click="fetchProjetos" />
-                                </div>
-                            </template>
-
-                            <div class="space-y-3">
-                                <UCard v-for="projeto in projetos.Ensino" :key="projeto.id"
-                                    class="group hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer border-0 shadow-sm"
-                                    @click="openProjectDetail(projeto)">
-                                    <div class="p-5 sm:p-6">
-                                        <div class="flex items-start justify-between mb-3">
-                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                                {{ projeto.titulo }}
-                                            </h3>
-                                            <UBadge :color="getStatusColor(projeto.status)" variant="soft" size="sm">
-                                                {{ getStatusText(projeto.status) }}
-                                            </UBadge>
-                                        </div>
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">Período</p>
-                                                <p class="font-medium">{{ formatDate(projeto.inicio_execucao) }} - {{
-                                                    formatDate(projeto.fim_execucao) }}</p>
-                                            </div>
-
-                                            <div>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">Metas</p>
-                                                <p class="font-medium">{{ projeto.metas.length }} metas</p>
-                                            </div>
-
-                                            <div>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">Participantes</p>
-                                                <div class="flex items-center gap-1">
-                                                    <p class="font-medium">{{ projeto.participacao.length }}
-                                                        participantes
-                                                    </p>
-                                                    <div v-if="projeto.participacao.length > 0"
-                                                        class="flex -space-x-1 ml-2">
-                                                        <div v-for="(participante, index) in projeto.participacao.slice(0, 3)"
-                                                            :key="participante.id"
-                                                            class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white dark:border-gray-900">
-                                                            {{ participante.nome.charAt(0).toUpperCase() }}
-                                                        </div>
-                                                        <div v-if="projeto.participacao.length > 3"
-                                                            class="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white dark:border-gray-900">
-                                                            +{{ projeto.participacao.length - 3 }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </UCard>
-                            </div>
-                        </UCard>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div v-if="totalProjetos === 0" class="text-center py-12">
+                    <div v-else class="text-center py-12">
                         <div class="mx-auto h-12 w-12 text-gray-400">
                             <UIcon name="i-lucide-folder-open" class="h-full w-full" />
                         </div>
                         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhum projeto encontrado
                         </h3>
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Você ainda não possui projetos cadastrados.
+                            Você ainda não possui projetos cadastrados deste tipo.
                         </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Project Detail View -->
-            <div v-else-if="selectedProjeto" key="project-detail" class="space-y-6">
-                <!-- Back Button -->
-                <div class="flex items-start gap-4">
-                    <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" @click="closeProjectDetail"
-                        class="flex-shrink-0 mt-1">
-                        <span class="hidden sm:inline">Voltar aos Projetos</span>
-                    </UButton>
-                    <div class="flex-1 min-w-0">
-                        <h1
-                            class="text-xl sm:text-2xl lg:text-3xl font-bold text-highlighted break-words leading-tight">
-                            {{ selectedProjeto.titulo }}
-                        </h1>
-                        <p class="text-muted text-sm sm:text-base mt-2 break-words">
-                            {{ getProjetoType(selectedProjeto) }}
-                        </p>
-                    </div>
-                </div>
+            <!-- Project Detail View - Redesigned -->
+            <div v-else-if="selectedProjeto" key="project-detail">
+                <div
+                    :class="isMobile ? 'inset-0 z-50 bg-background flex flex-col' : 'flex justify-center items-center min-h-screen bg-background/80'">
+                    <div class="h-full w-full flex flex-col">
 
-                <!-- Project Info -->
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-                    <div class="space-y-4">
-                        <h4 class="font-medium text-highlighted">Informações do Projeto</h4>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                <span class="text-muted">Status:</span>
-                                <UBadge :color="getStatusColor(selectedProjeto.status)" variant="soft" size="sm"
-                                    class="break-words">
-                                    {{ getStatusText(selectedProjeto.status) }}
-                                </UBadge>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                <span class="text-muted">Início:</span>
-                                <span class="text-default font-medium break-words">{{
-                                    formatDate(selectedProjeto.inicio_execucao)
-                                    }}</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                <span class="text-muted">Término:</span>
-                                <span class="text-default font-medium break-words">{{
-                                    formatDate(selectedProjeto.fim_execucao)
-                                    }}</span>
-                            </div>
-                            <div v-if="'area_conhecimento' in selectedProjeto"
-                                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                <span class="text-muted">Área:</span>
-                                <span class="text-default font-medium break-words">{{ selectedProjeto.area_conhecimento
-                                }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <h4 class="font-medium text-highlighted">Participantes</h4>
-                        <div class="space-y-4 max-h-64 overflow-y-auto">
-                            <!-- Responsáveis primeiro -->
-                            <div v-if="responsaveis.length > 0" class="space-y-2">
-                                <h5 class="text-sm font-medium text-muted flex items-center gap-2">
-                                    <UIcon name="i-lucide-star" class="w-4 h-4 flex-shrink-0" />
-                                    <span class="break-words">Responsáveis ({{ responsaveis.length }})</span>
-                                </h5>
+                        <!-- Scrollable Content -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                            <!-- Info Card -->
+                            <UCard class="p-4">
                                 <div class="space-y-2">
-                                    <div v-for="participante in responsaveis" :key="participante.id"
-                                        class="flex items-center justify-between p-3 bg-elevated rounded-lg border border-primary-200 dark:border-primary-800 hover:bg-default/50 transition-colors">
-                                        <div class="min-w-0 flex-1 mr-3">
-                                            <p class="font-medium text-sm text-default break-words">{{ participante.nome
-                                            }}</p>
-                                            <p class="text-xs text-muted break-words">{{ participante.vinculo }}</p>
-                                        </div>
-                                        <UBadge color="primary" variant="soft" size="sm" class="flex-shrink-0">
-                                            Responsável
+                                    <div class="flex justify-between items-center flex-wrap">
+                                        <span class="text-muted">Status</span>
+                                        <UBadge :color="getStatusColor(selectedProjeto.status)" variant="soft"
+                                            size="sm">
+                                            {{ getStatusText(selectedProjeto.status) }}
                                         </UBadge>
                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Outros participantes -->
-                            <div v-if="outrosParticipantes.length > 0" class="space-y-2">
-                                <h5 class="text-sm font-medium text-muted flex items-center gap-2">
-                                    <UIcon name="i-lucide-users" class="w-4 h-4 flex-shrink-0" />
-                                    <span class="break-words">Participantes ({{ outrosParticipantes.length }})</span>
-                                </h5>
-                                <div class="space-y-2">
-                                    <div v-for="participante in outrosParticipantes" :key="participante.id"
-                                        class="flex items-center justify-between p-3 bg-elevated rounded-lg border border-default hover:bg-default/50 transition-colors">
-                                        <div class="min-w-0 flex-1 mr-3">
-                                            <p class="font-medium text-sm text-default break-words">{{ participante.nome
-                                            }}</p>
-                                            <p class="text-xs text-muted break-words">{{ participante.vinculo }}</p>
-                                        </div>
-                                        <UBadge color="neutral" variant="soft" size="sm" class="flex-shrink-0">
-                                            Participante
-                                        </UBadge>
+                                    <div class="flex justify-between items-center flex-wrap">
+                                        <span class="text-muted">Início</span>
+                                        <span class="font-medium">{{ formatDate(selectedProjeto.inicio_execucao)
+                                        }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center flex-wrap">
+                                        <span class="text-muted">Término</span>
+                                        <span class="font-medium">{{ formatDate(selectedProjeto.fim_execucao)
+                                        }}</span>
+                                    </div>
+                                    <div v-if="'area_conhecimento' in selectedProjeto"
+                                        class="flex justify-between items-start flex-wrap">
+                                        <span class="text-muted">Área</span>
+                                        <span class="font-medium text-right break-words max-w-[70%]">{{
+                                            selectedProjeto.area_conhecimento }}</span>
                                     </div>
                                 </div>
-                            </div>
+                            </UCard>
+                            <!-- Resumo do Progresso Card (logo após info) -->
+                            <UCard
+                                class="relative flex flex-col items-center justify-center text-center p-6 border-2 border-success shadow-none bg-gradient-to-br from-success/10 to-background/80 transition-all duration-500"
+                                :class="{ 'animate-pulse border-emerald-400': progressoPercentual === 100 }">
+                                <div v-if="progressoPercentual === 100" class="absolute top-3 right-3 text-success">
+                                    <UIcon name="i-lucide-party-popper" class="w-7 h-7 animate-bounce" />
+                                </div>
+                                <div class="font-bold text-success text-lg mb-1">Resumo do Progresso</div>
+                                <div class="text-success/80 text-base mb-2">{{ metasConcluidas }} de {{
+                                    totalMetasProjeto }} metas concluídas</div>
+                                <div class="text-5xl font-extrabold text-success mb-1 transition-all duration-500">
+                                    {{ progressoPercentual }}%</div>
+                                <div class="text-success/80 text-base font-medium mb-2">{{ progressoStatus }}</div>
+                                <div v-if="progressoPercentual === 100" class="text-success font-semibold mt-2">
+                                    Parabéns! Projeto concluído 🎉</div>
+                                <div v-else-if="progressoPercentual >= 75" class="text-success/70 font-medium mt-2">
+                                    Quase lá, continue assim!</div>
+                                <div v-else-if="progressoPercentual >= 50" class="text-success/60 font-medium mt-2">
+                                    Ótimo progresso, mantenha o ritmo!</div>
+                            </UCard>
+                            <!-- Progresso Card (detalhado) -->
+                            <UCard class="p-4">
+                                <div class="mb-2 text-muted font-medium">Progresso Detalhado</div>
+                                <MobileProjectStepper :metas="selectedProjeto.metas" />
+                            </UCard>
+                            <!-- Participantes Card (no final) -->
+                            <UCard class="p-4">
+                                <div class="mb-2 text-muted font-medium">Participantes</div>
+                                <div class="flex flex-wrap gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
+                                    <div v-for="p in selectedProjeto.participacao" :key="p.id"
+                                        class="flex items-center gap-2">
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-primary/80 text-white flex items-center justify-center font-bold">
+                                            {{ p.nome.charAt(0).toUpperCase() }}
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-default">{{ p.nome }}</div>
+                                            <div class="text-xs text-muted">{{ p.vinculo }} <span
+                                                    v-if="p.responsavel">(Responsável)</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </UCard>
                         </div>
-                        <div class="text-xs text-muted text-center pt-2 border-t border-default break-words">
-                            {{ selectedProjeto.participacao.length }} participante{{ selectedProjeto.participacao.length
-                                !== 1 ? 's' : '' }} no total
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Project Progress -->
-                <div class="space-y-4">
-                    <h4 class="font-medium text-highlighted">Progresso do Projeto</h4>
-                    <div class="w-full overflow-x-auto">
-                        <MobileProjectStepper :metas="selectedProjeto.metas" />
                     </div>
                 </div>
             </div>
         </Transition>
     </div>
-
-
 </template>
 
 <script setup lang="ts">
+import AppShell from '~/components/AppShell.vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import type { TabsItem } from '@nuxt/ui'
 import type { Projetos, Extensao, Pesquisa, Ensino } from '#shared/datatypes'
 import MobileProjectStepper from '~/components/MobileProjectStepper.vue'
+import { useDeviceDetection } from '~/composables/useDeviceDetection'
+import { useAppHeaderStore } from '~/stores/appHeader'
 
 // Page meta
 definePageMeta({
@@ -489,6 +233,14 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const projetos = ref<Projetos | null>(null)
 const selectedProjeto = ref<Extensao | Pesquisa | Ensino | null>(null)
+
+// Tabs para tipos de projeto
+const tabItems = ref<TabsItem[]>([
+    { label: 'Extensão', icon: 'i-lucide-users', value: 'Extensao' },
+    { label: 'Pesquisa', icon: 'i-lucide-microscope', value: 'Pesquisa' },
+    { label: 'Ensino', icon: 'i-lucide-graduation-cap', value: 'Ensino' },
+])
+const selectedTab = ref('Extensao')
 
 // Computed properties
 const totalProjetos = computed(() => {
@@ -526,6 +278,14 @@ const totalMetas = computed(() => {
     return allProjetos.reduce((total, projeto) => total + projeto.metas.length, 0)
 })
 
+const filteredProjetos = computed(() => {
+    if (!projetos.value) return []
+    if (selectedTab.value === 'Extensao') return projetos.value.Extensao
+    if (selectedTab.value === 'Pesquisa') return projetos.value.Pesquisa
+    if (selectedTab.value === 'Ensino') return projetos.value.Ensino
+    return []
+})
+
 // Computed properties for participants organization
 const responsaveis = computed(() => {
     if (!selectedProjeto.value) return []
@@ -536,6 +296,9 @@ const outrosParticipantes = computed(() => {
     if (!selectedProjeto.value) return []
     return selectedProjeto.value.participacao.filter(p => !p.responsavel)
 })
+
+const { isMobile } = useDeviceDetection()
+const appHeader = useAppHeaderStore()
 
 // Methods
 const fetchProjetos = async () => {
@@ -602,15 +365,45 @@ const getStatusText = (status: string) => {
 
 const openProjectDetail = (projeto: Extensao | Pesquisa | Ensino) => {
     selectedProjeto.value = projeto
+    appHeader.setHeader({
+        title: 'Meus Projetos',
+        subtitle: projeto.titulo,
+        showBack: true,
+        onBack: () => closeProjectDetail()
+    })
 }
 
 const closeProjectDetail = () => {
     selectedProjeto.value = null
+    appHeader.setHeader({
+        title: 'Meus Projetos',
+        subtitle: '',
+        showBack: false,
+        onBack: null
+    })
 }
 
-// Fetch data on mount
+
+// Computed properties for progress summary
+// Uma meta é considerada concluída se todas as suas etapas possuem fim_execucao preenchido
+const metasConcluidas = computed(() => selectedProjeto.value ? selectedProjeto.value.metas.filter(meta => meta.etapas.length > 0 && meta.etapas.every(etapa => !!etapa.fim_execucao)).length : 0)
+const totalMetasProjeto = computed(() => selectedProjeto.value ? selectedProjeto.value.metas.length : 0)
+const progressoPercentual = computed(() => totalMetasProjeto.value > 0 ? Math.round((metasConcluidas.value / totalMetasProjeto.value) * 100) : 0)
+const progressoStatus = computed(() => progressoPercentual.value === 100 ? 'Concluído' : 'Em andamento')
+
+// Fetch data on mount e setar header padrão
 onMounted(() => {
+    appHeader.setHeader({
+        title: 'Meus Projetos',
+        subtitle: '',
+        showBack: false,
+        onBack: null
+    })
     fetchProjetos()
+})
+
+onUnmounted(() => {
+    appHeader.resetHeader()
 })
 </script>
 
