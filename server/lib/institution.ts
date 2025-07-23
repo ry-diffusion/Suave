@@ -1,15 +1,15 @@
 export interface InstitutionMoodle {
-  moodleUrl: string;
+	moodleUrl: string;
 }
 
 export interface InstitutionSuap {
-  suapUrl: string;
+	suapUrl: string;
 }
 
 export interface Institution {
-  name: string;
-  id: string;
+	name: string;
+	id: string;
 
-  moodle?: InstitutionMoodle;
-  suap?: InstitutionSuap;
+	moodle?: InstitutionMoodle;
+	suap?: InstitutionSuap;
 }

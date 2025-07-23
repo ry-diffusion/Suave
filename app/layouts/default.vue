@@ -1,46 +1,47 @@
 <script setup lang="ts">
 import { useAuthRefresh } from "~/composables/useAuthRefresh";
-import { storeToRefs } from 'pinia'
-import { useAppHeaderStore } from '~/stores/appHeader'
-import { computed } from 'vue'
+import { storeToRefs } from "pinia";
+import { useAppHeaderStore } from "~/stores/appHeader";
+import { computed } from "vue";
 
 const route = useRoute();
 
-const appHeader = useAppHeaderStore()
-const { title, subtitle, showBack, onBack } = storeToRefs(appHeader)
+const appHeader = useAppHeaderStore();
+const { title, subtitle, showBack, onBack } = storeToRefs(appHeader);
 
 // Compute title based on the current route
 const pageTitle = computed(() => {
-    const path = route.path;
-    if (path === "/") return "Suave";
-    if (path === "/perfil") return "Perfil";
-    if (path === "/ferramentas") return "Ferramentas";
-    if (path === "/ferramentas/moodles") return "Moodles Disponíveis";
-    if (path === "/ferramentas/desempenho") return "Desempenho Acadêmico";
-    if (path === "/projetos") return "Meus Projetos";
-    return "";
+	const path = route.path;
+	if (path === "/") return "Suave";
+	if (path === "/perfil") return "Perfil";
+	if (path === "/ferramentas") return "Ferramentas";
+	if (path === "/ferramentas/moodles") return "Moodles Disponíveis";
+	if (path === "/ferramentas/desempenho") return "Desempenho Acadêmico";
+	if (path === "/projetos") return "Meus Projetos";
+	return "";
 });
 
 const fallbackOnBack = () => {
-    // fallback para router.back()
-    const router = useRouter();
-    router.back();
-}
+	// fallback para router.back()
+	const router = useRouter();
+	router.back();
+};
 
 const showBackButton = computed(() => {
-    return route.path !== "/";
+	return route.path !== "/";
 });
 
 useHead({
-    title: route.path === "/" ? "Suave | Deixando seu ensino mais suave" : `Suave - ${title.value || pageTitle.value}`,
-    meta: [
-        { name: "description", content: "Deixando seu ensino mais suave" },
-    ],
-})
+	title:
+		route.path === "/"
+			? "Suave | Deixando seu ensino mais suave"
+			: `Suave - ${title.value || pageTitle.value}`,
+	meta: [{ name: "description", content: "Deixando seu ensino mais suave" }],
+});
 
 // Determine if header should be transparent
 const isTransparent = computed(() => {
-    return route.path === "/";
+	return route.path === "/";
 });
 
 // Track page transitions for animations
@@ -48,28 +49,28 @@ const isPageTransitioning = ref(false);
 
 // Watch route changes to trigger transition effects
 watch(
-    () => route.path,
-    (newPath, oldPath) => {
-        if (newPath !== oldPath) {
-            isPageTransitioning.value = true;
-            setTimeout(() => {
-                isPageTransitioning.value = false;
-            }, 600); // Match this with transition duration
-        }
-    },
+	() => route.path,
+	(newPath, oldPath) => {
+		if (newPath !== oldPath) {
+			isPageTransitioning.value = true;
+			setTimeout(() => {
+				isPageTransitioning.value = false;
+			}, 600); // Match this with transition duration
+		}
+	},
 );
 
 // Determine if large title should be used (iOS style)
 const useLargeTitle = computed(() => {
-    return route.path === "/" || route.path === "/ferramentas";
+	return route.path === "/" || route.path === "/ferramentas";
 });
 
 // Add padding to content based on page
 const contentClass = computed(() => {
-    return {
-        "pt-4": !useLargeTitle.value,
-        "pt-0": useLargeTitle.value,
-    };
+	return {
+		"pt-4": !useLargeTitle.value,
+		"pt-0": useLargeTitle.value,
+	};
 });
 
 useAuthRefresh();

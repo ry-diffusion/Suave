@@ -124,127 +124,132 @@
 </template>
 
 <script setup lang="ts">
-import type { Meta, Etapa } from '#shared/datatypes'
+import type { Meta, Etapa } from "#shared/datatypes";
 
 interface Props {
-    metas: Meta[]
+	metas: Meta[];
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 // Computed properties
 const totalSteps = computed(() => {
-    return props.metas.reduce((total, meta) => {
-        return total + (meta.etapas.length > 0 ? meta.etapas.length : 1)
-    }, 0)
-})
+	return props.metas.reduce((total, meta) => {
+		return total + (meta.etapas.length > 0 ? meta.etapas.length : 1);
+	}, 0);
+});
 
 const completedSteps = computed(() => {
-    return props.metas.reduce((total, meta) => {
-        const metaSteps = meta.etapas.length > 0 ? meta.etapas.length : 1
-        const completedMetaSteps = meta.etapas.length > 0
-            ? meta.etapas.filter(etapa => isEtapaCompleted(etapa)).length
-            : (isMetaCompleted(meta) ? 1 : 0)
-        return total + completedMetaSteps
-    }, 0)
-})
+	return props.metas.reduce((total, meta) => {
+		const metaSteps = meta.etapas.length > 0 ? meta.etapas.length : 1;
+		const completedMetaSteps =
+			meta.etapas.length > 0
+				? meta.etapas.filter((etapa) => isEtapaCompleted(etapa)).length
+				: isMetaCompleted(meta)
+					? 1
+					: 0;
+		return total + completedMetaSteps;
+	}, 0);
+});
 
 const progressPercentage = computed(() => {
-    return totalSteps.value > 0 ? (completedSteps.value / totalSteps.value) * 100 : 0
-})
+	return totalSteps.value > 0
+		? (completedSteps.value / totalSteps.value) * 100
+		: 0;
+});
 
 // Methods
 const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    })
-}
+	if (!dateString) return "N/A";
+	return new Date(dateString).toLocaleDateString("pt-BR", {
+		day: "2-digit",
+		month: "2-digit",
+		year: "numeric",
+	});
+};
 
 const isMetaCompleted = (meta: Meta): boolean => {
-    if (meta.etapas.length === 0) {
-        if (!meta.inicio || !meta.fim) return false
-        const now = new Date()
-        const fim = new Date(meta.fim)
-        return now > fim
-    }
-    return meta.etapas.every(etapa => isEtapaCompleted(etapa))
-}
+	if (meta.etapas.length === 0) {
+		if (!meta.inicio || !meta.fim) return false;
+		const now = new Date();
+		const fim = new Date(meta.fim);
+		return now > fim;
+	}
+	return meta.etapas.every((etapa) => isEtapaCompleted(etapa));
+};
 
 const isMetaActive = (meta: Meta, metaIndex: number): boolean => {
-    const previousMetasCompleted = props.metas
-        .slice(0, metaIndex)
-        .every(m => isMetaCompleted(m))
+	const previousMetasCompleted = props.metas
+		.slice(0, metaIndex)
+		.every((m) => isMetaCompleted(m));
 
-    return previousMetasCompleted && !isMetaCompleted(meta)
-}
+	return previousMetasCompleted && !isMetaCompleted(meta);
+};
 
 const isEtapaCompleted = (etapa: Etapa): boolean => {
-    const now = new Date()
-    const fim = new Date(etapa.fim_execucao)
-    return now > fim
-}
+	const now = new Date();
+	const fim = new Date(etapa.fim_execucao);
+	return now > fim;
+};
 
 const isEtapaActive = (etapa: Etapa): boolean => {
-    const now = new Date()
-    const inicio = new Date(etapa.inicio_execucao)
-    const fim = new Date(etapa.fim_execucao)
-    return now >= inicio && now <= fim
-}
+	const now = new Date();
+	const inicio = new Date(etapa.inicio_execucao);
+	const fim = new Date(etapa.fim_execucao);
+	return now >= inicio && now <= fim;
+};
 
 const getMetaStepClasses = (meta: Meta, metaIndex: number) => {
-    if (isMetaCompleted(meta)) {
-        return 'bg-success border-success'
-    }
-    if (isMetaActive(meta, metaIndex)) {
-        return 'bg-neutral border-neutral'
-    }
-    return 'bg-default border-muted'
-}
+	if (isMetaCompleted(meta)) {
+		return "bg-success border-success";
+	}
+	if (isMetaActive(meta, metaIndex)) {
+		return "bg-neutral border-neutral";
+	}
+	return "bg-default border-muted";
+};
 
 const getEtapaStepClasses = (etapa: Etapa) => {
-    if (isEtapaCompleted(etapa)) {
-        return 'bg-success border-success'
-    }
-    if (isEtapaActive(etapa)) {
-        return 'bg-neutral border-neutral'
-    }
-    return 'bg-default border-muted'
-}
+	if (isEtapaCompleted(etapa)) {
+		return "bg-success border-success";
+	}
+	if (isEtapaActive(etapa)) {
+		return "bg-neutral border-neutral";
+	}
+	return "bg-default border-muted";
+};
 
 const getMetaCardClasses = (meta: Meta, metaIndex: number) => {
-    if (isMetaCompleted(meta)) {
-        return 'border-success-200 dark:border-success-800 bg-success-50/50 dark:bg-success-900/10'
-    }
-    if (isMetaActive(meta, metaIndex)) {
-        return 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/10'
-    }
-    return 'border-default'
-}
+	if (isMetaCompleted(meta)) {
+		return "border-success-200 dark:border-success-800 bg-success-50/50 dark:bg-success-900/10";
+	}
+	if (isMetaActive(meta, metaIndex)) {
+		return "border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/10";
+	}
+	return "border-default";
+};
 
 const getMetaStatusColor = (meta: Meta) => {
-    if (isMetaCompleted(meta)) return 'success'
-    if (isMetaActive(meta, props.metas.indexOf(meta))) return 'info'
-    return 'neutral'
-}
+	if (isMetaCompleted(meta)) return "success";
+	if (isMetaActive(meta, props.metas.indexOf(meta))) return "info";
+	return "neutral";
+};
 
 const getMetaStatusText = (meta: Meta) => {
-    if (isMetaCompleted(meta)) return 'Concluída'
-    if (isMetaActive(meta, props.metas.indexOf(meta))) return 'Em Andamento'
-    return 'Pendente'
-}
+	if (isMetaCompleted(meta)) return "Concluída";
+	if (isMetaActive(meta, props.metas.indexOf(meta))) return "Em Andamento";
+	return "Pendente";
+};
 
 const getEtapaStatusColor = (etapa: Etapa) => {
-    if (isEtapaCompleted(etapa)) return 'success'
-    if (isEtapaActive(etapa)) return 'info'
-    return 'neutral'
-}
+	if (isEtapaCompleted(etapa)) return "success";
+	if (isEtapaActive(etapa)) return "info";
+	return "neutral";
+};
 
 const getEtapaStatusText = (etapa: Etapa) => {
-    if (isEtapaCompleted(etapa)) return 'Concluída'
-    if (isEtapaActive(etapa)) return 'Em Andamento'
-    return 'Pendente'
-}
+	if (isEtapaCompleted(etapa)) return "Concluída";
+	if (isEtapaActive(etapa)) return "Em Andamento";
+	return "Pendente";
+};
 </script>

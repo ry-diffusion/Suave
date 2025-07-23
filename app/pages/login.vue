@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import { useUserSession } from "#imports";
+import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import UISpinner from '~/components/UISpinner.vue';
+import { useUserSession } from "#imports";
+import UISpinner from "~/components/UISpinner.vue";
 
 definePageMeta({ layout: false });
 
@@ -12,92 +12,91 @@ const router = useRouter();
 const step = ref(0);
 const loading = ref(false);
 const error = ref("");
-const direction = ref<'left' | 'right'>('right');
+const direction = ref<"left" | "right">("right");
 const success = ref(false);
 
 // Only one institution for now, but keep as array for future
 const institutions = [
-    { label: "IF Goiano - Presencial", value: "ifgoiano-presencial" },
+	{ label: "IF Goiano - Presencial", value: "ifgoiano-presencial" },
 ];
 
 const form = reactive({
-    institution: "",
-    username: "",
-    password: "",
+	institution: "",
+	username: "",
+	password: "",
 });
 
 const steps = [
-    {
-        title: "Instituição",
-        description: "Selecione a instituição",
-        icon: "i-lucide-building",
-    },
-    {
-        title: "Matrícula",
-        description: "Informe sua matrícula",
-        icon: "i-lucide-id-card",
-    },
-    { title: "Senha", description: "Informe sua senha", icon: "i-lucide-lock" },
+	{
+		title: "Instituição",
+		description: "Selecione a instituição",
+		icon: "i-lucide-building",
+	},
+	{
+		title: "Matrícula",
+		description: "Informe sua matrícula",
+		icon: "i-lucide-id-card",
+	},
+	{ title: "Senha", description: "Informe sua senha", icon: "i-lucide-lock" },
 ];
 
 async function submitLogin() {
-    error.value = "";
-    if (!form.password || form.password.length < 1) {
-        error.value = "Campo obrigatório";
-        return;
-    }
-    loading.value = true;
-    try {
-        await $fetch("/api/auth/signin", {
-            method: "POST",
-            body: {
-                institution: form.institution,
-                username: form.username,
-                password: form.password,
-            },
-        });
-        await refreshSession();
-        success.value = true;
-        setTimeout(() => {
-            router.push("/");
-        }, 2000);
-    } catch (e: unknown) {
-        if (
-            typeof e === "object" &&
-            e !== null &&
-            "data" in e &&
-            typeof (e as Record<string, unknown>).data === "object" &&
-            (e as { data?: { message?: unknown } }).data?.message &&
-            typeof (e as { data: { message: unknown } }).data.message ===
-            "string"
-        ) {
-            error.value = (e as { data: { message: string } }).data.message;
-        } else {
-            error.value = "Credenciais inválidas";
-        }
-    } finally {
-        loading.value = false;
-    }
+	error.value = "";
+	if (!form.password || form.password.length < 1) {
+		error.value = "Campo obrigatório";
+		return;
+	}
+	loading.value = true;
+	try {
+		await $fetch("/api/auth/signin", {
+			method: "POST",
+			body: {
+				institution: form.institution,
+				username: form.username,
+				password: form.password,
+			},
+		});
+		await refreshSession();
+		success.value = true;
+		setTimeout(() => {
+			router.push("/");
+		}, 2000);
+	} catch (e: unknown) {
+		if (
+			typeof e === "object" &&
+			e !== null &&
+			"data" in e &&
+			typeof (e as Record<string, unknown>).data === "object" &&
+			(e as { data?: { message?: unknown } }).data?.message &&
+			typeof (e as { data: { message: unknown } }).data.message === "string"
+		) {
+			error.value = (e as { data: { message: string } }).data.message;
+		} else {
+			error.value = "Credenciais inválidas";
+		}
+	} finally {
+		loading.value = false;
+	}
 }
 
 function nextStep() {
-    if (step.value === 0 && !form.institution) {
-        error.value = "Selecione a instituição.";
-        return;
-    }
-    if (step.value === 1 && (!form.username || form.username.length < 1)) {
-        error.value = "Campo obrigatório";
-        return;
-    }
-    error.value = "";
-    direction.value = 'right';
-    step.value++;
+	if (step.value === 0 && !form.institution) {
+		error.value = "Selecione a instituição.";
+		return;
+	}
+	if (step.value === 1 && (!form.username || form.username.length < 1)) {
+		error.value = "Campo obrigatório";
+		return;
+	}
+	error.value = "";
+	direction.value = "right";
+	step.value++;
 }
 
 function prevStep() {
-    error.value = "";
-    direction.value = 'left';
-    step.value--;
+	error.value = "";
+	direction.value = "left";
+	step.value--;
 }
 </script>
 

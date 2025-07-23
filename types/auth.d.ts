@@ -1,27 +1,27 @@
 interface MoodleSecureData {
-  apiKey: string;
+	apiKey: string;
 }
 
 interface SuapSecureData {
-  apiKey: string;
+	apiKey: string;
 }
 
 declare module "#auth-utils" {
-  interface User {
-    institution: string;
-    // cached full name
-    fullName: string;
-    // cached avatar URL
-    avatarUrl: string;
-  }
+	interface User {
+		institution: string;
+		// cached full name
+		fullName: string;
+		// cached avatar URL
+		avatarUrl: string;
+	}
 
-  // interface UserSession {}
+	// interface UserSession {}
 
-  interface SecureSessionData {
-    moodle?: MoodleSecureData;
-    suap?: SuapSecureData;
-    authContext?: any; // Added to match usage in session
-  }
+	interface SecureSessionData {
+		moodle?: MoodleSecureData;
+		suap?: SuapSecureData;
+		authContext?: any; // Added to match usage in session
+	}
 }
 
-export { };
+export {};

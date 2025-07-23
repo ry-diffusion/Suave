@@ -117,37 +117,37 @@
 <script setup>
 // Define table columns with proper IDs
 const activityColumns = [
-    { key: "date", label: "Data", id: "date" },
-    { key: "course", label: "Disciplina", id: "course" },
-    { key: "activity", label: "Atividade", id: "activity" },
-    { key: "status", label: "Status", id: "status" },
+	{ key: "date", label: "Data", id: "date" },
+	{ key: "course", label: "Disciplina", id: "course" },
+	{ key: "activity", label: "Atividade", id: "activity" },
+	{ key: "status", label: "Status", id: "status" },
 ];
 
 // Define table rows
 const activityRows = [
-    {
-        date: "15/06",
-        course: "Cálculo III",
-        activity: "Prova Final",
-        status: "Pendente",
-    },
-    {
-        date: "12/06",
-        course: "Física Quântica",
-        activity: "Trabalho em Grupo",
-        status: "Pendente",
-    },
-    {
-        date: "10/06",
-        course: "Programação Avançada",
-        activity: "Projeto Final",
-        status: "Em andamento",
-    },
-    {
-        date: "08/06",
-        course: "Biologia Celular",
-        activity: "Relatório de Laboratório",
-        status: "Em andamento",
-    },
+	{
+		date: "15/06",
+		course: "Cálculo III",
+		activity: "Prova Final",
+		status: "Pendente",
+	},
+	{
+		date: "12/06",
+		course: "Física Quântica",
+		activity: "Trabalho em Grupo",
+		status: "Pendente",
+	},
+	{
+		date: "10/06",
+		course: "Programação Avançada",
+		activity: "Projeto Final",
+		status: "Em andamento",
+	},
+	{
+		date: "08/06",
+		course: "Biologia Celular",
+		activity: "Relatório de Laboratório",
+		status: "Em andamento",
+	},
 ];
 </script>

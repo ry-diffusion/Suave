@@ -119,99 +119,93 @@
 
 <script setup>
 const columns = [
-  {
-    key: 'code',
-    label: 'Código',
-    id: 'code'
-  },
-  {
-    key: 'name',
-    label: 'Disciplina',
-    id: 'name'
-  },
-  {
-    key: 'teacher',
-    label: 'Professor',
-    id: 'teacher'
-  },
-  {
-    key: 'grade',
-    label: 'Nota',
-    id: 'grade'
-  },
-  {
-    key: 'status',
-    label: 'Situação',
-    id: 'status'
-  }
+	{
+		key: "code",
+		label: "Código",
+		id: "code",
+	},
+	{
+		key: "name",
+		label: "Disciplina",
+		id: "name",
+	},
+	{
+		key: "teacher",
+		label: "Professor",
+		id: "teacher",
+	},
+	{
+		key: "grade",
+		label: "Nota",
+		id: "grade",
+	},
+	{
+		key: "status",
+		label: "Situação",
+		id: "status",
+	},
 ];
 
 const currentSubjects = ref([
-  { 
-    code: 'MAT135',
-    name: 'Cálculo III',
-    teacher: 'Dra. Maria Silva',
-    grade: '8.5',
-    status: 'Em andamento'
-  },
-  {
-    code: 'FIS221',
-    name: 'Física Quântica',
-    teacher: 'Dr. Paulo Mendes',
-    grade: '7.0',
-    status: 'Em andamento'
-  },
-  {
-    code: 'BIO110',
-    name: 'Biologia Celular',
-    teacher: 'Dra. Ana Ferreira',
-    grade: '9.5',
-    status: 'Em andamento'
-  },
-  {
-    code: 'ENG301',
-    name: 'Programação Avançada',
-    teacher: 'Dr. Roberto Santos',
-    grade: 'N/A',
-    status: 'Não iniciado'
-  },
-  {
-    code: 'HUM202',
-    name: 'História da Arte',
-    teacher: 'Dr. João Costa',
-    grade: '6.5',
-    status: 'Atenção'
-  }
+	{
+		code: "MAT135",
+		name: "Cálculo III",
+		teacher: "Dra. Maria Silva",
+		grade: "8.5",
+		status: "Em andamento",
+	},
+	{
+		code: "FIS221",
+		name: "Física Quântica",
+		teacher: "Dr. Paulo Mendes",
+		grade: "7.0",
+		status: "Em andamento",
+	},
+	{
+		code: "BIO110",
+		name: "Biologia Celular",
+		teacher: "Dra. Ana Ferreira",
+		grade: "9.5",
+		status: "Em andamento",
+	},
+	{
+		code: "ENG301",
+		name: "Programação Avançada",
+		teacher: "Dr. Roberto Santos",
+		grade: "N/A",
+		status: "Não iniciado",
+	},
+	{
+		code: "HUM202",
+		name: "História da Arte",
+		teacher: "Dr. João Costa",
+		grade: "6.5",
+		status: "Atenção",
+	},
 ]);
 
-const selectedSemester = ref('2023.2');
+const selectedSemester = ref("2023.2");
 
-const semesters = [
-  '2023.2',
-  '2023.1',
-  '2022.2',
-  '2022.1',
-  '2021.2'
-];
+const semesters = ["2023.2", "2023.1", "2022.2", "2022.1", "2021.2"];
 
 function getStatusColor(status) {
-  switch (status) {
-    case 'Em andamento':
-      return 'blue';
-    case 'Atenção':
-      return 'yellow';
-    case 'Não iniciado':
-      return 'gray';
-    default:
-      return 'gray';
-  }
+	switch (status) {
+		case "Em andamento":
+			return "blue";
+		case "Atenção":
+			return "yellow";
+		case "Não iniciado":
+			return "gray";
+		default:
+			return "gray";
+	}
 }
 
 function getGradeColor(grade) {
-  if (grade === 'N/A') return 'text-gray-400';
-  const numGrade = parseFloat(grade);
-  if (numGrade >= 7) return 'text-green-600 dark:text-green-400';
-  if (numGrade >= 5) return 'text-yellow-600 dark:text-yellow-400';
-  return 'text-red-600 dark:text-red-400';
+	if (grade === "N/A") return "text-gray-400";
+	const numGrade = parseFloat(grade);
+	if (numGrade >= 7) return "text-green-600 dark:text-green-400";
+	if (numGrade >= 5) return "text-yellow-600 dark:text-yellow-400";
+	return "text-red-600 dark:text-red-400";
 }
 </script>

@@ -203,24 +203,24 @@
 </template>
 
 <script setup lang="ts">
-import { useThemeStore } from '~/stores/theme'
-import { ref, computed } from 'vue'
+import { useThemeStore } from "~/stores/theme";
+import { ref, computed } from "vue";
 
-const themeStore = useThemeStore()
-const { user } = useUserSession()
+const themeStore = useThemeStore();
+const { user } = useUserSession();
 
 const isDarkMode = computed({
-  get: () => themeStore.colorMode === 'dark',
-  set: () => themeStore.toggleColorMode()
-})
+	get: () => themeStore.colorMode === "dark",
+	set: () => themeStore.toggleColorMode(),
+});
 
-const notifMoodle = ref(true)
-const notifGrades = ref(true)
-const notifCalendar = ref(false)
-const notifEmails = ref(true)
+const notifMoodle = ref(true);
+const notifGrades = ref(true);
+const notifCalendar = ref(false);
+const notifEmails = ref(true);
 
 // Add middleware to protect this page
 definePageMeta({
-  middleware: ['auth']
-})
+	middleware: ["auth"],
+});
 </script>

@@ -8,18 +8,18 @@
 
 <script setup lang="ts">
 defineProps({
-    size: {
-        type: [String, Number],
-        default: 44,
-    },
-    color: {
-        type: String,
-        default: 'currentColor',
-    },
-    customClass: {
-        type: String,
-        default: '',
-    },
+	size: {
+		type: [String, Number],
+		default: 44,
+	},
+	color: {
+		type: String,
+		default: "currentColor",
+	},
+	customClass: {
+		type: String,
+		default: "",
+	},
 });
 </script>
 

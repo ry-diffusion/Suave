@@ -52,65 +52,68 @@
 
 <script setup>
 const moodles = ref([
-  {
-    name: "Matemática Aplicada",
-    description: "Curso de matemática aplicada com foco em resolução de problemas práticos",
-    icon: "i-lucide-calculator",
-    colorClass: "bg-blue-500",
-    lastUpdated: "12/05/2023",
-    teacher: "Prof. Carlos Santos",
-    status: "Ativo",
-    url: "#"
-  },
-  {
-    name: "Física Quântica",
-    description: "Introdução aos conceitos fundamentais da física quântica",
-    icon: "i-lucide-atom",
-    colorClass: "bg-purple-500",
-    lastUpdated: "10/05/2023",
-    teacher: "Profa. Ana Oliveira",
-    status: "Ativo",
-    url: "#"
-  },
-  {
-    name: "Literatura Brasileira",
-    description: "Estudo das principais obras e autores da literatura brasileira",
-    icon: "i-lucide-book",
-    colorClass: "bg-red-500",
-    lastUpdated: "08/05/2023",
-    teacher: "Prof. João Pereira",
-    status: "Ativo",
-    url: "#"
-  },
-  {
-    name: "Programação Avançada",
-    description: "Técnicas avançadas de programação e desenvolvimento de software",
-    icon: "i-lucide-code",
-    colorClass: "bg-green-500",
-    lastUpdated: "05/05/2023",
-    teacher: "Profa. Mariana Costa",
-    status: "Ativo",
-    url: "#"
-  },
-  {
-    name: "História da Arte",
-    description: "Panorama histórico das principais correntes artísticas",
-    icon: "i-lucide-palette",
-    colorClass: "bg-amber-500",
-    lastUpdated: "03/05/2023",
-    teacher: "Prof. Ricardo Alves",
-    status: "Em pausa",
-    url: "#"
-  },
-  {
-    name: "Biologia Celular",
-    description: "Estudo da estrutura e funcionamento das células",
-    icon: "i-lucide-microscope",
-    colorClass: "bg-teal-500",
-    lastUpdated: "01/05/2023",
-    teacher: "Profa. Juliana Lima",
-    status: "Ativo",
-    url: "#"
-  }
+	{
+		name: "Matemática Aplicada",
+		description:
+			"Curso de matemática aplicada com foco em resolução de problemas práticos",
+		icon: "i-lucide-calculator",
+		colorClass: "bg-blue-500",
+		lastUpdated: "12/05/2023",
+		teacher: "Prof. Carlos Santos",
+		status: "Ativo",
+		url: "#",
+	},
+	{
+		name: "Física Quântica",
+		description: "Introdução aos conceitos fundamentais da física quântica",
+		icon: "i-lucide-atom",
+		colorClass: "bg-purple-500",
+		lastUpdated: "10/05/2023",
+		teacher: "Profa. Ana Oliveira",
+		status: "Ativo",
+		url: "#",
+	},
+	{
+		name: "Literatura Brasileira",
+		description:
+			"Estudo das principais obras e autores da literatura brasileira",
+		icon: "i-lucide-book",
+		colorClass: "bg-red-500",
+		lastUpdated: "08/05/2023",
+		teacher: "Prof. João Pereira",
+		status: "Ativo",
+		url: "#",
+	},
+	{
+		name: "Programação Avançada",
+		description:
+			"Técnicas avançadas de programação e desenvolvimento de software",
+		icon: "i-lucide-code",
+		colorClass: "bg-green-500",
+		lastUpdated: "05/05/2023",
+		teacher: "Profa. Mariana Costa",
+		status: "Ativo",
+		url: "#",
+	},
+	{
+		name: "História da Arte",
+		description: "Panorama histórico das principais correntes artísticas",
+		icon: "i-lucide-palette",
+		colorClass: "bg-amber-500",
+		lastUpdated: "03/05/2023",
+		teacher: "Prof. Ricardo Alves",
+		status: "Em pausa",
+		url: "#",
+	},
+	{
+		name: "Biologia Celular",
+		description: "Estudo da estrutura e funcionamento das células",
+		icon: "i-lucide-microscope",
+		colorClass: "bg-teal-500",
+		lastUpdated: "01/05/2023",
+		teacher: "Profa. Juliana Lima",
+		status: "Ativo",
+		url: "#",
+	},
 ]);
 </script>

@@ -1,32 +1,32 @@
 <script setup lang="ts">
-import { useDeviceDetection } from '~/composables/useDeviceDetection';
+import { useDeviceDetection } from "~/composables/useDeviceDetection";
 
 const { isMobile } = useDeviceDetection();
 
 // Format current device information
-const deviceType = computed(() => isMobile.value ? 'Mobile' : 'Desktop');
+const deviceType = computed(() => (isMobile.value ? "Mobile" : "Desktop"));
 const windowDimensions = ref({ width: 0, height: 0 });
 
 onMounted(() => {
-  if (import.meta.client) {
-    // Update dimensions on mount
-    updateDimensions();
-    
-    // Set up listener for window resize
-    window.addEventListener('resize', updateDimensions);
-    
-    // Clean up on unmount
-    onUnmounted(() => {
-      window.removeEventListener('resize', updateDimensions);
-    });
-  }
+	if (import.meta.client) {
+		// Update dimensions on mount
+		updateDimensions();
+
+		// Set up listener for window resize
+		window.addEventListener("resize", updateDimensions);
+
+		// Clean up on unmount
+		onUnmounted(() => {
+			window.removeEventListener("resize", updateDimensions);
+		});
+	}
 });
 
 function updateDimensions() {
-  windowDimensions.value = {
-    width: window.innerWidth,
-    height: window.innerHeight
-  };
+	windowDimensions.value = {
+		width: window.innerWidth,
+		height: window.innerHeight,
+	};
 }
 </script>
 
