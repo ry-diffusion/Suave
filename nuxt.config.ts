@@ -7,8 +7,17 @@ export default defineNuxtConfig({
 
 	devtools: { enabled: true },
 	css: ["~/assets/css/main.css"],
+	nitro: {
+		preset: "cloudflare_module",
+
+		cloudflare: {
+			deployConfig: true,
+			nodeCompat: true,
+		},
+	},
 
 	modules: [
+		"nitro-cloudflare-dev",
 		"@nuxt/eslint",
 		"@nuxt/fonts",
 		"@nuxt/icon",
