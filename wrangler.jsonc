@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "my-nuxt-app",
+	"name": "suave",
 	"main": "./.output/server/index.mjs",
 	"compatibility_date": "2025-07-30",
 	"assets": {
