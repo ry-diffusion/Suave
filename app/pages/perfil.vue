@@ -1,23 +1,37 @@
 <template>
   <div class="p-4">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div v-if="pending" class="flex justify-center items-center h-64">
+      <UISpinner />
+    </div>
+
+    <div v-else-if="error" class="flex justify-center items-center h-64">
+      <UCard>
+        <div class="text-center">
+          <p class="text-red-500 mb-4">Erro ao carregar dados do perfil</p>
+          <UButton @click="() => refresh()" color="primary">Tentar novamente</UButton>
+        </div>
+      </UCard>
+    </div>
+
+    <div v-else-if="userData" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
       <!-- Profile Card -->
       <div class="md:col-span-1">
         <UCard>
           <div class="flex flex-col items-center">
             <div class="relative mb-4">
-              <img :src="user?.avatarUrl || 'https://i.pravatar.cc/150?img=11'" alt="Foto de perfil"
+              <img :src="userData?.url_foto_150x200 || 'https://i.pravatar.cc/150?img=11'" alt="Foto de perfil"
                 class="w-32 h-32 rounded-full object-cover border-4 border-primary-100" />
               <UButton color="primary" variant="soft" icon="i-lucide-camera" size="xs"
                 class="absolute bottom-0 right-0 rounded-full" />
             </div>
 
-            <h2 class="text-xl font-medium">{{ user?.fullName || 'Usuário' }}</h2>
-            <p class="text-gray-500 dark:text-gray-400 mb-3">Estudante</p>
+            <h2 class="text-xl font-medium">{{ userData?.nome_usual || userData?.vinculo?.nome }}</h2>
+            <p class="text-gray-500 dark:text-gray-400 mb-3">{{ userData?.tipo_vinculo }}</p>
 
             <div class="flex space-x-2 mb-4">
-              <UBadge color="primary" variant="soft">Engenharia</UBadge>
-              <UBadge color="neutral" variant="soft">2º Semestre</UBadge>
+              <UBadge color="primary" variant="soft">{{ userData?.vinculo?.curso }}</UBadge>
+              <UBadge color="neutral" variant="soft">{{ userData?.vinculo?.campus }}</UBadge>
             </div>
 
             <UButton color="primary" variant="outline" icon="i-lucide-edit" class="w-full">
@@ -63,7 +77,8 @@
 
             <div class="flex items-center justify-between text-sm">
               <span class="text-gray-500 dark:text-gray-400">Modo Escuro</span>
-              <UToggle v-model="isDarkMode" @update:model-value="themeStore.toggleColorMode" />
+              <USwitch v-model="isDarkMode"
+                @update:model-value="themeStore.setColorMode(isDarkMode ? 'dark' : 'light')" />
             </div>
           </div>
         </UCard>
@@ -83,32 +98,32 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Nome Completo</p>
-              <p class="font-medium">Ana Luíza Martins</p>
+              <p class="font-medium">{{ userData?.vinculo?.nome }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Matrícula</p>
-              <p class="font-medium">20230142</p>
+              <p class="font-medium">{{ userData?.matricula }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">E-mail</p>
-              <p class="font-medium">ana.martins@estudante.edu.br</p>
-            </div>
-
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Telefone</p>
-              <p class="font-medium">(11) 98765-4321</p>
-            </div>
-
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Data de Nascimento</p>
-              <p class="font-medium">15/03/1999</p>
+              <p class="font-medium">{{ userData?.email }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">CPF</p>
-              <p class="font-medium">123.456.789-00</p>
+              <p class="font-medium">{{ userData?.cpf }}</p>
+            </div>
+
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Data de Nascimento</p>
+              <p class="font-medium">{{ formatDate(userData?.data_nascimento || '') }}</p>
+            </div>
+
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Naturalidade</p>
+              <p class="font-medium">{{ userData?.naturalidade }}</p>
             </div>
           </div>
         </UCard>
@@ -125,32 +140,34 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Curso</p>
-              <p class="font-medium">Engenharia de Software</p>
+              <p class="font-medium">{{ userData?.vinculo?.curso }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Campus</p>
-              <p class="font-medium">Campus Central</p>
+              <p class="font-medium">{{ userData?.vinculo?.campus }}</p>
             </div>
 
             <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Período</p>
-              <p class="font-medium">Matutino</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Tipo de Vínculo</p>
+              <p class="font-medium">{{ userData?.tipo_vinculo }}</p>
             </div>
 
             <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Coordenador</p>
-              <p class="font-medium">Prof. Dr. Carlos Eduardo Santos</p>
-            </div>
-
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">CR (Coeficiente de Rendimento)</p>
-              <p class="font-medium text-green-600">8.7</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Matrícula Regular</p>
+              <p class="font-medium">{{ userData?.vinculo?.matricula_regular ? 'Sim' : 'Não' }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Situação</p>
-              <UBadge color="success" variant="soft">Regular</UBadge>
+              <UBadge :color="userData?.vinculo?.situacao === 'Regular' ? 'success' : 'warning'" variant="soft">
+                {{ userData?.vinculo?.situacao }}
+              </UBadge>
+            </div>
+
+            <div v-if="userData?.vinculo?.linha_pesquisa">
+              <p class="text-sm text-gray-500 dark:text-gray-400">Linha de Pesquisa</p>
+              <p class="font-medium">{{ userData?.vinculo?.linha_pesquisa }}</p>
             </div>
           </div>
         </UCard>
@@ -203,15 +220,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from "vue";
 import { useThemeStore } from "~/stores/theme";
-import { ref, computed } from "vue";
 
 const themeStore = useThemeStore();
-const { user } = useUserSession();
+const { userData, pending, error, refresh } = useMyData();
 
 const isDarkMode = computed({
-	get: () => themeStore.colorMode === "dark",
-	set: () => themeStore.toggleColorMode(),
+  get: () => themeStore.colorMode === "dark",
+  set: () => themeStore.toggleColorMode(),
 });
 
 const notifMoodle = ref(true);
@@ -219,8 +236,15 @@ const notifGrades = ref(true);
 const notifCalendar = ref(false);
 const notifEmails = ref(true);
 
+// Função para formatar data
+const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("pt-BR");
+};
+
 // Add middleware to protect this page
 definePageMeta({
-	middleware: ["auth"],
+  middleware: ["auth"],
 });
 </script>

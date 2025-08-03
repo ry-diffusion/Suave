@@ -17,86 +17,86 @@ const success = ref(false);
 
 // Only one institution for now, but keep as array for future
 const institutions = [
-	{ label: "IF Goiano - Presencial", value: "ifgoiano-presencial" },
+    { label: "IF Goiano - Presencial", value: "ifgoiano-presencial" },
 ];
 
 const form = reactive({
-	institution: "",
-	username: "",
-	password: "",
+    institution: "",
+    username: "",
+    password: "",
 });
 
 const steps = [
-	{
-		title: "Instituição",
-		description: "Selecione a instituição",
-		icon: "i-lucide-building",
-	},
-	{
-		title: "Matrícula",
-		description: "Informe sua matrícula",
-		icon: "i-lucide-id-card",
-	},
-	{ title: "Senha", description: "Informe sua senha", icon: "i-lucide-lock" },
+    {
+        title: "Instituição",
+        description: "Selecione a instituição",
+        icon: "i-lucide-building",
+    },
+    {
+        title: "Matrícula",
+        description: "Informe sua matrícula",
+        icon: "i-lucide-id-card",
+    },
+    { title: "Senha", description: "Informe sua senha", icon: "i-lucide-lock" },
 ];
 
 async function submitLogin() {
-	error.value = "";
-	if (!form.password || form.password.length < 1) {
-		error.value = "Campo obrigatório";
-		return;
-	}
-	loading.value = true;
-	try {
-		await $fetch("/api/auth/signin", {
-			method: "POST",
-			body: {
-				institution: form.institution,
-				username: form.username,
-				password: form.password,
-			},
-		});
-		await refreshSession();
-		success.value = true;
-		setTimeout(() => {
-			router.push("/");
-		}, 2000);
-	} catch (e: unknown) {
-		if (
-			typeof e === "object" &&
-			e !== null &&
-			"data" in e &&
-			typeof (e as Record<string, unknown>).data === "object" &&
-			(e as { data?: { message?: unknown } }).data?.message &&
-			typeof (e as { data: { message: unknown } }).data.message === "string"
-		) {
-			error.value = (e as { data: { message: string } }).data.message;
-		} else {
-			error.value = "Credenciais inválidas";
-		}
-	} finally {
-		loading.value = false;
-	}
+    error.value = "";
+    if (!form.password || form.password.length < 1) {
+        error.value = "Campo obrigatório";
+        return;
+    }
+    loading.value = true;
+    try {
+        await $fetch("/api/auth/signin", {
+            method: "POST",
+            body: {
+                institution: form.institution,
+                username: form.username,
+                password: form.password,
+            },
+        });
+        await refreshSession();
+        success.value = true;
+        setTimeout(() => {
+            router.push("/");
+        }, 2000);
+    } catch (e: unknown) {
+        if (
+            typeof e === "object" &&
+            e !== null &&
+            "data" in e &&
+            typeof (e as Record<string, unknown>).data === "object" &&
+            (e as { data?: { message?: unknown } }).data?.message &&
+            typeof (e as { data: { message: unknown } }).data.message === "string"
+        ) {
+            error.value = (e as { data: { message: string } }).data.message;
+        } else {
+            error.value = "Credenciais inválidas";
+        }
+    } finally {
+        loading.value = false;
+    }
 }
 
 function nextStep() {
-	if (step.value === 0 && !form.institution) {
-		error.value = "Selecione a instituição.";
-		return;
-	}
-	if (step.value === 1 && (!form.username || form.username.length < 1)) {
-		error.value = "Campo obrigatório";
-		return;
-	}
-	error.value = "";
-	direction.value = "right";
-	step.value++;
+    if (step.value === 0 && !form.institution) {
+        error.value = "Selecione a instituição.";
+        return;
+    }
+    if (step.value === 1 && (!form.username || form.username.length < 1)) {
+        error.value = "Campo obrigatório";
+        return;
+    }
+    error.value = "";
+    direction.value = "right";
+    step.value++;
 }
 
 function prevStep() {
-	error.value = "";
-	direction.value = "left";
-	step.value--;
+    error.value = "";
+    direction.value = "left";
+    step.value--;
 }
 </script>
 
@@ -115,7 +115,7 @@ function prevStep() {
             </h1>
 
             <div
-                class="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl shadow-xl p-4 md:p-6  flex flex-col justify-between min-h-[320px]">
+                class="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-3xl rounded-3xl shadow-xl p-4 md:p-6  flex flex-col justify-between min-h-[320px]">
                 <Transition name="fade-scale" mode="out-in">
                     <div :key="success ? 'success' : loading ? 'loading' : 'form'"
                         :class="(loading || success) ? 'flex flex-1 items-center justify-center h-full' : 'flex flex-col h-full justify-between gap-8'">
@@ -160,11 +160,12 @@ function prevStep() {
                                     </div>
                                     <div v-else-if="step === 1">
                                         <UInput v-model="form.username" placeholder="Matrícula" size="lg" class="w-full"
-                                            autofocus />
+                                            id="id_username" type="text" autofocus />
                                     </div>
                                     <div v-else-if="step === 2">
-                                        <UInput v-model="form.password" type="password" placeholder="Senha" size="lg"
-                                            class="w-full" @keyup.enter="submitLogin" autofocus />
+                                        <UInput id="id_password" v-model="form.password" type="password"
+                                            placeholder="Senha" size="lg" class="w-full" @keyup.enter="submitLogin"
+                                            autofocus />
                                     </div>
                                 </div>
                                 <div v-if="error" class="text-red-500 text-sm text-center mt-2">

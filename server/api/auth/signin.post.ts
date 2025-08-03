@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { getProviderById } from "~~/server/lib/providers";
 import { institutionKind } from "~~/server/lib/institutions";
+import { getProviderById } from "~~/server/lib/providers";
 import { AppException } from "~~/shared/errors";
+import { Err, Ok } from "~~/shared/result";
 
 export const loginSchema = z.object({
 	username: z.string().min(1, { message: "Campo obrigatório" }),
@@ -16,41 +17,37 @@ export default defineEventHandler(async (event) => {
 	);
 
 	const provider = getProviderById(institution);
-	const loginResult = provider.login({
+	const loginResult = await provider.login({
 		username,
 		password,
 	});
 
-	const response = await loginResult
-		.map(async (authContext) => {
-			await provider.restoreAuth(authContext, {
-				username,
-				password,
-			});
+	const result = loginResult.assert(
+		(authContext) => !!authContext,
+		new AppException("Falha de autenticação", "LOGIN_FAILED"),
+	);
 
-			const identity = await provider.getIdentity();
-
-			return {
-				ok: true,
-				authContext,
-				identity,
-			};
-		})
-		.handle(AppException, async (e) => {
+	if (result.error) {
+		if (result.data instanceof AppException) {
 			throw createError({
 				statusCode: 417,
-				message: e.message,
+				message: result.data.message,
 			});
-		})
-		.handle(Error, async (e) => {
-			throw createError({
-				statusCode: 503,
-				message: `[SERVIÇO INDISPONÍVEL] ${e.message}`,
-			});
-		})
-		.toPromise();
+		}
 
-	const { ok, authContext, identity } = response;
+		console.error(result.data);
+		throw createError({
+			statusCode: 503,
+			message: `[SERVIÇO INDISPONÍVEL] ${result.data.message}`,
+		});
+	}
+
+	await provider.restoreAuth(result.data, {
+		username,
+		password,
+	});
+
+	const identity = await provider.getIdentity();
 
 	await replaceUserSession(event, {
 		user: {
@@ -60,9 +57,13 @@ export default defineEventHandler(async (event) => {
 			hasAlternativeIdentity: identity.hasAlternativeIdentity,
 		},
 		secure: {
-			authContext,
+			authContext: result.data,
 		},
 	});
 
-	return { ok };
+	return Ok({
+		ok: true,
+		identity,
+		authContext: result.data,
+	});
 });

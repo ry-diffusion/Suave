@@ -1,13 +1,18 @@
+import {
+	MoodleApi,
+	MoodleClient,
+	MoodleError,
+} from "@webhare/moodle-webservice";
+import { AppException } from "~~/shared/errors";
+import { tryFetchJson } from "~~/shared/http";
+import { moodleFetchJson } from "~~/shared/moodle";
+import { type Result, wrapAsync, wrapPromise } from "~~/shared/result";
 import type {
 	ClassicAuthSchema,
-	MoodleAuthContext,
 	MoodleAssignment,
-} from "../../types/moodle.d.ts";
-import { IEadProvider, IEadSiteInfo } from "./IEadProvider";
-import { PromiseResult, Result } from "../../shared/result";
-import { tryFetchJson } from "~~/shared/http";
-import { AppException } from "~~/shared/errors";
-import { moodleFetchJson } from "~~/shared/moodle";
+	MoodleAuthContext,
+} from "../../shared/moodle.js";
+import type { IEadProvider, IEadSiteInfo } from "./IEadProvider";
 
 export class MoodleEadProvider
 	implements
@@ -19,70 +24,82 @@ export class MoodleEadProvider
 		this.baseUrl = baseUrl;
 	}
 
-	authenticate(
+	async authenticate(
 		authSchema: ClassicAuthSchema,
-	): PromiseResult<MoodleAuthContext> {
-		const url = `${this.baseUrl}/login/token.php`;
-		const body = new URLSearchParams({
-			username: authSchema.username,
-			password: authSchema.password,
-			service: "moodle_mobile_app",
-		});
+	): Promise<Result<MoodleAuthContext, Error>> {
+		const result = await wrapPromise(
+			MoodleClient.authenticate({
+				baseUrl: this.baseUrl,
+				credentials: {
+					username: authSchema.username,
+					password: authSchema.password,
+				},
+			}),
+		);
 
-		return tryFetchJson<any>(url, {
-			method: "POST",
-			body,
-		})
-			.tap(() =>
-				console.log(
-					`[Log] Alguém está tentando logar no moodle (${authSchema.username})`,
-				),
-			)
-			.ensure(
-				(data) => !data.error,
-				(data) =>
-					new AppException(`[MOODLE] ${data.error}`, "MOODLE_LOGIN_FAILED"),
-			)
-			.ensure(
-				(data) => data.token,
+		if (!result.error) {
+			console.log(
+				`[Log] Alguém está tentando logar no moodle (${authSchema.username})`,
+			);
+		}
+
+		return result
+			.letError(MoodleError, (e) => {
+				return new AppException(`[MOODLE] ${e.message}`, "MOODLE_LOGIN_FAILED");
+			})
+			.assert(
+				(data) => !!data.token,
 				new Error("[SERVIDOR] O moodle não retornou um token de acesso"),
 			)
-			.tap(() =>
-				console.log(`[Log] Alguém logou no moodle (${authSchema.username})`),
-			)
-			.map((data) => ({
-				token: data.token,
-				userId: data.userid,
-				username: authSchema.username,
-			}));
+			.let((data) => {
+				console.log(`[Log] Alguém logou no moodle (${authSchema.username})`);
+				return {
+					token: data.token,
+				};
+			});
 	}
 
-	getSiteInfo(authContext: MoodleAuthContext): PromiseResult<IEadSiteInfo> {
-		const url = `${this.baseUrl}/webservice/rest/server.php?wsfunction=core_webservice_get_site_info&moodlewsrestformat=json&wstoken=${authContext.token}`;
-		return moodleFetchJson<any>(url).map((data) => ({
-			profilePictureUrl: data.userpictureurl,
-			name: data.fullname,
-		}));
-	}
-
-	getAssignments(
+	async getSiteInfo(
 		authContext: MoodleAuthContext,
-	): PromiseResult<MoodleAssignment[]> {
-		const url = `${this.baseUrl}/webservice/rest/server.php?wsfunction=mod_assign_get_assignments&moodlewsrestformat=json&wstoken=${authContext.token}`;
-		return tryFetchJson<any>(url)
-			.ensure(
-				(data) => Array.isArray(data.courses),
-				new Error("Invalid assignments response"),
-			)
-			.map((data) =>
-				data.courses.flatMap((course: any) =>
-					course.assignments.map((a: any) => ({
-						id: a.id,
-						name: a.name,
-						dueDate: new Date(a.duedate * 1000),
-						courseId: course.id,
-					})),
-				),
+	): Promise<Result<IEadSiteInfo, Error>> {
+		const moodle = MoodleApi({
+			baseUrl: this.baseUrl,
+			token: authContext.token,
+		});
+
+		const result = await wrapPromise(moodle.core.webservice.getSiteInfo());
+
+		return result.let((data) => {
+			if (!data.userpictureurl || !data.fullname) {
+				throw new Error("Invalid site info response");
+			}
+			return {
+				profilePictureUrl: data.userpictureurl,
+				name: data.fullname,
+			};
+		});
+	}
+
+	async getAssignments(
+		authContext: MoodleAuthContext,
+	): Promise<Result<MoodleAssignment[], Error>> {
+		const moodle = MoodleApi({
+			baseUrl: this.baseUrl,
+			token: authContext.token,
+		});
+
+		const result = await wrapPromise(moodle.mod.assign.getAssignments({}));
+		return result.let((data) => {
+			if (!Array.isArray(data.courses))
+				throw new Error("Invalid assignments response");
+			return data.courses.flatMap((course) =>
+				course.assignments.map((a) => ({
+					id: a.id,
+					name: a.name,
+					dueDate: new Date(a.duedate * 1000),
+					courseId: course.id,
+				})),
 			);
+		});
 	}
 }

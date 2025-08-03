@@ -46,8 +46,13 @@
             </div>
         </div>
         <!-- Loading State -->
-        <div v-if="loading" class="flex items-center justify-center py-12">
-            <UISpinner size="lg" />
+        <div v-if="loading" class="flex flex-col gap-6 items-center justify-center py-12 w-full">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl mb-6">
+                <USkeleton v-for="i in 4" :key="i" class="h-32 w-full rounded-xl" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl">
+                <USkeleton v-for="i in 6" :key="'card-' + i" class="h-40 w-full rounded-xl" />
+            </div>
         </div>
 
         <!-- Error State -->
@@ -215,17 +220,16 @@
 </template>
 
 <script setup lang="ts">
-import AppShell from "~/components/AppShell.vue";
-import { ref, computed, onMounted, onUnmounted } from "vue";
 import type { TabsItem } from "@nuxt/ui";
-import type { Projetos, Extensao, Pesquisa, Ensino } from "#shared/datatypes";
-import MobileProjectStepper from "~/components/MobileProjectStepper.vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import type { Ensino, Extensao, Pesquisa, Projetos } from "#shared/datatypes";
 import { useDeviceDetection } from "~/composables/useDeviceDetection";
 import { useAppHeaderStore } from "~/stores/appHeader";
+import { useClientFetch } from "~~/shared/composables/useClientFetch";
 
 // Page meta
 definePageMeta({
-	middleware: ["auth"],
+    middleware: ["auth"],
 });
 
 // Reactive data
@@ -236,202 +240,213 @@ const selectedProjeto = ref<Extensao | Pesquisa | Ensino | null>(null);
 
 // Tabs para tipos de projeto
 const tabItems = ref<TabsItem[]>([
-	{ label: "Extensão", icon: "i-lucide-users", value: "Extensao" },
-	{ label: "Pesquisa", icon: "i-lucide-microscope", value: "Pesquisa" },
-	{ label: "Ensino", icon: "i-lucide-graduation-cap", value: "Ensino" },
+    { label: "Extensão", icon: "i-lucide-users", value: "Extensao" },
+    { label: "Pesquisa", icon: "i-lucide-microscope", value: "Pesquisa" },
+    { label: "Ensino", icon: "i-lucide-graduation-cap", value: "Ensino" },
 ]);
 const selectedTab = ref("Extensao");
 
+watch(projetos, () => {
+    console.log(projetos.value);
+});
+
 // Computed properties
 const totalProjetos = computed(() => {
-	if (!projetos.value) return 0;
-	return (
-		projetos.value.Extensao.length +
-		projetos.value.Pesquisa.length +
-		projetos.value.Ensino.length
-	);
+    if (!projetos.value) return 0;
+    return (
+        projetos.value.Extensao.length +
+        projetos.value.Pesquisa.length +
+        projetos.value.Ensino.length
+    );
 });
 
 const projetosConcluidos = computed(() => {
-	if (!projetos.value) return 0;
-	const allProjetos = [
-		...projetos.value.Extensao,
-		...projetos.value.Pesquisa,
-		...projetos.value.Ensino,
-	];
-	return allProjetos.filter(
-		(p: Extensao | Pesquisa | Ensino) => p.status === "Concluído",
-	).length;
+    if (!projetos.value) return 0;
+    const allProjetos = [
+        ...projetos.value.Extensao,
+        ...projetos.value.Pesquisa,
+        ...projetos.value.Ensino,
+    ];
+    return allProjetos.filter(
+        (p: Extensao | Pesquisa | Ensino) => p.status === "Concluído",
+    ).length;
 });
 
 const projetosEmAndamento = computed(() => {
-	if (!projetos.value) return 0;
-	const allProjetos = [
-		...projetos.value.Extensao,
-		...projetos.value.Pesquisa,
-		...projetos.value.Ensino,
-	];
-	return allProjetos.filter(
-		(p: Extensao | Pesquisa | Ensino) => p.status === "Em execução",
-	).length;
+    if (!projetos.value) return 0;
+    const allProjetos = [
+        ...projetos.value.Extensao,
+        ...projetos.value.Pesquisa,
+        ...projetos.value.Ensino,
+    ];
+    return allProjetos.filter(
+        (p: Extensao | Pesquisa | Ensino) => p.status === "Em execução",
+    ).length;
 });
 
 const totalMetas = computed(() => {
-	if (!projetos.value) return 0;
-	const allProjetos = [
-		...projetos.value.Extensao,
-		...projetos.value.Pesquisa,
-		...projetos.value.Ensino,
-	];
-	return allProjetos.reduce(
-		(total, projeto) => total + projeto.metas.length,
-		0,
-	);
+    if (!projetos.value) return 0;
+    const allProjetos = [
+        ...projetos.value.Extensao,
+        ...projetos.value.Pesquisa,
+        ...projetos.value.Ensino,
+    ];
+    return allProjetos.reduce(
+        (total, projeto) => total + projeto.metas.length,
+        0,
+    );
 });
 
 const filteredProjetos = computed(() => {
-	if (!projetos.value) return [];
-	if (selectedTab.value === "Extensao") return projetos.value.Extensao;
-	if (selectedTab.value === "Pesquisa") return projetos.value.Pesquisa;
-	if (selectedTab.value === "Ensino") return projetos.value.Ensino;
-	return [];
+    if (!projetos.value) return [];
+    if (selectedTab.value === "Extensao") return projetos.value.Extensao;
+    if (selectedTab.value === "Pesquisa") return projetos.value.Pesquisa;
+    if (selectedTab.value === "Ensino") return projetos.value.Ensino;
+    return [];
 });
 
 // Computed properties for participants organization
 const responsaveis = computed(() => {
-	if (!selectedProjeto.value) return [];
-	return selectedProjeto.value.participacao.filter((p) => p.responsavel);
+    if (!selectedProjeto.value) return [];
+    return selectedProjeto.value.participacao.filter((p) => p.responsavel);
 });
 
 const outrosParticipantes = computed(() => {
-	if (!selectedProjeto.value) return [];
-	return selectedProjeto.value.participacao.filter((p) => !p.responsavel);
+    if (!selectedProjeto.value) return [];
+    return selectedProjeto.value.participacao.filter((p) => !p.responsavel);
 });
 
 const { isMobile } = useDeviceDetection();
 const appHeader = useAppHeaderStore();
+const { clientFetch } = useClientFetch();
 
 // Methods
 const fetchProjetos = async () => {
-	loading.value = true;
-	error.value = null;
+    loading.value = true;
+    error.value = null;
 
-	try {
-		const response = await $fetch("/api/suap/meus-projetos");
-		projetos.value = response.data;
-	} catch (err: any) {
-		error.value = err.data?.message || "Erro ao carregar projetos";
-	} finally {
-		loading.value = false;
-	}
+    try {
+        // Usa clientFetch que trata refresh token automaticamente
+        const response = await clientFetch<Projetos>("/api/suap/meus-projetos");
+        projetos.value = response;
+    } catch (err: any) {
+        // Se chegou aqui, significa que o refresh falhou ou é outro erro
+        if (err?.statusCode === 401 || err?.status === 401) {
+            error.value = "Sessão expirada. Faça login novamente.";
+        } else {
+            error.value = err.data?.message || "Erro ao carregar projetos";
+        }
+    } finally {
+        loading.value = false;
+    }
 };
 
 const formatDate = (dateString: string) => {
-	if (!dateString) return "N/A";
-	return new Date(dateString).toLocaleDateString("pt-BR");
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("pt-BR");
 };
 
 const getProjetoType = (projeto: Extensao | Pesquisa | Ensino) => {
-	if ("area_conhecimento" in projeto) return "Projeto de Extensão";
-	if ("titulo" in projeto && projetos.value) {
-		if (projetos.value.Pesquisa.some((p) => p.id === projeto.id))
-			return "Projeto de Pesquisa";
-		if (projetos.value.Ensino.some((p) => p.id === projeto.id))
-			return "Projeto de Ensino";
-	}
-	return "Projeto";
+    if ("area_conhecimento" in projeto) return "Projeto de Extensão";
+    if ("titulo" in projeto && projetos.value) {
+        if (projetos.value.Pesquisa.some((p) => p.id === projeto.id))
+            return "Projeto de Pesquisa";
+        if (projetos.value.Ensino.some((p) => p.id === projeto.id))
+            return "Projeto de Ensino";
+    }
+    return "Projeto";
 };
 
 const getStatusColor = (status: string) => {
-	switch (status) {
-		case "Não selecionado":
-			return "neutral";
-		case "Em execução":
-			return "info";
-		case "Concluído":
-			return "success";
-		case "Em Seleção":
-			return "warning";
-		case "Não Enviado":
-			return "error";
-		default:
-			return "neutral";
-	}
+    switch (status) {
+        case "Não selecionado":
+            return "neutral";
+        case "Em execução":
+            return "info";
+        case "Concluído":
+            return "success";
+        case "Em Seleção":
+            return "warning";
+        case "Não Enviado":
+            return "error";
+        default:
+            return "neutral";
+    }
 };
 
 const getStatusText = (status: string) => {
-	switch (status) {
-		case "Não selecionado":
-			return "Não Selecionado";
-		case "Em execução":
-			return "Em Execução";
-		case "Concluído":
-			return "Concluído";
-		case "Em Seleção":
-			return "Em Seleção";
-		case "Não Enviado":
-			return "Não Enviado";
-		default:
-			return status;
-	}
+    switch (status) {
+        case "Não selecionado":
+            return "Não Selecionado";
+        case "Em execução":
+            return "Em Execução";
+        case "Concluído":
+            return "Concluído";
+        case "Em Seleção":
+            return "Em Seleção";
+        case "Não Enviado":
+            return "Não Enviado";
+        default:
+            return status;
+    }
 };
 
 const openProjectDetail = (projeto: Extensao | Pesquisa | Ensino) => {
-	selectedProjeto.value = projeto;
-	appHeader.setHeader({
-		title: "Meus Projetos",
-		subtitle: projeto.titulo,
-		showBack: true,
-		onBack: () => closeProjectDetail(),
-	});
+    selectedProjeto.value = projeto;
+    appHeader.setHeader({
+        title: "Meus Projetos",
+        subtitle: projeto.titulo,
+        showBack: true,
+        onBack: () => closeProjectDetail(),
+    });
 };
 
 const closeProjectDetail = () => {
-	selectedProjeto.value = null;
-	appHeader.setHeader({
-		title: "Meus Projetos",
-		subtitle: "",
-		showBack: false,
-		onBack: null,
-	});
+    selectedProjeto.value = null;
+    appHeader.setHeader({
+        title: "Meus Projetos",
+        subtitle: "",
+        showBack: false,
+        onBack: null,
+    });
 };
 
 // Computed properties for progress summary
 // Uma meta é considerada concluída se todas as suas etapas possuem fim_execucao preenchido
 const metasConcluidas = computed(() =>
-	selectedProjeto.value
-		? selectedProjeto.value.metas.filter(
-				(meta) =>
-					meta.etapas.length > 0 &&
-					meta.etapas.every((etapa) => !!etapa.fim_execucao),
-			).length
-		: 0,
+    selectedProjeto.value
+        ? selectedProjeto.value.metas.filter(
+            (meta) =>
+                meta.etapas.length > 0 &&
+                meta.etapas.every((etapa) => !!etapa.fim_execucao),
+        ).length
+        : 0,
 );
 const totalMetasProjeto = computed(() =>
-	selectedProjeto.value ? selectedProjeto.value.metas.length : 0,
+    selectedProjeto.value ? selectedProjeto.value.metas.length : 0,
 );
 const progressoPercentual = computed(() =>
-	totalMetasProjeto.value > 0
-		? Math.round((metasConcluidas.value / totalMetasProjeto.value) * 100)
-		: 0,
+    totalMetasProjeto.value > 0
+        ? Math.round((metasConcluidas.value / totalMetasProjeto.value) * 100)
+        : 0,
 );
 const progressoStatus = computed(() =>
-	progressoPercentual.value === 100 ? "Concluído" : "Em andamento",
+    progressoPercentual.value === 100 ? "Concluído" : "Em andamento",
 );
 
 // Fetch data on mount e setar header padrão
 onMounted(() => {
-	appHeader.setHeader({
-		title: "Meus Projetos",
-		subtitle: "",
-		showBack: false,
-		onBack: null,
-	});
-	fetchProjetos();
+    appHeader.setHeader({
+        title: "Meus Projetos",
+        subtitle: "",
+        showBack: false,
+        onBack: null,
+    });
+    fetchProjetos();
 });
 
 onUnmounted(() => {
-	appHeader.resetHeader();
+    appHeader.resetHeader();
 });
 </script>
 

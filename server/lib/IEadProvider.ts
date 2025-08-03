@@ -1,4 +1,4 @@
-import { PromiseResult, Result } from "../../shared/result";
+import type { Result } from "../../shared/result";
 
 export interface IEadSiteInfo {
 	profilePictureUrl?: string;
@@ -6,7 +6,9 @@ export interface IEadSiteInfo {
 }
 
 export interface IEadProvider<TAuthSchema, TAuthContext, TAssignmentType> {
-	authenticate(authSchema: TAuthSchema): PromiseResult<TAuthContext>;
-	getSiteInfo(authContext: TAuthContext): PromiseResult<IEadSiteInfo>;
-	getAssignments(authContext: TAuthContext): PromiseResult<TAssignmentType[]>;
+	authenticate(authSchema: TAuthSchema): Promise<Result<TAuthContext, Error>>;
+	getSiteInfo(authContext: TAuthContext): Promise<Result<IEadSiteInfo, Error>>;
+	getAssignments(
+		authContext: TAuthContext,
+	): Promise<Result<TAssignmentType[], Error>>;
 }

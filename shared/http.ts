@@ -1,32 +1,34 @@
-import { PromiseResult, Result } from "./result";
+import { AppException } from "~~/shared/errors";
+import { Err, Ok, type Result } from "./result";
 
 async function tryFetchImpl(
-	url: string,
-	init?: RequestInit,
-): Promise<Result<Response>> {
-	try {
-		const response = await fetch(url, init);
-		if (!response.ok) {
-			return Result.fail<Response>(new Error(`HTTP ${response.status}`));
-		}
-
-		return Result.ok(response);
-	} catch (err) {
-		return Result.fail<Response>(
-			err instanceof Error ? err : new Error("Unknown fetch error"),
-		);
-	}
+  url: string,
+  init?: RequestInit
+): Promise<Result<Response, Error>> {
+  try {
+    const response = await fetch(url, init);
+    if (!response.ok) {
+      if (response.status === 401) {
+        return Err(new AppException("Sessão expirada", "SESSION_EXPIRED"));
+      }
+      return Err(new AppException(`HTTP ${response.status}`, "HTTP_ERROR"));
+    }
+    return Ok(response);
+  } catch (err) {
+    return Err(err instanceof Error ? err : new Error("Unknown fetch error"));
+  }
 }
 
-export const tryFetchAsync = (url: string, init?: RequestInit) =>
-	PromiseResult.from<Response>(tryFetchImpl(url, init));
-
-export function tryFetchJson<T>(
-	url: string,
-	init?: RequestInit,
-): PromiseResult<T> {
-	return tryFetchAsync(url, init).bind(async (response) => {
-		const data = await response.json();
-		return Result.ok(data);
-	});
+export async function tryFetchJson<T>(
+  url: string,
+  init?: RequestInit
+): Promise<Result<T, Error>> {
+  const responseResult = await tryFetchImpl(url, init);
+  if (responseResult.error) return responseResult as Result<T, Error>;
+  try {
+    const data = await responseResult.data.json();
+    return Ok(data as T);
+  } catch (err) {
+    return Err(err instanceof Error ? err : new Error("JSON parse error"));
+  }
 }

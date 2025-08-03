@@ -17,10 +17,7 @@ export default defineEventHandler(async (event) => {
 
   // Restore auth context from session
   if (session.secure?.authContext) {
-    await provider.restoreAuth(
-      session.secure.authContext,
-      session.secure.authContext.creds
-    );
+    await provider.restoreAuth(session.secure.authContext);
   } else {
     throw createError({
       statusCode: 401,
@@ -28,11 +25,11 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const projetosResult = await provider.getProjetos();
+  const userDataResult = await provider.getMyData();
 
-  if (projetosResult.error) {
-    if (projetosResult.data instanceof AppException) {
-      if (projetosResult.data.code === "SESSION_EXPIRED") {
+  if (userDataResult.error) {
+    if (userDataResult.data instanceof AppException) {
+      if (userDataResult.data.code === "SESSION_EXPIRED") {
         throw createError({
           statusCode: 401,
           message: "Sessão expirada",
@@ -40,14 +37,14 @@ export default defineEventHandler(async (event) => {
       }
       throw createError({
         statusCode: 417,
-        message: `[SUAP] ${projetosResult.data.message}`,
+        message: `[SUAP] ${userDataResult.data.message}`,
       });
     }
     throw createError({
       statusCode: 503,
-      message: `[SERVIÇO INDISPONÍVEL] ${projetosResult.data.message}`,
+      message: `[SERVIÇO INDISPONÍVEL] ${userDataResult.data.message}`,
     });
   }
 
-  return projetosResult.unwrap();
+  return userDataResult.unwrap();
 });

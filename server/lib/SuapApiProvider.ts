@@ -1,93 +1,125 @@
-import { PromiseResult } from "~~/shared/result";
-import { IInstitutionApiProvider } from "./IInstituitionApiProvider";
-import { ClassicAuthSchema, SuapAuthContext } from "~~/types/moodle";
+import type { Projetos, UserData } from "~~/shared/datatypes";
+import { Err, Ok, type Result } from "~~/shared/result";
 import { suapFetchJson } from "~~/shared/suap";
-import { Projetos } from "~~/shared/datatypes";
+import type { ClassicAuthSchema, SuapAuthContext } from "~~/types/moodle";
+import type { IInstitutionApiProvider } from "./IInstituitionApiProvider";
 
 export class SuapApiProvider
-	implements IInstitutionApiProvider<ClassicAuthSchema, SuapAuthContext>
+  implements IInstitutionApiProvider<ClassicAuthSchema, SuapAuthContext>
 {
-	constructor(private readonly baseUrl: string) {
-		this.baseUrl = baseUrl;
-	}
+  constructor(private readonly baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
 
-	authenticate(authSchema: ClassicAuthSchema): PromiseResult<SuapAuthContext> {
-		console.log(`[SUAP] Autenticando usuário ${authSchema.username}...`);
+  async authenticate(
+    authSchema: ClassicAuthSchema
+  ): Promise<Result<SuapAuthContext, Error>> {
+    console.log(`[SUAP] Autenticando usuário ${authSchema.username}...`);
 
-		return suapFetchJson<SuapAuthContext>(
-			`${this.baseUrl}/api/v2/autenticacao/token/`,
-			{
-				method: "POST",
-				body: JSON.stringify({
-					username: authSchema.username,
-					password: authSchema.password,
-				}),
-				headers: {
-					"Content-Type": "application/json",
-				},
-			},
-		)
-			.tap(() =>
-				console.log(
-					`[SUAP] O usuário ${authSchema.username} foi autenticado com sucesso`,
-				),
-			)
-			.map((data) => {
-				return {
-					access: data.access,
-					refresh: data.refresh,
-				};
-			});
-	}
+    const result = await suapFetchJson<SuapAuthContext>(
+      `${this.baseUrl}/api/v2/autenticacao/token/`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          username: authSchema.username,
+          password: authSchema.password,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!result.error) {
+      console.log(
+        `[SUAP] O usuário ${authSchema.username} foi autenticado com sucesso`
+      );
+    }
+    return result.let((data) => ({
+      access: data.access,
+      refresh: data.refresh,
+    }));
+  }
 
-	// /api/v2/autenticacao/token/verify/
-	verifyToken(authContext: SuapAuthContext): PromiseResult<boolean> {
-		console.log(`[SUAP] Verificando token...`);
+  async verifyToken(
+    authContext: SuapAuthContext
+  ): Promise<Result<boolean, Error>> {
+    console.log(`[SUAP] Verificando token...`);
 
-		return suapFetchJson<boolean>(
-			`${this.baseUrl}/api/v2/autenticacao/token/verify/`,
-			{
-				method: "POST",
-				body: JSON.stringify({
-					token: authContext.access,
-				}),
-			},
-		).map(() => true);
-	}
+    const result = await suapFetchJson<boolean>(
+      `${this.baseUrl}/api/v2/autenticacao/token/verify/`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          token: authContext.access,
+        }),
+      }
+    );
+    return result.let(() => true);
+  }
 
-	// /api/v2/autenticacao/token/refresh
-	refreshToken(authContext: SuapAuthContext): PromiseResult<SuapAuthContext> {
-		console.log(`[SUAP] Atualizando token...`);
+  async refreshToken(
+    authContext: SuapAuthContext
+  ): Promise<Result<SuapAuthContext, Error>> {
+    console.log(`[SUAP] Atualizando token...`);
 
-		return suapFetchJson<SuapAuthContext>(
-			`${this.baseUrl}/api/v2/autenticacao/token/refresh/`,
-			{
-				method: "POST",
-				body: JSON.stringify({
-					refresh: authContext.refresh,
-				}),
-			},
-		).map((data) => {
-			return {
-				access: data.access,
-				refresh: data.refresh,
-			};
-		});
-	}
+    const result = await suapFetchJson<SuapAuthContext>(
+      `${this.baseUrl}/api/v2/autenticacao/token/refresh/`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          refresh: authContext.refresh,
+        }),
+      }
+    );
+    return result.let((data) => ({
+      access: data.access,
+      refresh: data.refresh,
+    }));
+  }
 
-	// https://suap.ifgoiano.edu.br/api/v2/meus-projetos
-	getProjetos(authContext: SuapAuthContext): PromiseResult<Projetos> {
-		return suapFetchJson<Projetos>(`${this.baseUrl}/api/v2/meus-projetos/`, {
-			headers: {
-				Authorization: `Bearer ${authContext.access}`,
-			},
-		}).map((data) => {
-			data.Extensao = (data as any)["Extensão"];
-			data.Pesquisa = (data as any)["Pesquisa"];
-			data.Ensino = (data as any)["Ensino"];
-			delete (data as any)["Extensão"];
+  async getProjetos(
+    authContext: SuapAuthContext
+  ): Promise<Result<Projetos, Error>> {
+    console.log(`[SUAP] Buscando projetos...`);
+    console.log(authContext.access);
+    const result = await suapFetchJson<Projetos>(
+      `${this.baseUrl}/api/v2/meus-projetos/`,
+      {
+        headers: {
+          Authorization: `Bearer ${authContext.access}`,
+        },
+      }
+    );
+    return result.let((data) => {
+      (data as any).Extensao = (data as any)["Extensão"];
+      (data as any).Pesquisa = (data as any)["Pesquisa"];
+      (data as any).Ensino = (data as any)["Ensino"];
+      delete (data as any)["Extensão"];
 
-			return data;
-		});
-	}
+      return data;
+    });
+  }
+
+  async getMyData(
+    authContext: SuapAuthContext
+  ): Promise<Result<UserData, Error>> {
+    console.log(`[SUAP] Buscando dados do usuário...`);
+
+    const result = await suapFetchJson<UserData>(
+      `${this.baseUrl}/api/v2/minhas-informacoes/meus-dados/`,
+      {
+        headers: {
+          Authorization: `Bearer ${authContext.access}`,
+        },
+      }
+    );
+
+    return result.let((data) => {
+      return {
+        ...data,
+        url_foto_150x200: `${this.baseUrl}/${data.url_foto_150x200}`,
+        url_foto_75x100: `${this.baseUrl}/${data.url_foto_75x100}`,
+      };
+    });
+  }
 }

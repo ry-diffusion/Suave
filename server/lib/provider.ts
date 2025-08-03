@@ -1,40 +1,34 @@
 import type { MoodleApiClient } from "@webhare/moodle-webservice";
-import { PromiseResult, Result } from "../../shared/result";
-import { Projetos } from "~~/shared/datatypes";
+import type { Projetos, UserData } from "~~/shared/datatypes";
+import type { Result } from "../../shared/result";
 
 export interface IAssignment {
-	id: string | number;
-	name: string;
-	dueDate?: Date;
-	[key: string]: unknown;
+  id: string | number;
+  name: string;
+  dueDate?: Date;
+  [key: string]: unknown;
 }
 
 export interface IIdentity {
-	avatarUrl: string;
-	name: string;
-	hasAlternativeIdentity?: boolean;
+  avatarUrl: string;
+  name: string;
+  hasAlternativeIdentity?: boolean;
 }
 
-// This error is thrown when the provider needs to re-login
-// It is used to indicate that the user should be redirected to the login page
 export class ShouldReloginError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "ShouldReloginError";
-	}
+  constructor(message: string) {
+    super(message);
+    this.name = "ShouldReloginError";
+  }
 }
 
 export interface IProvider<TAuthSchema, TAuthContext> {
-	login(creds: TAuthSchema): PromiseResult<TAuthContext>;
-	getIdentity(): Promise<IIdentity>;
-	alternateIdentity(): Promise<IIdentity>;
-	// Why? Some providers may need to restore auth with different credentials (e.g. too short refresh token, so we need to re-login)
-	restoreAuth(
-		authContext: TAuthContext,
-		creds: TAuthSchema,
-	): void | Promise<void>;
-	refreshAuth(authContext: TAuthContext): PromiseResult<TAuthContext>;
-	getEadAssignments(): Promise<Result<IAssignment[]>>;
-
-	getProjetos(): PromiseResult<Projetos>;
+  login(creds: TAuthSchema): Promise<Result<TAuthContext, Error>>;
+  getIdentity(): Promise<IIdentity>;
+  alternateIdentity(): Promise<IIdentity>;
+  restoreAuth(authContext: TAuthContext): void | Promise<void>;
+  refreshAuth(authContext: TAuthContext): Promise<Result<TAuthContext, Error>>;
+  getEadAssignments(): Promise<Result<IAssignment[], Error>>;
+  getProjetos(): Promise<Result<Projetos, Error>>;
+  getMyData(): Promise<Result<UserData, Error>>;
 }

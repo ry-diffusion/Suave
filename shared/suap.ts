@@ -1,14 +1,16 @@
-import { tryFetchJson } from "./http";
 import { AppException } from "./errors";
-import { PromiseResult } from "./result";
+import { tryFetchJson } from "./http";
+import { Err, Ok, type Result } from "./result";
 
-export function suapFetchJson<T>(
+export async function suapFetchJson<T>(
 	url: string,
 	init?: RequestInit,
-): PromiseResult<T> {
-	return tryFetchJson<T>(url, init).ensure(
-		// ugly, but it works
-		(data) => !(data as any).detail,
-		(data) => new AppException(`[SUAP] ${(data as any).detail}`, "SUAP_ERROR"),
-	);
+): Promise<Result<T, Error>> {
+	const result = await tryFetchJson<T>(url, init);
+	if (result.error && (result.data as any)?.detail) {
+		return Err(
+			new AppException(`[SUAP] ${(result.data as any).detail}`, "SUAP_ERROR"),
+		);
+	}
+	return result;
 }
