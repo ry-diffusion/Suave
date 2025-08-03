@@ -12,12 +12,12 @@
   },
   "vars": {
     "NUXT_SESSION_PASSWORD": "6f146015ce054b01a5eafef64a3b557f"
-  }
+  },
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
    */
-  // "placement": { "mode": "smart" },
+  "placement": { "mode": "smart" }
 
   /**
    * Bindings
