@@ -17,26 +17,26 @@
 		"@nuxt/fonts": "0.11.4",
 		"@nuxt/icon": "1.15.0",
 		"@nuxt/image": "1.10.0",
-		"@nuxt/rspack-builder": "^4.0.1",
+		"@nuxt/rspack-builder": "^4.0.2",
 		"@nuxt/ui": "3.3.0",
 		"@pinia/nuxt": "0.11.2",
-		"@webhare/moodle-webservice": "^1.9.0",
-		"eslint": "^9.31.0",
-		"nuxt": "^4.0.1",
+
+		"eslint": "^9.32.0",
+		"nuxt": "^4.0.2",
 		"nuxt-auth-utils": "0.5.20",
 		"pinia": "^3.0.3",
 		"tailwindcss": "^4.1.11",
-		"typescript": "^5.8.3",
+		"typescript": "^5.9.2",
 		"vue": "^3.5.18",
 		"vue-router": "^4.5.1",
 		"zod": "^3.25.76"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.1.2",
-		"@iconify-json/lucide": "^1.2.58",
-		"@iconify-json/simple-icons": "^1.2.44",
+		"@iconify-json/lucide": "^1.2.60",
+		"@iconify-json/simple-icons": "^1.2.45",
 		"nitro-cloudflare-dev": "^0.2.2",
-		"wrangler": "^4.26.1"
+		"wrangler": "^4.27.0"
 	},
 	"packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }

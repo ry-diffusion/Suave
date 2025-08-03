@@ -1,4 +1,3 @@
-import type { MoodleApiClient } from "@webhare/moodle-webservice";
 import type { Projetos, UserData } from "~~/shared/datatypes";
 import type { Result } from "../../shared/result";
 

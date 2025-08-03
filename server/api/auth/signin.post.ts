@@ -16,11 +16,16 @@ export default defineEventHandler(async (event) => {
     loginSchema.parse
   );
 
+  console.log(`[AUTH/Signin] Tentando autenticar usuário ${username}...`);
+  console.log(`>>= Instituição: ${institution}`);
+
   const provider = getProviderById(institution);
   const loginResult = await provider.login({
     username,
     password,
   });
+
+  console.log(`>>= Resultado: ${loginResult.error ? "Falha" : "Sucesso"}`);
 
   const result = loginResult.assert(
     (authContext) => !!authContext,
@@ -42,10 +47,13 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  console.log(`>>= Restaurando autenticação...`);
   await provider.restoreAuth(result.data);
 
+  console.log(`>>= Buscando identidade...`);
   const identity = await provider.getIdentity();
 
+  console.log(`>>= Substituindo sessão...`);
   await replaceUserSession(event, {
     user: {
       institution: institution,
