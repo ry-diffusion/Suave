@@ -51,7 +51,7 @@ const isTransparent = computed(() => {
 // Track page transitions for animations
 const isPageTransitioning = ref(false);
 
-// Watch route changes to trigger transition effects
+// Watch route changes to trigger transition effects and reset header
 watch(
 	() => route.path,
 	(newPath, oldPath) => {
@@ -60,6 +60,11 @@ watch(
 			setTimeout(() => {
 				isPageTransitioning.value = false;
 			}, 600); // Match this with transition duration
+		}
+
+		// Reset header when navigating to root path
+		if (newPath === "/") {
+			appHeader.resetHeader();
 		}
 	},
 );
