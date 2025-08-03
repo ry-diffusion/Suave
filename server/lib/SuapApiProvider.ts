@@ -1,4 +1,5 @@
 import type { Projetos, UserData } from "~~/shared/datatypes";
+import type { Disciplina, Etapa, PeriodoLetivo } from "~~/shared/boletim";
 import { Err, Ok, type Result } from "~~/shared/result";
 import { suapFetchJson } from "~~/shared/suap";
 import type { ClassicAuthSchema, SuapAuthContext } from "~~/types/moodle";
@@ -121,5 +122,41 @@ export class SuapApiProvider
         url_foto_75x100: `${this.baseUrl}/${data.url_foto_75x100}`,
       };
     });
+  }
+
+  async getPeriodosLetivos(
+    authContext: SuapAuthContext
+  ): Promise<Result<PeriodoLetivo[], Error>> {
+    console.log(`[SUAP] Buscando períodos letivos...`);
+
+    const result = await suapFetchJson<PeriodoLetivo[]>(
+      `${this.baseUrl}/api/v2/minhas-informacoes/meus-periodos-letivos/`,
+      {
+        headers: {
+          Authorization: `Bearer ${authContext.access}`,
+        },
+      }
+    );
+
+    return result;
+  }
+
+  async getBoletim(
+    authContext: SuapAuthContext,
+    ano: string,
+    periodo: string
+  ): Promise<Result<Disciplina[], Error>> {
+    console.log(`[SUAP] Buscando boletim para ${ano}/${periodo}...`);
+
+    const result = await suapFetchJson<Disciplina[]>(
+      `${this.baseUrl}/api/v2/minhas-informacoes/boletim/${ano}/${periodo}/`,
+      {
+        headers: {
+          Authorization: `Bearer ${authContext.access}`,
+        },
+      }
+    );
+
+    return result;
   }
 }

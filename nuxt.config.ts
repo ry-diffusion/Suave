@@ -26,5 +26,6 @@ export default defineNuxtConfig({
     "@compodium/nuxt",
     "nuxt-auth-utils",
     "@pinia/nuxt",
+    "nuxt-echarts",
   ],
 });

@@ -1,4 +1,5 @@
 import type { Projetos, UserData } from "~~/shared/datatypes";
+import type { Disciplina, PeriodoLetivo } from "~~/shared/boletim";
 import { AppException } from "~~/shared/errors";
 import { Err, Ok, type Result } from "../../../shared/result";
 import type {
@@ -196,5 +197,30 @@ export class IFGoianoPresencialProvider
         )
       );
     return this.apiProvider.getMyData(this.authContext.api);
+  }
+
+  async getPeriodosLetivos(): Promise<Result<PeriodoLetivo[], Error>> {
+    if (!this.authContext.api)
+      return Err(
+        new AppException(
+          "Você não está autenticado para o SUAP",
+          "NOT_AUTHENTICATED"
+        )
+      );
+    return this.apiProvider.getPeriodosLetivos(this.authContext.api);
+  }
+
+  async getBoletim(
+    ano: string,
+    periodo: string
+  ): Promise<Result<Disciplina[], Error>> {
+    if (!this.authContext.api)
+      return Err(
+        new AppException(
+          "Você não está autenticado para o SUAP",
+          "NOT_AUTHENTICATED"
+        )
+      );
+    return this.apiProvider.getBoletim(this.authContext.api, ano, periodo);
   }
 }

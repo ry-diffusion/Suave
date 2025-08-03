@@ -1,4 +1,5 @@
 import type { Projetos, UserData } from "~~/shared/datatypes";
+import type { Disciplina, PeriodoLetivo } from "~~/shared/boletim";
 import type { Result } from "../../shared/result";
 
 export interface IAssignment {
@@ -30,4 +31,9 @@ export interface IProvider<TAuthSchema, TAuthContext> {
   getEadAssignments(): Promise<Result<IAssignment[], Error>>;
   getProjetos(): Promise<Result<Projetos, Error>>;
   getMyData(): Promise<Result<UserData, Error>>;
+  getPeriodosLetivos(): Promise<Result<PeriodoLetivo[], Error>>;
+  getBoletim(
+    ano: string,
+    periodo: string
+  ): Promise<Result<Disciplina[], Error>>;
 }

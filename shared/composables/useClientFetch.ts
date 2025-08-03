@@ -1,4 +1,5 @@
 import { useAuthStore } from "~/stores/auth";
+import { AppException } from "~~/shared/errors";
 
 interface RefreshResponse {
   ok: boolean;
@@ -43,9 +44,12 @@ export function useClientFetch() {
       const session = res.headers.get("set-cookie");
       if (session) {
         log(`Session: ${session}`);
-        const sessionCookie = session.split(";")[0].split("=")[1];
-        log(`Session: ${sessionCookie}`);
-        cookies.value = sessionCookie;
+        const sessionParts = session.split(";")[0].split("=");
+        const sessionCookie = sessionParts.length > 1 ? sessionParts[1] : "";
+        if (sessionCookie && cookies) {
+          log(`Session: ${sessionCookie}`);
+          cookies.value = sessionCookie;
+        }
       }
     } catch (e: any) {
       log(`Erro no refresh: ${e}`);
@@ -81,7 +85,14 @@ export function useClientFetch() {
       return res;
     } catch (error: any) {
       log(`Erro detectado: ${error}`);
-      // Verifica se é erro 401 ou 417
+
+      // Verifica se é erro 404 - trata como NOT_FOUND
+      if (error?.statusCode === 404 || error?.status === 404) {
+        log("Erro 404 detectado, lançando AppException NOT_FOUND");
+        throw new AppException("Recurso não encontrado", "NOT_FOUND");
+      }
+
+      // Verifica se é erro 401 ou 417 - faz refresh token
       if (
         error?.statusCode === 401 ||
         error?.status === 401 ||
@@ -107,7 +118,7 @@ export function useClientFetch() {
         })) as T;
       }
 
-      // Se não for 401/417, re-lança o erro original
+      // Se não for 401/417/404, re-lança o erro original
       throw error;
     }
   };

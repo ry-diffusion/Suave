@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
+import type { DropdownMenuItem } from "#ui/types";
 import { useDeviceDetection } from "~/composables/useDeviceDetection";
 
 interface Props {
@@ -140,19 +141,44 @@ const mobileItems = computed(() => [
         to: "/perfil",
     },
 ]);
+
+// Dropdown items for desktop
+const dropdownItems = ref<DropdownMenuItem[]>([
+    [
+        {
+            label: "Moodles Disponiveis",
+            icon: "i-lucide-book-open",
+            description: "Visualize os Moodles disponíveis",
+            to: "/ferramentas/moodles",
+        },
+        {
+            label: "Desempenho Acadêmico",
+            icon: "i-lucide-bar-chart-2",
+            description: "Acompanhe seu desempenho acadêmico",
+            to: "/ferramentas/desempenho",
+        },
+        {
+            label: "Meus Projetos",
+            icon: "i-lucide-folder",
+            description: "Visualize seus projetos acadêmicos",
+            to: "/projetos",
+        },
+    ],
+]);
 </script>
 
 <template>
     <div>
         <!-- Header Component -->
-        <header
-            class="sticky top-0 z-50 px-4 py-3 h-16 flex flex-col justify-center transition-all duration-500 outline-neutral-200/80 dark:outline-neutral-800/80"
+        <header class="sticky top-0 z-50 px-4 py-3 h-16 flex flex-col justify-center transition-all duration-500"
             :class="[
                 isHomePage
                     ? 'bg-transparent border-none'
                     : transparent
                         ? 'bg-transparent backdrop-blur-sm shadow-sm'
-                        : 'outline glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-md',
+                        : isMobile
+                            ? 'outline glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-md'
+                            : 'floating-header glass-effect-apple',
             ]">
             <!-- Loading Bar -->
             <Transition name="fade">
@@ -208,7 +234,28 @@ const mobileItems = computed(() => [
                             subtitle }}</span>
                     </div>
                     <div class="ml-auto flex items-center">
-                        <UNavigationMenu :items="items" :ui="{ childList: 'flex flex-col' }" />
+                        <!-- Desktop Navigation Menu -->
+                        <nav class="flex items-center space-x-6">
+                            <NuxtLink to="/" class="nav-item">
+                                <UIcon name="i-lucide-home" class="h-5 w-5" />
+                                <span>Home</span>
+                            </NuxtLink>
+
+                            <!-- Ferramentas Dropdown -->
+                            <UDropdownMenu :items="dropdownItems" :ui="{ content: 'w-80' }">
+                                <button class="nav-item flex items-center gap-1">
+                                    <UIcon name="i-lucide-wrench" class="h-5 w-5" />
+                                    <span>Ferramentas</span>
+                                    <UIcon name="i-lucide-chevron-down"
+                                        class="h-4 w-4 transition-transform duration-200" />
+                                </button>
+                            </UDropdownMenu>
+
+                            <NuxtLink to="/perfil" class="nav-item">
+                                <UIcon name="i-lucide-user" class="h-5 w-5" />
+                                <span>Perfil</span>
+                            </NuxtLink>
+                        </nav>
                     </div>
                 </div>
             </template>
@@ -253,7 +300,7 @@ const mobileItems = computed(() => [
                     <NuxtLink v-for="child in items.find(
                         (item) => item.label === 'Ferramentas',
                     )?.children" :key="child.label" :to="child.to"
-                        class="block p-3 rounded-xl hover:bg-neutral-100/70 dark:hover:bg-neutral-800/70 hover-lift border border-neutral-200/50 dark:border-neutral-800/50 shadow-sm"
+                        class="block p-3 rounded-xl hover:bg-neutral-100/70 dark:hover:bg-neutral-800/70 hover-lift border border-neutral-200/50 dark:border-neutral-800/50 shadow-sm transition-all duration-200"
                         @click="isDrawerOpen = false">
                         <div class="flex items-center space-x-3">
                             <UIcon :name="child.icon" class="flex-shrink-0 h-6 w-6 text-primary" />
@@ -309,7 +356,6 @@ const mobileItems = computed(() => [
 /* Additional styles for glass-effect elements */
 :deep(.glass-effect) {
     transition-property: opacity, transform, backdrop-filter, box-shadow;
-    /* Removed border-color from transition-property */
     transition-duration: 0.5s;
     transition-timing-function: ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -321,7 +367,6 @@ header {
     backdrop-filter: blur(0);
     box-shadow: none;
     transition-property: opacity, transform, backdrop-filter, box-shadow;
-    /* Removed border-bottom from transition-property */
     transition-duration: 0.5s;
     transition-timing-function: ease;
 }
@@ -377,7 +422,8 @@ header.shadow-md {
 .hover-lift {
     transition:
         transform 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .hover-lift:hover {
@@ -403,5 +449,172 @@ header.shadow-md {
 
 :deep(.u-button:active) {
     transform: scale(0.98);
+}
+
+/* Floating header with Apple HIG glass effect for desktop only */
+.floating-header {
+    margin: 1rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.125) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.37),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode adjustments for floating header */
+.dark .floating-header {
+    background: rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Hover effects for floating header */
+.floating-header:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    transform: translateY(-1px);
+    box-shadow:
+        0 12px 40px 0 rgba(31, 38, 135, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dark .floating-header:hover {
+    background: rgba(0, 0, 0, 0.16) !important;
+    box-shadow:
+        0 12px 40px 0 rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Ensure proper contrast for text readability in floating header */
+.floating-header * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Glass effect class for Apple HIG compliance */
+.glass-effect-apple {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.125) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.37),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass-effect-apple {
+    background: rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Improved drawer item hover effects */
+:deep(.drawer-content) .hover-lift {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.drawer-content) .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark :deep(.drawer-content) .hover-lift:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Desktop Navigation Styles */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    color: rgb(55 65 81);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.nav-item:hover {
+    color: rgb(var(--color-primary-500));
+    background-color: rgba(243, 244, 246, 0.5);
+}
+
+.dark .nav-item {
+    color: rgb(209 213 219);
+}
+
+.dark .nav-item:hover {
+    background-color: rgba(31, 41, 55, 0.5);
+}
+
+/* Active state for navigation items */
+.nav-item.router-link-active,
+.nav-item.router-link-exact-active {
+    color: rgb(var(--color-primary-500));
+    background-color: rgba(var(--color-primary-500), 0.1);
+}
+
+/* Custom dropdown styling */
+:deep(.u-dropdown) {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.125) !important;
+    border-radius: 12px;
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.37),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.dark :deep(.u-dropdown) {
+    background: rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Style the dropdown trigger button to match nav-item */
+:deep(.u-dropdown-menu button) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    color: rgb(55 65 81);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+}
+
+:deep(.u-dropdown-menu button:hover) {
+    color: rgb(var(--color-primary-500));
+    background-color: rgba(243, 244, 246, 0.5);
+}
+
+.dark :deep(.u-dropdown-menu button) {
+    color: rgb(209 213 219);
+}
+
+.dark :deep(.u-dropdown-menu button:hover) {
+    background-color: rgba(31, 41, 55, 0.5);
 }
 </style>

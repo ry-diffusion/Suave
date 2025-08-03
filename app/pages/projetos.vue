@@ -75,7 +75,7 @@
                         <div v-if="filteredProjetos.length > 0"
                             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <UCard v-for="projeto in filteredProjetos" :key="projeto.id"
-                                class="p-4 cursor-pointer border-0 shadow-sm hover:shadow-md transition-all duration-200"
+                                class="p-4 cursor-pointer border-0 shadow-sm hover:shadow-md transition-all duration-200 glass-card"
                                 @click="openProjectDetail(projeto)">
                                 <div class="flex items-start justify-between mb-3">
                                     <h3 class="text-base font-semibold text-default leading-tight flex-1 mr-3">
@@ -113,7 +113,7 @@
                 <!-- Project Detail View -->
                 <div v-else-if="selectedProjeto" key="project-detail" class="space-y-6">
                     <!-- Project Info -->
-                    <UCard class="p-4">
+                    <UCard class="p-4 glass-card">
                         <h2 class="text-lg font-semibold text-default mb-4">{{ selectedProjeto.titulo }}</h2>
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
@@ -134,7 +134,7 @@
                     </UCard>
 
                     <!-- Progress Summary -->
-                    <UCard class="p-4 bg-gradient-to-br from-success/10 to-background">
+                    <UCard class="p-4 glass-card bg-gradient-to-br from-success/10 to-background">
                         <div class="text-center">
                             <div class="text-sm text-success font-medium mb-1">
                                 {{ metasConcluidas }} de {{ totalMetasProjeto }} metas concluídas
@@ -151,7 +151,7 @@
                     </UCard>
 
                     <!-- Compact Progress Indicator -->
-                    <UCard class="p-4">
+                    <UCard class="p-4 glass-card">
                         <h3 class="text-base font-semibold text-default mb-4">Progresso Detalhado</h3>
                         <div class="space-y-3">
                             <div v-for="(meta, index) in selectedProjeto.metas" :key="meta.id"
@@ -185,7 +185,7 @@
                     </UCard>
 
                     <!-- Participants -->
-                    <UCard class="p-4">
+                    <UCard class="p-4 glass-card">
                         <h3 class="text-base font-semibold text-default mb-4">Participantes</h3>
                         <div class="space-y-3">
                             <div v-for="participante in selectedProjeto.participacao" :key="participante.id"
@@ -505,5 +505,42 @@ onMounted(() => {
 /* Dark mode optimizations */
 .dark {
     color-scheme: dark;
+}
+
+/* Glass effect following Apple's Human Interface Guidelines */
+.glass-card {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.125) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.37),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode adjustments */
+.dark .glass-card {
+    background: rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Hover effects for better interactivity */
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    transform: translateY(-1px);
+    transition: all 0.2s ease-in-out;
+}
+
+.dark .glass-card:hover {
+    background: rgba(0, 0, 0, 0.16) !important;
+}
+
+/* Ensure proper contrast for text readability */
+.glass-card * {
+    position: relative;
+    z-index: 1;
 }
 </style>

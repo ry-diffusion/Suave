@@ -62,10 +62,8 @@ watch(
 			}, 600); // Match this with transition duration
 		}
 
-		// Reset header when navigating to root path
-		if (newPath === "/") {
-			appHeader.resetHeader();
-		}
+		// Reset header on every route change to ensure clean state
+		appHeader.resetHeader();
 	},
 );
 

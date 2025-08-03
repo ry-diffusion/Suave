@@ -3,7 +3,7 @@
     <FullscreenGuiLoading v-if="pending" />
 
     <div v-else-if="error" class="flex justify-center items-center h-64">
-      <UCard>
+      <UCard class="glass-card">
         <div class="text-center">
           <p class="text-red-500 mb-4">Erro ao carregar dados do perfil</p>
           <UButton @click="() => refresh()" color="primary">Tentar novamente</UButton>
@@ -15,7 +15,7 @@
 
       <!-- Profile Card -->
       <div class="md:col-span-1">
-        <UCard>
+        <UCard class="glass-card">
           <div class="flex flex-col items-center">
             <div class="relative mb-4">
               <img :src="userData?.url_foto_150x200 || 'https://i.pravatar.cc/150?img=11'" alt="Foto de perfil"
@@ -37,7 +37,7 @@
         </UCard>
 
         <!-- Theme Settings -->
-        <UCard class="mt-6">
+        <UCard class="mt-6 glass-card">
           <template #header>
             <div class="flex items-center justify-between">
               <h2 class="font-medium">Aparência</h2>
@@ -80,7 +80,7 @@
         </UCard>
 
         <!-- Mascot Settings -->
-        <UCard class="mt-6">
+        <UCard class="mt-6 glass-card">
           <template #header>
             <div class="flex items-center justify-between">
               <div>
@@ -154,7 +154,7 @@
       <!-- Main Content -->
       <div class="md:col-span-2">
         <!-- Personal Information -->
-        <UCard class="mb-6">
+        <UCard class="mb-6 glass-card">
           <template #header>
             <div class="flex items-center justify-between">
               <h2 class="font-medium">Informações Pessoais</h2>
@@ -196,7 +196,7 @@
         </UCard>
 
         <!-- Academic Information -->
-        <UCard class="mb-6">
+        <UCard class="mb-6 glass-card">
           <template #header>
             <div class="flex items-center justify-between">
               <h2 class="font-medium">Informações Acadêmicas</h2>
@@ -240,7 +240,7 @@
         </UCard>
 
         <!-- Notification Settings -->
-        <UCard>
+        <UCard class="glass-card">
           <template #header>
             <h2 class="font-medium">Configurações de Notificações</h2>
           </template>
@@ -336,3 +336,42 @@ definePageMeta({
   middleware: ["auth"],
 });
 </script>
+
+<style scoped>
+/* Glass effect following Apple's Human Interface Guidelines */
+.glass-card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.125) !important;
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode adjustments */
+.dark .glass-card {
+  background: rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Hover effects for better interactivity */
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  transform: translateY(-1px);
+  transition: all 0.2s ease-in-out;
+}
+
+.dark .glass-card:hover {
+  background: rgba(0, 0, 0, 0.16) !important;
+}
+
+/* Ensure proper contrast for text readability */
+.glass-card * {
+  position: relative;
+  z-index: 1;
+}
+</style>

@@ -11,6 +11,9 @@ async function tryFetchImpl(
       if (response.status === 401) {
         return Err(new AppException("Sessão expirada", "SESSION_EXPIRED"));
       }
+      if (response.status == 404) {
+        return Err(new AppException("Página não encontrada", "NOT_FOUND"));
+      }
       return Err(new AppException(`HTTP ${response.status}`, "HTTP_ERROR"));
     }
     return Ok(response);
