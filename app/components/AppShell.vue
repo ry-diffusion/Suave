@@ -185,8 +185,9 @@ const mobileItems = computed(() => [
                                 {{ title }}
                             </h1>
                         </transition>
-                        <span v-if="subtitle" class="text-xs text-muted mt-0.5 font-normal text-center">{{ subtitle
-                        }}</span>
+                        <span v-if="subtitle"
+                            class="text-xs text-muted mt-0.5 font-normal text-center truncate max-w-full">{{ subtitle
+                            }}</span>
                     </div>
                 </div>
             </template>
@@ -203,7 +204,8 @@ const mobileItems = computed(() => [
                                 {{ title }}
                             </h1>
                         </transition>
-                        <span v-if="subtitle" class="text-sm text-muted font-normal mt-1">{{ subtitle }}</span>
+                        <span v-if="subtitle" class="text-sm text-muted font-normal mt-1 truncate max-w-full">{{
+                            subtitle }}</span>
                     </div>
                     <div class="ml-auto flex items-center">
                         <UNavigationMenu :items="items" :ui="{ childList: 'flex flex-col' }" />
