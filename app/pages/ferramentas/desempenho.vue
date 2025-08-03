@@ -38,6 +38,24 @@
         </div>
       </div>
 
+      <!-- Mascot Performance Message -->
+      <UCard class="glass-card">
+        <div class="flex items-center space-x-6">
+          <div class="flex-shrink-0">
+            <img :src="mascotPerformanceImage" :alt="mascotStore.currentMascot.name"
+              class="w-24 h-24 rounded-full object-cover border-4" :class="mascotPerformanceBorderClass" />
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2" :class="mascotPerformanceTextClass">
+              {{ mascotPerformanceTitle }}
+            </h3>
+            <p class="text-lg" :class="mascotPerformanceTextClass">
+              {{ mascotPerformanceMessage }}
+            </p>
+          </div>
+        </div>
+      </UCard>
+
       <!-- Summary Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <UCard class="glass-card">
@@ -99,12 +117,10 @@
             </div>
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-emerald-800 dark:text-emerald-200 mb-2">
-                😃 Sua melhor disciplina
+                {{ mascotBestSubjectTitle }}
               </h3>
               <p class="text-emerald-700 dark:text-emerald-300 mb-3">
-                Wow, você parece ser bom em <span class="font-bold">{{ sanitizarNomeDisciplina(bestSubject?.name) ||
-                  'N/A' }}</span>!
-                Parabéns 😉
+                {{ mascotBestSubjectMessage }}
               </p>
               <div class="text-sm text-emerald-600 dark:text-emerald-400">
                 Média: {{ bestSubject?.average ? bestSubject.average.toFixed(1) : 'N/A' }}
@@ -121,12 +137,10 @@
             </div>
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-orange-800 dark:text-orange-200 mb-2">
-                😔 Sua pior disciplina
+                {{ mascotWorstSubjectTitle }}
               </h3>
               <p class="text-orange-700 dark:text-orange-300 mb-3">
-                Ops, parece que você não foi muito bem em <span class="font-bold">{{
-                  sanitizarNomeDisciplina(worstSubject?.name) || 'N/A'
-                  }}</span>...
+                {{ mascotWorstSubjectMessage }}
               </p>
               <div class="text-sm text-orange-600 dark:text-orange-400">
                 Média: {{ worstSubject?.average ? worstSubject.average.toFixed(1) : 'N/A' }}
@@ -143,10 +157,10 @@
             </div>
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                ⏰ Frequência Média
+                {{ mascotAttendanceTitle }}
               </h3>
               <p class="text-blue-700 dark:text-blue-300 mb-3">
-                {{ attendanceMessage }}
+                {{ mascotAttendanceMessage }}
               </p>
               <div class="text-sm text-blue-600 dark:text-blue-400">
                 Frequência: {{ averageAttendance.toFixed(0) }}%
@@ -163,10 +177,10 @@
             </div>
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
-                😅 Disciplina que mais faltou
+                {{ mascotMostAbsentTitle }}
               </h3>
               <p class="text-red-700 dark:text-red-300 mb-3">
-                {{ mostAbsentMessage }}
+                {{ mascotMostAbsentMessage }}
               </p>
               <div class="text-sm text-red-600 dark:text-red-400">
                 Frequência: {{ mostAbsentSubject?.percentual_carga_horaria_frequentada ?
@@ -316,6 +330,7 @@
 <script setup>
 // Import clientFetch for API calls
 import { useClientFetch } from "~~/shared/composables/useClientFetch";
+import { useMascotStore } from "~/stores/mascot";
 
 // Page metadata
 definePageMeta({
@@ -324,6 +339,7 @@ definePageMeta({
 
 // Composables
 const { clientFetch } = useClientFetch();
+const mascotStore = useMascotStore();
 
 // Reactive data
 const loading = ref(false);
@@ -414,30 +430,99 @@ const mostAbsentSubject = computed(() => {
   );
 });
 
-const attendanceMessage = computed(() => {
-  const freq = averageAttendance.value;
-  if (freq > 98) return "Você é onipresente! Como faz isso? 😱";
-  if (freq > 90) return "Incrível! Você está sempre presente! 🌟";
-  if (freq > 80) return "Ótimo trabalho! Continue assim! 👍";
-  if (freq > 75) return "Bem no limite! 😐";
-  if (freq > 60) return "Você um turista? 🤔";
-  if (freq > 50) return "Eai, turista, por onde andou? 😅";
-  return "Você não é um turista mano.. É um fantasma 😱";
+const mascotPerformanceTitle = computed(() => {
+  return mascotStore.getPerformanceTitle(averageGrade.value);
 });
 
-const mostAbsentMessage = computed(() => {
+const mascotPerformanceMessage = computed(() => {
+  return mascotStore.getPerformanceMessage(averageGrade.value, averageAttendance.value);
+});
+
+const mascotBestSubjectTitle = computed(() => {
+  return mascotStore.getBestSubjectTitle();
+});
+
+const mascotBestSubjectMessage = computed(() => {
+  if (!bestSubject.value) return "N/A";
+  const name = sanitizarNomeDisciplina(bestSubject.value.name);
+  return mascotStore.getBestSubjectMessage(bestSubject.value.average || 0, name);
+});
+
+const mascotWorstSubjectTitle = computed(() => {
+  return mascotStore.getWorstSubjectTitle();
+});
+
+const mascotWorstSubjectMessage = computed(() => {
+  if (!worstSubject.value) return "N/A";
+  const name = sanitizarNomeDisciplina(worstSubject.value.name);
+  return mascotStore.getWorstSubjectMessage(worstSubject.value.average || 0, name);
+});
+
+const mascotAttendanceTitle = computed(() => {
+  return mascotStore.getAttendanceTitle();
+});
+
+const mascotAttendanceMessage = computed(() => {
+  return mascotStore.getAttendanceMessage(averageAttendance.value);
+});
+
+const mascotMostAbsentTitle = computed(() => {
+  return mascotStore.getMostAbsentTitle();
+});
+
+const mascotMostAbsentMessage = computed(() => {
   if (!mostAbsentSubject.value) return "N/A";
-
-  const freq = mostAbsentSubject.value.percentual_carga_horaria_frequentada;
   const name = sanitizarNomeDisciplina(mostAbsentSubject.value.disciplina);
+  const freq = mostAbsentSubject.value.percentual_carga_horaria_frequentada;
+  return mascotStore.getMostAbsentMessage(freq, name);
+});
 
-  if (freq > 75) {
-    return `As vezes deu preguiça de ir na aula de ${name}, né?`;
-  } else if (freq > 60) {
-    return `Pelo menos, você foi em alguma aula de ${name}...`;
-  } else {
-    return `Você odeia ${name}?`;
+const mascotPerformanceTextClass = computed(() => {
+  const mascot = mascotStore.currentMascot;
+  const average = averageGrade.value;
+  const attendance = averageAttendance.value;
+
+  // Classes baseadas no mascote
+  switch (mascot.name) {
+    case "Rimuru Tempest":
+      if (average >= 9) return "text-green-500";
+      if (average >= 7) return "text-blue-500";
+      if (average >= 5) return "text-purple-500";
+      return "text-neutral-500";
+
+    case "Billie Eilish - Don't Smile at Me":
+      if (average >= 9) return "text-red-500";
+      if (average >= 7) return "text-blue-500";
+      if (average >= 5) return "text-purple-500";
+      return "text-neutral-500";
+
+    case "Dean Winchester":
+      if (average >= 9) return "text-green-500";
+      if (average >= 7) return "text-blue-500";
+      if (average >= 5) return "text-purple-500";
+      return "text-neutral-500";
+
+    default:
+      if (average >= 9) return "text-green-500";
+      if (average >= 7) return "text-blue-500";
+      if (average >= 5) return "text-purple-500";
+      return "text-neutral-500";
   }
+});
+
+const mascotPerformanceImage = computed(() => {
+  return getMascotPerformanceImage();
+});
+
+const mascotPerformanceBorderClass = computed(() => {
+  const average = averageGrade.value;
+  const attendance = averageAttendance.value;
+
+  // Determina a cor da borda baseada no desempenho
+  if (average >= 9 && attendance >= 90) return "border-green-500";
+  if (average >= 7 && attendance >= 75) return "border-blue-500";
+  if (average >= 5 && attendance >= 60) return "border-yellow-500";
+  return "border-red-500";
 });
 
 const sortedDisciplinas = computed(() => {
@@ -688,6 +773,39 @@ const performanceTrendOption = computed(() => {
 });
 
 // Methods
+
+/**
+ * Determina qual imagem do mascote usar baseada no desempenho
+ * @returns {string} URL da imagem apropriada
+ */
+function getMascotPerformanceImage() {
+  const average = averageGrade.value;
+  const attendance = averageAttendance.value;
+
+  // Determina o nível de desempenho
+  let performanceLevel = 'average';
+
+  if (average >= 9 && attendance >= 90) {
+    performanceLevel = 'excellent';
+  } else if (average >= 7 && attendance >= 75) {
+    performanceLevel = 'good';
+  } else if (average >= 5 && attendance >= 60) {
+    performanceLevel = 'average';
+  } else {
+    performanceLevel = 'poor';
+  }
+
+  // Usa a função do store para obter a imagem apropriada
+  const performanceImage = mascotStore.getPerformanceImage(average, performanceLevel);
+
+  // Se a função retornou uma imagem, usa ela
+  if (performanceImage) {
+    return performanceImage;
+  }
+
+  // Fallback para preview do mascote
+  return mascotStore.currentMascot.previewUrl || "/mascots/default/preview.png";
+}
 
 /**
  * Sanitiza o nome da disciplina removendo padrões como "Disciplina.XXXX - " 
