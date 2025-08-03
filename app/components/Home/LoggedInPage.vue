@@ -27,23 +27,23 @@
                     <UCard to="/ferramentas/moodles"
                         class="text-center hover:shadow-md transition-shadow cursor-pointer">
                         <UIcon name="i-lucide-book-open" class="h-10 w-10 mx-auto mb-2 text-primary-500" />
-                        <h3 class="font-medium">Moodles</h3>
+                        <h3 class="font-medium break-words">Moodles</h3>
                     </UCard>
 
                     <UCard to="/ferramentas/desempenho"
                         class="text-center hover:shadow-md transition-shadow cursor-pointer">
                         <UIcon name="i-lucide-bar-chart-2" class="h-10 w-10 mx-auto mb-2 text-primary-500" />
-                        <h3 class="font-medium">Desempenho</h3>
+                        <h3 class="font-medium break-words">Desempenho</h3>
                     </UCard>
 
                     <UCard to="/perfil" class="text-center hover:shadow-md transition-shadow cursor-pointer">
                         <UIcon name="i-lucide-user" class="h-10 w-10 mx-auto mb-2 text-primary-500" />
-                        <h3 class="font-medium">Perfil</h3>
+                        <h3 class="font-medium break-words">Perfil</h3>
                     </UCard>
 
                     <UCard to="/projetos" class="text-center hover:shadow-md transition-shadow cursor-pointer">
                         <UIcon name="i-lucide-folder" class="h-10 w-10 mx-auto mb-2 text-primary-500" />
-                        <h3 class="font-medium">Projetos</h3>
+                        <h3 class="font-medium break-words">Projetos</h3>
                     </UCard>
                 </div>
 
@@ -70,19 +70,19 @@
                     <UCard>
                         <template #header>
                             <div class="flex justify-between items-center">
-                                <h3 class="font-medium">
+                                <h3 class="font-medium break-words">
                                     Calendário de Provas Publicado
                                 </h3>
                                 <UBadge color="blue" size="sm">Novo</UBadge>
                             </div>
                         </template>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 break-words">
                             O calendário de provas finais já está disponível.
                             Confira as datas e prepare-se com antecedência.
                         </p>
                         <template #footer>
                             <div class="flex items-center justify-between text-xs text-gray-500">
-                                <span>05/06/2023</span>
+                                <span class="break-words">05/06/2023</span>
                                 <UButton size="xs" variant="ghost">Ler mais</UButton>
                             </div>
                         </template>
@@ -91,19 +91,19 @@
                     <UCard>
                         <template #header>
                             <div class="flex justify-between items-center">
-                                <h3 class="font-medium">
+                                <h3 class="font-medium break-words">
                                     Biblioteca: Horário Estendido
                                 </h3>
                                 <UBadge color="gray" size="sm">2 dias atrás</UBadge>
                             </div>
                         </template>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 break-words">
                             A biblioteca estará funcionando em horário estendido
                             durante o período de provas finais.
                         </p>
                         <template #footer>
                             <div class="flex items-center justify-between text-xs text-gray-500">
-                                <span>03/06/2023</span>
+                                <span class="break-words">03/06/2023</span>
                                 <UButton size="xs" variant="ghost">Ler mais</UButton>
                             </div>
                         </template>

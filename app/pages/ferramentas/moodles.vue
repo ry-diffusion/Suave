@@ -1,53 +1,44 @@
 <template>
-  <div class="p-4">
+	<div class="p-4">
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <UCard v-for="(moodle, index) in moodles" :key="index" class="hover:shadow-lg transition-shadow">
-        <template #header>
-          <div class="flex items-center">
-            <div 
-              class="w-10 h-10 rounded-full flex items-center justify-center mr-3"
-              :class="moodle.colorClass"
-            >
-              <UIcon :name="moodle.icon" class="h-5 w-5 text-white" />
-            </div>
-            <h2 class="font-medium">{{ moodle.name }}</h2>
-          </div>
-        </template>
-        
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
-          {{ moodle.description }}
-        </p>
-        
-        <div class="flex items-center text-xs text-gray-500 mb-2">
-          <UIcon name="i-lucide-calendar" class="h-4 w-4 mr-1" />
-          <span>Última atualização: {{ moodle.lastUpdated }}</span>
-        </div>
-        
-        <div class="flex items-center text-xs text-gray-500">
-          <UIcon name="i-lucide-user" class="h-4 w-4 mr-1" />
-          <span>Professor: {{ moodle.teacher }}</span>
-        </div>
-        
-        <template #footer>
-          <div class="flex justify-between items-center">
-            <UBadge :color="moodle.status === 'Ativo' ? 'green' : 'yellow'" size="sm">
-              {{ moodle.status }}
-            </UBadge>
-            <UButton 
-              :to="moodle.url" 
-              color="primary" 
-              variant="soft"
-              icon="i-lucide-external-link"
-              trailing
-            >
-              Acessar
-            </UButton>
-          </div>
-        </template>
-      </UCard>
-    </div>
-  </div>
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+			<UCard v-for="(moodle, index) in moodles" :key="index" class="hover:shadow-lg transition-shadow">
+				<template #header>
+					<div class="flex items-center">
+						<div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" :class="moodle.colorClass">
+							<UIcon :name="moodle.icon" class="h-5 w-5 text-white" />
+						</div>
+						<h2 class="font-medium break-words">{{ moodle.name }}</h2>
+					</div>
+				</template>
+
+				<p class="text-sm text-gray-500 dark:text-gray-400 mb-3 break-words">
+					{{ moodle.description }}
+				</p>
+
+				<div class="flex items-center text-xs text-gray-500 mb-2">
+					<UIcon name="i-lucide-calendar" class="h-4 w-4 mr-1 flex-shrink-0" />
+					<span class="break-words">Última atualização: {{ moodle.lastUpdated }}</span>
+				</div>
+
+				<div class="flex items-center text-xs text-gray-500">
+					<UIcon name="i-lucide-user" class="h-4 w-4 mr-1 flex-shrink-0" />
+					<span class="break-words">Professor: {{ moodle.teacher }}</span>
+				</div>
+
+				<template #footer>
+					<div class="flex justify-between items-center">
+						<UBadge :color="moodle.status === 'Ativo' ? 'green' : 'yellow'" size="sm">
+							{{ moodle.status }}
+						</UBadge>
+						<UButton :to="moodle.url" color="primary" variant="soft" icon="i-lucide-external-link" trailing>
+							Acessar
+						</UButton>
+					</div>
+				</template>
+			</UCard>
+		</div>
+	</div>
 </template>
 
 <script setup>

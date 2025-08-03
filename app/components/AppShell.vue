@@ -3,18 +3,18 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 import { useDeviceDetection } from "~/composables/useDeviceDetection";
 
 interface Props {
-	title?: string;
-	showBack?: boolean;
-	transparent?: boolean;
-	largeTitle?: boolean;
-	subtitle?: string; // Adicionando prop opcional subtitle
-	onBack?: () => void; // Nova prop opcional para handler customizado
+    title?: string;
+    showBack?: boolean;
+    transparent?: boolean;
+    largeTitle?: boolean;
+    subtitle?: string; // Adicionando prop opcional subtitle
+    onBack?: () => void; // Nova prop opcional para handler customizado
 }
 
 const props = defineProps<Props>();
 const route = useRoute();
 const { progress } = useLoadingIndicator({
-	duration: 2000,
+    duration: 2000,
 });
 
 // Smooth progress transition
@@ -23,44 +23,44 @@ const showProgress = ref(false);
 let progressAnimationFrame: number;
 
 watch(progress, (newValue) => {
-	if (newValue > 0) {
-		showProgress.value = true;
-	}
+    if (newValue > 0) {
+        showProgress.value = true;
+    }
 
-	const startValue = smoothProgress.value;
-	const endValue = newValue;
-	const duration = 300; // 300ms transition
-	const startTime = performance.now();
+    const startValue = smoothProgress.value;
+    const endValue = newValue;
+    const duration = 300; // 300ms transition
+    const startTime = performance.now();
 
-	const animate = (currentTime: number) => {
-		const elapsed = currentTime - startTime;
-		const progress = Math.min(elapsed / duration, 1);
+    const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
 
-		// Ease in-out function
-		const easeProgress =
-			progress < 0.5
-				? 2 * progress * progress
-				: 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        // Ease in-out function
+        const easeProgress =
+            progress < 0.5
+                ? 2 * progress * progress
+                : 1 - (-2 * progress + 2) ** 2 / 2;
 
-		smoothProgress.value = startValue + (endValue - startValue) * easeProgress;
+        smoothProgress.value = startValue + (endValue - startValue) * easeProgress;
 
-		if (progress < 1) {
-			progressAnimationFrame = requestAnimationFrame(animate);
-		} else if (endValue === 100) {
-			// When progress reaches 100%, wait a bit then fade out
-			setTimeout(() => {
-				showProgress.value = false;
-			}, 200);
-		}
-	};
+        if (progress < 1) {
+            progressAnimationFrame = requestAnimationFrame(animate);
+        } else if (endValue === 100) {
+            // When progress reaches 100%, wait a bit then fade out
+            setTimeout(() => {
+                showProgress.value = false;
+            }, 200);
+        }
+    };
 
-	cancelAnimationFrame(progressAnimationFrame);
-	progressAnimationFrame = requestAnimationFrame(animate);
+    cancelAnimationFrame(progressAnimationFrame);
+    progressAnimationFrame = requestAnimationFrame(animate);
 });
 
 // Cleanup animation frame on component unmount
 onUnmounted(() => {
-	cancelAnimationFrame(progressAnimationFrame);
+    cancelAnimationFrame(progressAnimationFrame);
 });
 
 // Determine if we're on the homepage
@@ -72,73 +72,73 @@ const isDrawerOpen = ref(false);
 
 // Function to toggle the drawer
 const toggleDrawer = () => {
-	isDrawerOpen.value = !isDrawerOpen.value;
+    isDrawerOpen.value = !isDrawerOpen.value;
 };
 
 // Function to go back in navigation history
 function goBack() {
-	if (typeof props.onBack === "function") {
-		props.onBack();
-	} else {
-		router.back();
-	}
+    if (typeof props.onBack === "function") {
+        props.onBack();
+    } else {
+        router.back();
+    }
 }
 
 const items = ref<NavigationMenuItem[]>([
-	{
-		label: "Home",
-		icon: "i-lucide-home",
-		to: "/",
-	},
-	{
-		label: "Ferramentas",
-		icon: "i-lucide-wrench",
-		to: "/ferramentas",
-		children: [
-			{
-				label: "Moodles Disponiveis",
-				description: "Visualize os Moodles disponíveis",
-				icon: "i-lucide-book-open",
-				to: "/ferramentas/moodles",
-			},
-			{
-				label: "Desempenho Acadêmico",
-				description: "Acompanhe seu desempenho acadêmico",
-				icon: "i-lucide-bar-chart-2",
-				to: "/ferramentas/desempenho",
-			},
-			{
-				label: "Meus Projetos",
-				description: "Visualize seus projetos acadêmicos",
-				icon: "i-lucide-folder",
-				to: "/projetos",
-			},
-		],
-	},
-	{
-		label: "Perfil",
-		icon: "i-lucide-user",
-		to: "/perfil",
-	},
+    {
+        label: "Home",
+        icon: "i-lucide-home",
+        to: "/",
+    },
+    {
+        label: "Ferramentas",
+        icon: "i-lucide-wrench",
+        to: "/ferramentas",
+        children: [
+            {
+                label: "Moodles Disponiveis",
+                description: "Visualize os Moodles disponíveis",
+                icon: "i-lucide-book-open",
+                to: "/ferramentas/moodles",
+            },
+            {
+                label: "Desempenho Acadêmico",
+                description: "Acompanhe seu desempenho acadêmico",
+                icon: "i-lucide-bar-chart-2",
+                to: "/ferramentas/desempenho",
+            },
+            {
+                label: "Meus Projetos",
+                description: "Visualize seus projetos acadêmicos",
+                icon: "i-lucide-folder",
+                to: "/projetos",
+            },
+        ],
+    },
+    {
+        label: "Perfil",
+        icon: "i-lucide-user",
+        to: "/perfil",
+    },
 ]);
 
 // Navigation items specifically for mobile bottom navigation
 const mobileItems = computed(() => [
-	{
-		label: "Home",
-		icon: "i-lucide-home",
-		to: "/",
-	},
-	{
-		label: "Ferramentas",
-		icon: "i-lucide-wrench",
-		to: "/ferramentas",
-	},
-	{
-		label: "Perfil",
-		icon: "i-lucide-user",
-		to: "/perfil",
-	},
+    {
+        label: "Home",
+        icon: "i-lucide-home",
+        to: "/",
+    },
+    {
+        label: "Ferramentas",
+        icon: "i-lucide-wrench",
+        to: "/ferramentas",
+    },
+    {
+        label: "Perfil",
+        icon: "i-lucide-user",
+        to: "/perfil",
+    },
 ]);
 </script>
 
@@ -230,7 +230,7 @@ const mobileItems = computed(() => [
                             : undefined
                         ">
                     <UIcon :name="item.icon" class="h-6 w-6" />
-                    <span class="text-xs mt-1">{{ item.label }}</span>
+                    <span class="text-xs mt-1 break-words text-center">{{ item.label }}</span>
                 </NuxtLink>
             </div>
         </div>
@@ -255,9 +255,9 @@ const mobileItems = computed(() => [
                         @click="isDrawerOpen = false">
                         <div class="flex items-center space-x-3">
                             <UIcon :name="child.icon" class="flex-shrink-0 h-6 w-6 text-primary" />
-                            <div>
-                                <div class="font-medium">{{ child.label }}</div>
-                                <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                            <div class="min-w-0 flex-1">
+                                <div class="font-medium break-words">{{ child.label }}</div>
+                                <p class="text-sm text-neutral-500 dark:text-neutral-400 break-words">
                                     {{ child.description }}
                                 </p>
                             </div>

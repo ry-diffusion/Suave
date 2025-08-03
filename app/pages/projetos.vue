@@ -153,12 +153,12 @@
                                     <div class="flex justify-between items-center flex-wrap">
                                         <span class="text-muted">Início</span>
                                         <span class="font-medium">{{ formatDate(selectedProjeto.inicio_execucao)
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <div class="flex justify-between items-center flex-wrap">
                                         <span class="text-muted">Término</span>
                                         <span class="font-medium">{{ formatDate(selectedProjeto.fim_execucao)
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <div v-if="'area_conhecimento' in selectedProjeto"
                                         class="flex justify-between items-start flex-wrap">
@@ -200,12 +200,12 @@
                                     <div v-for="p in selectedProjeto.participacao" :key="p.id"
                                         class="flex items-center gap-2">
                                         <div
-                                            class="w-8 h-8 rounded-full bg-primary/80 text-white flex items-center justify-center font-bold">
+                                            class="w-8 h-8 rounded-full bg-primary/80 text-white flex items-center justify-center font-bold flex-shrink-0">
                                             {{ p.nome.charAt(0).toUpperCase() }}
                                         </div>
-                                        <div>
-                                            <div class="font-medium text-default">{{ p.nome }}</div>
-                                            <div class="text-xs text-muted">{{ p.vinculo }} <span
+                                        <div class="min-w-0 flex-1">
+                                            <div class="font-medium text-default break-words">{{ p.nome }}</div>
+                                            <div class="text-xs text-muted break-words">{{ p.vinculo }} <span
                                                     v-if="p.responsavel">(Responsável)</span></div>
                                         </div>
                                     </div>

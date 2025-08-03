@@ -34,9 +34,7 @@
               <UBadge color="neutral" variant="soft">{{ userData?.vinculo?.campus }}</UBadge>
             </div>
 
-            <UButton color="primary" variant="outline" icon="i-lucide-edit" class="w-full">
-              Editar Perfil
-            </UButton>
+
           </div>
         </UCard>
 
@@ -98,32 +96,32 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Nome Completo</p>
-              <p class="font-medium">{{ userData?.vinculo?.nome }}</p>
+              <p class="font-medium break-words">{{ userData?.vinculo?.nome }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Matrícula</p>
-              <p class="font-medium">{{ userData?.matricula }}</p>
+              <p class="font-medium break-words">{{ userData?.matricula }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">E-mail</p>
-              <p class="font-medium">{{ userData?.email }}</p>
+              <p class="font-medium break-all">{{ userData?.email }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">CPF</p>
-              <p class="font-medium">{{ userData?.cpf }}</p>
+              <p class="font-medium break-words">{{ userData?.cpf }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Data de Nascimento</p>
-              <p class="font-medium">{{ formatDate(userData?.data_nascimento || '') }}</p>
+              <p class="font-medium break-words">{{ formatDate(userData?.data_nascimento || '') }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Naturalidade</p>
-              <p class="font-medium">{{ userData?.naturalidade }}</p>
+              <p class="font-medium break-words">{{ userData?.naturalidade }}</p>
             </div>
           </div>
         </UCard>
@@ -140,22 +138,22 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Curso</p>
-              <p class="font-medium">{{ userData?.vinculo?.curso }}</p>
+              <p class="font-medium break-words">{{ userData?.vinculo?.curso }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Campus</p>
-              <p class="font-medium">{{ userData?.vinculo?.campus }}</p>
+              <p class="font-medium break-words">{{ userData?.vinculo?.campus }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Tipo de Vínculo</p>
-              <p class="font-medium">{{ userData?.tipo_vinculo }}</p>
+              <p class="font-medium break-words">{{ userData?.tipo_vinculo }}</p>
             </div>
 
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400">Matrícula Regular</p>
-              <p class="font-medium">{{ userData?.vinculo?.matricula_regular ? 'Sim' : 'Não' }}</p>
+              <p class="font-medium break-words">{{ userData?.vinculo?.matricula_regular ? 'Sim' : 'Não' }}</p>
             </div>
 
             <div>
@@ -167,7 +165,7 @@
 
             <div v-if="userData?.vinculo?.linha_pesquisa">
               <p class="text-sm text-gray-500 dark:text-gray-400">Linha de Pesquisa</p>
-              <p class="font-medium">{{ userData?.vinculo?.linha_pesquisa }}</p>
+              <p class="font-medium break-words">{{ userData?.vinculo?.linha_pesquisa }}</p>
             </div>
           </div>
         </UCard>
