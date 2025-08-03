@@ -9,6 +9,9 @@
   },
   "observability": {
     "enabled": true
+  },
+  "vars": {
+    "NUXT_SESSION_PASSWORD": "6f146015ce054b01a5eafef64a3b557f"
   }
   /**
    * Smart Placement
