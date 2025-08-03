@@ -46,14 +46,7 @@
             </div>
         </div>
         <!-- Loading State -->
-        <div v-if="loading" class="flex flex-col gap-6 items-center justify-center py-12 w-full">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl mb-6">
-                <USkeleton v-for="i in 4" :key="i" class="h-32 w-full rounded-xl" />
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl">
-                <USkeleton v-for="i in 6" :key="'card-' + i" class="h-40 w-full rounded-xl" />
-            </div>
-        </div>
+        <FullscreenGuiLoading v-if="loading" />
 
         <!-- Error State -->
         <div v-else-if="error" class="text-center py-12">

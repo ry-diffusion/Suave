@@ -3,6 +3,10 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, watch } from "vue";
 import { useAuthRefresh } from "~/composables/useAuthRefresh";
 import { useAppHeaderStore } from "~/stores/appHeader";
+import { useMascotStore } from "~/stores/mascot";
+
+const mascotStore = useMascotStore();
+mascotStore.initializeFromCookie();
 
 const route = useRoute();
 
@@ -95,6 +99,28 @@ function testFPS(durationMs = 1000): Promise<number> {
 	});
 }
 
+// Preload all mascot loading images invisibly
+const preloadMascotImages = () => {
+	// Get all available mascots
+	const { availableMascots } = mascotStore;
+
+	// Collect all loading image URLs from all mascots
+	const allLoadingImages: string[] = [];
+
+	Object.values(availableMascots).forEach(mascot => {
+		allLoadingImages.push(...mascot.loadingUrls);
+	});
+
+	// Preload each image invisibly
+	allLoadingImages.forEach(imageUrl => {
+		const img = new Image();
+		img.src = imageUrl;
+		// No need to append to DOM - just loading is enough
+	});
+
+	console.log(`[Suave] Preloaded ${allLoadingImages.length} mascot loading images`);
+};
+
 onMounted(async () => {
 	// Only run FPS test if window is defined (client-side)
 	if (typeof window !== "undefined") {
@@ -123,6 +149,9 @@ onMounted(async () => {
 		// 	} else {
 		// 		console.log("%c[Suave Performance Detection] Fast device detected. Performance mode is normal", "color: #00ff00");
 		// 	}
+
+		// Preload all mascot loading images
+		preloadMascotImages();
 	}
 });
 
@@ -133,6 +162,9 @@ useAuthRefresh();
 	<div class="flex flex-col min-h-screen bg-gradient" :class="{ 'page-transitioning': isPageTransitioning }">
 		<!-- Animated background component -->
 		<AnimatedBackground />
+
+		<!-- Mascot doodles component -->
+		<MascotDoodles />
 
 		<AppShell :title="title || pageTitle" :subtitle="subtitle" :show-back="showBack || showBackButton"
 			:onBack="onBack || fallbackOnBack" :large-title="useLargeTitle" :transparent="isTransparent">

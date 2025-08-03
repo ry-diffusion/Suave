@@ -1,8 +1,6 @@
 <template>
   <div class="p-4">
-    <div v-if="pending" class="flex justify-center items-center h-64">
-      <UISpinner />
-    </div>
+    <FullscreenGuiLoading v-if="pending" />
 
     <div v-else-if="error" class="flex justify-center items-center h-64">
       <UCard>
@@ -13,7 +11,7 @@
       </UCard>
     </div>
 
-    <div v-else-if="userData" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div v-else-if="userData" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       <!-- Profile Card -->
       <div class="md:col-span-1">
@@ -50,7 +48,7 @@
 
           <div class="space-y-4">
             <div>
-              <ULabel>Cor Principal</ULabel>
+              <p>Cor Principal</p>
               <div class="mt-4 grid grid-cols-4 gap-4">
                 <button v-for="(theme, name) in themeStore.availableThemes" :key="name"
                   @click="themeStore.setTheme(name)"
@@ -77,6 +75,77 @@
               <span class="text-gray-500 dark:text-gray-400">Modo Escuro</span>
               <USwitch v-model="isDarkMode"
                 @update:model-value="themeStore.setColorMode(isDarkMode ? 'dark' : 'light')" />
+            </div>
+          </div>
+        </UCard>
+
+        <!-- Mascot Settings -->
+        <UCard class="mt-6">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="font-medium">Mascote</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Personalize sua experiência</p>
+              </div>
+            </div>
+          </template>
+
+          <div class="space-y-6">
+            <div>
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+                Escolha sua mascote
+              </p>
+              <div class="grid grid-cols-1 gap-3">
+                <button v-for="(mascot, name) in mascotStore.availableMascots" :key="name" @click="selectMascot(name)"
+                  class="group relative w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2"
+                  :class="[
+                    mascotStore.currentMascot.name === mascot.name
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]">
+                  <div class="relative flex-shrink-0">
+                    <img :src="mascot.previewUrl" :alt="mascot.name"
+                      class="size-16 rounded-xl object-cover transition-all duration-200" :class="[
+                        mascotStore.currentMascot.name === mascot.name
+                          ? 'ring-2 ring-primary-500 ring-offset-2'
+                          : 'ring-1 ring-gray-200 dark:ring-gray-700'
+                      ]" />
+                    <div v-if="mascotStore.currentMascot.name === mascot.name"
+                      class="absolute -top-1 -right-1 size-6 bg-primary-500 rounded-full flex items-center justify-center">
+                      <UIcon name="i-lucide-check" class="size-4 text-white" />
+                    </div>
+                  </div>
+
+                  <div class="flex-1 text-left">
+                    <h3 class="font-medium text-gray-900 dark:text-gray-100">
+                      {{ mascotStore.mascotDisplayNames[name] }}
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {{ mascot.description }}
+                    </p>
+                  </div>
+
+                  <div class="flex-shrink-0">
+                    <UIcon name="i-lucide-chevron-right"
+                      class="size-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div v-if="mascotStore.currentMascot.name !== 'Default Mascot'"
+              class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+              <div class="flex items-start gap-3">
+                <UIcon name="i-lucide-info" class="size-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 class="font-medium text-blue-900 dark:text-blue-100 text-sm">
+                    Preferências aplicadas
+                  </h4>
+                  <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    As configurações de tema foram ajustadas para combinar com sua mascote escolhida.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </UCard>
@@ -182,7 +251,7 @@
                 <p class="font-medium">Avisos do Moodle</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Receba avisos sobre novas atividades e prazos</p>
               </div>
-              <UToggle v-model="notifMoodle" />
+              <USwitch v-model="notifMoodle" />
             </div>
 
             <div class="flex items-center justify-between">
@@ -191,7 +260,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Receba notificações quando suas notas forem
                   publicadas</p>
               </div>
-              <UToggle v-model="notifGrades" />
+              <USwitch v-model="notifGrades" />
             </div>
 
             <div class="flex items-center justify-between">
@@ -199,7 +268,7 @@
                 <p class="font-medium">Calendário Acadêmico</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Receba lembretes sobre eventos importantes</p>
               </div>
-              <UToggle v-model="notifCalendar" />
+              <USwitch v-model="notifCalendar" />
             </div>
 
             <div class="flex items-center justify-between">
@@ -208,7 +277,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Receba cópias dos e-mails no seu endereço pessoal
                 </p>
               </div>
-              <UToggle v-model="notifEmails" />
+              <USwitch v-model="notifEmails" />
             </div>
           </div>
         </UCard>
@@ -219,20 +288,41 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useMascotStore } from "~/stores/mascot";
 import { useThemeStore } from "~/stores/theme";
 
 const themeStore = useThemeStore();
+const mascotStore = useMascotStore();
 const { userData, pending, error, refresh } = useMyData();
 
 const isDarkMode = computed({
   get: () => themeStore.colorMode === "dark",
-  set: () => themeStore.toggleColorMode(),
+  set: (value) => themeStore.setColorMode(value ? "dark" : "light"),
 });
 
 const notifMoodle = ref(true);
 const notifGrades = ref(true);
 const notifCalendar = ref(false);
 const notifEmails = ref(true);
+
+// Função para selecionar mascote e aplicar suas preferências
+const selectMascot = (
+  mascotName: keyof typeof mascotStore.availableMascots,
+) => {
+  mascotStore.setMascot(mascotName);
+
+  // Aplicar preferências da mascote se definidas
+  const mascot = mascotStore.availableMascots[mascotName];
+
+  if (mascot?.preferredTheme) {
+    themeStore.setTheme(mascot.preferredTheme);
+  }
+
+  if (mascot?.preferredColorScheme) {
+    isDarkMode.value = mascot.preferredColorScheme === "dark";
+    themeStore.setColorMode(mascot.preferredColorScheme);
+  }
+};
 
 // Função para formatar data
 const formatDate = (dateString: string) => {

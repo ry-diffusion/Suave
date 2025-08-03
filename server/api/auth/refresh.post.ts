@@ -2,7 +2,6 @@ import type { institutionKind } from "~~/server/lib/institutions";
 import { getProviderById } from "~~/server/lib/providers";
 import type { IFGoianoPresencialProvider } from "~~/server/lib/providers/IFGoianoPresencial";
 import { Err, Ok } from "~~/shared/result";
-// getUserSession and replaceUserSession are available as auto-imports in Nuxt 3, so no import is needed
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
@@ -10,6 +9,7 @@ export default defineEventHandler(async (event) => {
   const authContext = session?.secure?.authContext;
 
   if (!institution || !authContext) {
+    console.error(`Refresh error: ${authContext}`);
     throw createError({
       statusCode: 401,
       message: "Sessão expirada ou inválida. Faça login novamente.",
@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
   const refreshResult = await provider.refreshAuth(authContext);
 
   if (refreshResult.error) {
+    console.error(`Refresh error: ${refreshResult.data.message}`);
     throw createError({
       statusCode: 401,
       message: `[REFRESH ERROR] ${refreshResult.data.message}`,

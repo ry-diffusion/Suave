@@ -202,7 +202,7 @@ const setThemeCSSVariables = (theme: ColorTheme) => {
 export const useThemeStore = defineStore("theme", () => {
   // Initialize with default values, will be updated on client mount
   const currentTheme = ref<ColorTheme>(availableThemes.rose!);
-  const colorMode = ref<"light" | "dark">("light");
+  const colorMode = ref<"light" | "dark">("dark");
 
   function setTheme(themeName: keyof typeof availableThemes) {
     if (themeName in availableThemes) {

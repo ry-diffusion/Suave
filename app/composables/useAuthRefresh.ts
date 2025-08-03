@@ -20,27 +20,16 @@ export function useAuthRefresh() {
   const baseDelay = 1000; // 1 second
   let retryCount = 0;
 
-  const refresh = async (isRetry = false): Promise<RefreshResponse> => {
+  const refresh = async (isRetry = false): Promise<void> => {
     try {
       const res = await $fetch<RefreshResponse>("/api/auth/refresh", {
         method: "POST",
+        credentials: "include",
       });
 
       if (res && res.ok) {
         // Reset retry count on successful refresh
         retryCount = 0;
-
-        authStore.setSession(
-          {
-            institution: authStore.user?.institution || "",
-            fullName: res.identity.name,
-            avatarUrl: res.identity.avatarUrl,
-            hasAlternativeIdentity: res.identity.hasAlternativeIdentity,
-          },
-          res.authContext,
-          res.identity
-        );
-        return res;
       } else {
         throw new Error("Invalid refresh response");
       }

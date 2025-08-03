@@ -12,114 +12,102 @@ interface RefreshResponse {
 
 /**
  * Composable que fornece uma função clientFetch com refresh token automático
+ * SSR-friendly - só faz refresh no lado do cliente
  *
  * @example
  * ```typescript
  * const { clientFetch } = useClientFetch();
- *
- * // Esta requisição será automaticamente tratada se retornar 401
  * const data = await clientFetch<MyType>("/api/endpoint");
  * ```
  */
 export function useClientFetch() {
   const authStore = useAuthStore();
-  let isRefreshing = false;
-  let failedQueue: Array<{
-    resolve: (value: any) => void;
-    reject: (reason?: any) => void;
-  }> = [];
-
-  const processQueue = (error: any, token: any = null) => {
-    failedQueue.forEach(({ resolve, reject }) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(token);
-      }
-    });
-    failedQueue = [];
+  const cookies = useCookie("nuxt-session");
+  const headers = useRequestHeaders(["cookie"]);
+  const requestURL = useRequestURL();
+  const enviroment = import.meta.server ? "server" : "client";
+  const log = (message: string) => {
+    console.log(`[${enviroment}] ${message}`);
   };
 
-  const refreshToken = async () => {
+  const performRefresh = async (): Promise<void> => {
     try {
-      console.log("Tentando refresh token...");
-      const res = await $fetch<RefreshResponse>("/api/auth/refresh", {
+      const res = await fetch(`${requestURL.origin}/api/auth/refresh`, {
         method: "POST",
+        credentials: "include",
+        headers: headers,
       });
 
-      if (res && res.ok) {
-        authStore.setSession(
-          {
-            institution: authStore.user?.institution || "",
-            fullName: res.identity.name,
-            avatarUrl: res.identity.avatarUrl,
-            hasAlternativeIdentity: res.identity.hasAlternativeIdentity,
-          },
-          res.authContext,
-          res.identity
-        );
-        console.log("Refresh token bem-sucedido");
-        return res;
-      } else {
-        throw new Error("Invalid refresh response");
+      log(`Refresh bem-sucedido: ${JSON.stringify(res)}`);
+
+      const session = res.headers.get("set-cookie");
+      if (session) {
+        log(`Session: ${session}`);
+        const sessionCookie = session.split(";")[0].split("=")[1];
+        log(`Session: ${sessionCookie}`);
+        cookies.value = sessionCookie;
       }
-    } catch (error) {
-      console.error("Erro no refresh token:", error);
-      throw error;
+    } catch (e: any) {
+      log(`Erro no refresh: ${e}`);
+      log(`Error: ${e.data}`);
+
+      // Se for 401, limpa a sessão e redireciona para login
+      const isUnauthorized = e?.status === 401 || e?.statusCode === 401;
+      if (isUnauthorized && import.meta.client) {
+        authStore.clearSession();
+        await navigateTo("/login");
+      }
+
+      throw e;
     }
   };
 
   /**
    * Função que substitui $fetch com tratamento automático de refresh token
-   *
-   * @param request - URL ou configuração da requisição
-   * @param options - Opções da requisição
-   * @returns Promise com o resultado da requisição
+   * Se receber 401/417 => faz refresh e refaz o fetch (apenas no cliente)
+   * Se tudo der certo retorna o resultado
    */
   const clientFetch = async <T>(
     request: any,
     options: any = {}
   ): Promise<T> => {
     try {
-      return (await $fetch<T>(request, options)) as T;
+      // Primeira tentativa
+      const res = (await $fetch<T>(request, {
+        ...options,
+        headers: headers,
+      })) as T;
+      log(`Resposta: ${res}`);
+      return res;
     } catch (error: any) {
-      // Verifica se é um erro 401
-      if (error?.statusCode === 401 || error?.status === 401) {
-        console.log("Detectado erro 401, tentando refresh token...");
-
-        // Se já está fazendo refresh, adiciona à fila
-        if (isRefreshing) {
-          console.log("Refresh já em andamento, adicionando à fila...");
-          return new Promise<T>((resolve, reject) => {
-            failedQueue.push({ resolve, reject });
-          })
-            .then(() => {
-              return $fetch<T>(request, options) as T;
-            })
-            .catch((err) => {
-              throw err;
-            });
-        }
-
-        isRefreshing = true;
+      log(`Erro detectado: ${error}`);
+      // Verifica se é erro 401 ou 417
+      if (
+        error?.statusCode === 401 ||
+        error?.status === 401 ||
+        error?.statusCode === 417
+      ) {
+        console.log("Erro 401/417 detectado, fazendo refresh token...");
 
         try {
-          await refreshToken();
-          console.log("Refresh bem-sucedido, processando fila...");
-          processQueue(null, null);
-
-          // Tenta a requisição original novamente
-          console.log("Repetindo requisição original...");
-          return (await $fetch<T>(request, options)) as T;
+          console.log("Fazendo refresh token...");
+          // Faz refresh do token (só no cliente)
+          await performRefresh();
+          console.log("Refresh bem-sucedido");
         } catch (refreshError) {
-          console.error("Erro no refresh, processando fila com erro...");
-          processQueue(refreshError, null);
+          console.error("Erro no refresh:", refreshError);
           throw refreshError;
-        } finally {
-          isRefreshing = false;
         }
+
+        // Refaz o fetch após o refresh
+        log("Refresh bem-sucedido, refazendo requisição...");
+        return (await $fetch<T>(request, {
+          ...options,
+          headers: headers,
+        })) as T;
       }
 
+      // Se não for 401/417, re-lança o erro original
       throw error;
     }
   };
