@@ -2,14 +2,8 @@
   <div class="p-4">
     <FullscreenGuiLoading v-if="pending" />
 
-    <div v-else-if="error" class="flex justify-center items-center h-64">
-      <UCard class="glass-card">
-        <div class="text-center">
-          <p class="text-red-500 mb-4">Erro ao carregar dados do perfil</p>
-          <UButton @click="() => refresh()" color="primary">Tentar novamente</UButton>
-        </div>
-      </UCard>
-    </div>
+    <FullscreenGuiError v-else-if="error" :error-message="error?.message || 'Erro ao carregar dados do perfil'"
+      :show-try-again="true" :loading="false" @retry="refresh" />
 
     <div v-else-if="userData" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

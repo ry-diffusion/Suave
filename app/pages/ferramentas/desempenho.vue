@@ -4,19 +4,8 @@
     <FullscreenGuiLoading v-if="loading" message="Carregando dados acadêmicos..." />
 
     <!-- Error State -->
-    <div v-else-if="error" class="flex items-center justify-center min-h-screen p-4">
-      <UCard class="max-w-md w-full glass-card">
-        <div class="text-center">
-          <UIcon name="i-lucide-alert-circle" class="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 class="text-lg font-semibold mb-2 text-neutral-900 dark:text-white">Erro ao carregar dados</h3>
-          <p class="text-neutral-600 dark:text-neutral-400 mb-6">{{ error }}</p>
-          <UButton @click="loadData" color="primary" size="lg" class="w-full">
-            <UIcon name="i-lucide-refresh-cw" class="mr-2" />
-            Tentar novamente
-          </UButton>
-        </div>
-      </UCard>
-    </div>
+    <FullscreenGuiError v-else-if="error" :loading="loading" :error-message="error" @retry="loadData"
+      @end-session="handleEndSession" />
 
     <!-- Main Content -->
     <div v-else class="p-4 space-y-6">
@@ -775,6 +764,14 @@ const performanceTrendOption = computed(() => {
 // Methods
 
 /**
+ * Handles the end session action from the error component
+ */
+function handleEndSession() {
+  // Navigate to logout or clear session
+  navigateTo('/login');
+}
+
+/**
  * Determina qual imagem do mascote usar baseada no desempenho
  * @returns {string} URL da imagem apropriada
  */
@@ -906,7 +903,7 @@ async function loadData() {
       disciplinas.value = []; // Clear disciplines
     } else {
       // Show error for other types of errors
-      error.value = err.message || "Erro ao carregar dados do boletim";
+      error.value = err.data.message || err.message || "Erro ao carregar dados do boletim";
       console.error("Error loading data:", err);
     }
   } finally {

@@ -52,12 +52,20 @@ export default defineEventHandler(async (event) => {
           message: "Boletim não encontrado",
         });
       }
-      console.log(boletimResult.data);
+      if (boletimResult.data.code === "EXTERNAL_SERVICE_ERROR") {
+        throw createError({
+          statusCode: 502,
+
+          message: `O SUAP está com problemas. Tente novamente mais tarde.`,
+        });
+      }
+
       throw createError({
-        statusCode: 417,
+        statusCode: 400,
         message: `[SUAP] ${boletimResult.data.message}`,
       });
     }
+
     throw createError({
       statusCode: 503,
       message: `[SERVIÇO INDISPONÍVEL] ${boletimResult.data.message}`,

@@ -118,8 +118,8 @@ export class SuapApiProvider
     return result.let((data) => {
       return {
         ...data,
-        url_foto_150x200: `${this.baseUrl}/${data.url_foto_150x200}`,
-        url_foto_75x100: `${this.baseUrl}/${data.url_foto_75x100}`,
+        url_foto_150x200: `${data.url_foto_150x200}`,
+        url_foto_75x100: `${data.url_foto_75x100}`,
       };
     });
   }
@@ -149,7 +149,7 @@ export class SuapApiProvider
     console.log(`[SUAP] Buscando boletim para ${ano}/${periodo}...`);
 
     const result = await suapFetchJson<Disciplina[]>(
-      `${this.baseUrl}/api/v2/minhas-informacoes/boletim/${ano}/${periodo}/`,
+      `${this.baseUrl}/api/edu/meu-boletim/${ano}/${periodo}/`,
       {
         headers: {
           Authorization: `Bearer ${authContext.access}`,

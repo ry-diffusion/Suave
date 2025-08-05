@@ -9,10 +9,31 @@ async function tryFetchImpl(
     const response = await fetch(url, init);
     if (!response.ok) {
       if (response.status === 401) {
+        console.error(
+          `[HTTP/${url}] Sessão expirada: ${
+            response.statusText
+          }: ${await response.text()}`
+        );
         return Err(new AppException("Sessão expirada", "SESSION_EXPIRED"));
       }
       if (response.status == 404) {
+        console.error(
+          `[HTTP/${url}] Página não encontrada: ${
+            response.statusText
+          }: ${await response.text()}`
+        );
         return Err(new AppException("Página não encontrada", "NOT_FOUND"));
+      }
+
+      if (response.status == 500) {
+        console.error(
+          `[HTTP/${url}] Erro interno do servidor: ${
+            response.statusText
+          }: ${await response.text()}`
+        );
+        return Err(
+          new AppException("Erro interno do servidor", "EXTERNAL_SERVICE_ERROR")
+        );
       }
       return Err(new AppException(`HTTP ${response.status}`, "HTTP_ERROR"));
     }
