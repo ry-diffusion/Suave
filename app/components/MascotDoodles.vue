@@ -6,9 +6,11 @@ import { useMascotStore } from "~/stores/mascot";
 const mascotStore = useMascotStore();
 const { currentMascot } = storeToRefs(mascotStore);
 
-// Initialize from cookie on mount
+// Initialize from cookie on mount (client-side only)
 onMounted(() => {
-  mascotStore.initializeFromCookie();
+  if (import.meta.client) {
+    mascotStore.initializeFromCookie();
+  }
 });
 
 // State for doodle display

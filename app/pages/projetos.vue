@@ -119,7 +119,7 @@
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-muted">Início</span>
                                 <span class="text-sm font-medium">{{ formatDate(selectedProjeto.inicio_execucao)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-muted">Término</span>

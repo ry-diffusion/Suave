@@ -150,19 +150,34 @@ export const getThemeByName = (name: string): ColorTheme | undefined => {
 
 // Server-side theme initialization
 export const getServerTheme = () => {
-  const themeCookie = useCookie(THEME_COOKIE);
-  const modeCookie = useCookie(COLOR_MODE_COOKIE);
+  // Use plugin-provided values during SSR, fallback to cookies on client
+  if (import.meta.server) {
+    const { $serverTheme, $serverMode } = useNuxtApp();
+    return {
+      theme:
+        $serverTheme && $serverTheme in availableThemes
+          ? availableThemes[$serverTheme]
+          : availableThemes.rose,
+      mode:
+        $serverMode === "dark" || $serverMode === "light"
+          ? $serverMode
+          : "light",
+    };
+  } else {
+    const themeCookie = useCookie(THEME_COOKIE);
+    const modeCookie = useCookie(COLOR_MODE_COOKIE);
 
-  return {
-    theme:
-      themeCookie.value && themeCookie.value in availableThemes
-        ? availableThemes[themeCookie.value]
-        : availableThemes.rose,
-    mode:
-      modeCookie.value === "dark" || modeCookie.value === "light"
-        ? modeCookie.value
-        : "light",
-  };
+    return {
+      theme:
+        themeCookie.value && themeCookie.value in availableThemes
+          ? availableThemes[themeCookie.value]
+          : availableThemes.rose,
+      mode:
+        modeCookie.value === "dark" || modeCookie.value === "light"
+          ? modeCookie.value
+          : "light",
+    };
+  }
 };
 
 // Function to set CSS variables for theme
@@ -207,9 +222,11 @@ export const useThemeStore = defineStore("theme", () => {
   function setTheme(themeName: keyof typeof availableThemes) {
     if (themeName in availableThemes) {
       currentTheme.value = availableThemes[themeName]!;
-      // Save to cookie
-      const themeCookie = useCookie(THEME_COOKIE);
-      themeCookie.value = themeName;
+      // Save to cookie (client-side only)
+      if (import.meta.client) {
+        const themeCookie = useCookie(THEME_COOKIE);
+        themeCookie.value = themeName;
+      }
       // Update CSS variables
       setThemeCSSVariables(currentTheme.value);
     }
@@ -219,10 +236,10 @@ export const useThemeStore = defineStore("theme", () => {
     // Add a small delay to ensure the transition is visible
     setTimeout(() => {
       colorMode.value = colorMode.value === "light" ? "dark" : "light";
-      const modeCookie = useCookie(COLOR_MODE_COOKIE);
-      modeCookie.value = colorMode.value;
-
+      // Save to cookie (client-side only)
       if (import.meta.client) {
+        const modeCookie = useCookie(COLOR_MODE_COOKIE);
+        modeCookie.value = colorMode.value;
         document.documentElement.classList.toggle(
           "dark",
           colorMode.value === "dark"
@@ -233,9 +250,10 @@ export const useThemeStore = defineStore("theme", () => {
 
   function setColorMode(mode: "light" | "dark") {
     colorMode.value = mode;
-    const modeCookie = useCookie(COLOR_MODE_COOKIE);
-    modeCookie.value = mode;
+    // Save to cookie (client-side only)
     if (import.meta.client) {
+      const modeCookie = useCookie(COLOR_MODE_COOKIE);
+      modeCookie.value = mode;
       document.documentElement.classList.toggle("dark", mode === "dark");
     }
   }

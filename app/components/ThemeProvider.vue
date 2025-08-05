@@ -56,5 +56,5 @@ onMounted(() => {
 </script>
 
 <template>
-    <slot />
+	<slot />
 </template>

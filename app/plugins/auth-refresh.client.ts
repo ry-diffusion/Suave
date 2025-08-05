@@ -10,7 +10,7 @@ interface RefreshResponse {
   };
 }
 
-export function useAuthRefresh() {
+export default defineNuxtPlugin(() => {
   const authStore = useAuthStore();
   let intervalId: ReturnType<typeof setInterval> | null = null;
   const userSession = useUserSession();
@@ -65,7 +65,7 @@ export function useAuthRefresh() {
     }
   };
 
-  // Função para refresh manual quando necessário
+  // Function for manual refresh when needed
   const manualRefresh = async () => {
     retryCount = 0; // Reset retry count for manual refresh
     return await refresh();
@@ -90,6 +90,8 @@ export function useAuthRefresh() {
   });
 
   return {
-    refresh: manualRefresh,
+    provide: {
+      authRefresh: manualRefresh,
+    },
   };
-}
+});

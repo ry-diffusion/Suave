@@ -468,14 +468,24 @@ export const getMascotByName = (name: string): Mascot | undefined => {
 
 // Server-side mascot initialization
 export const getServerMascot = () => {
-  const mascotCookie = useCookie(MASCOT_COOKIE);
-
-  return {
-    mascot:
-      mascotCookie.value && mascotCookie.value in availableMascots
-        ? availableMascots[mascotCookie.value]
-        : availableMascots.default,
-  };
+  // Use plugin-provided values during SSR, fallback to cookies on client
+  if (import.meta.server) {
+    const { $serverMascot } = useNuxtApp();
+    return {
+      mascot:
+        $serverMascot && $serverMascot in availableMascots
+          ? availableMascots[$serverMascot]
+          : availableMascots.default,
+    };
+  } else {
+    const mascotCookie = useCookie(MASCOT_COOKIE);
+    return {
+      mascot:
+        mascotCookie.value && mascotCookie.value in availableMascots
+          ? availableMascots[mascotCookie.value]
+          : availableMascots.default,
+    };
+  }
 };
 
 export const useMascotStore = defineStore("mascot", () => {
@@ -485,9 +495,11 @@ export const useMascotStore = defineStore("mascot", () => {
   function setMascot(mascotName: keyof typeof availableMascots) {
     if (mascotName in availableMascots) {
       currentMascot.value = availableMascots[mascotName]!;
-      // Save to cookie
-      const mascotCookie = useCookie(MASCOT_COOKIE);
-      mascotCookie.value = mascotName;
+      // Save to cookie (client-side only)
+      if (import.meta.client) {
+        const mascotCookie = useCookie(MASCOT_COOKIE);
+        mascotCookie.value = mascotName;
+      }
     }
   }
 
@@ -509,9 +521,12 @@ export const useMascotStore = defineStore("mascot", () => {
   }
 
   function initializeFromCookie() {
-    const mascotCookie = useCookie(MASCOT_COOKIE);
-    if (mascotCookie.value && mascotCookie.value in availableMascots) {
-      currentMascot.value = availableMascots[mascotCookie.value]!;
+    // Only run on client side
+    if (import.meta.client) {
+      const mascotCookie = useCookie(MASCOT_COOKIE);
+      if (mascotCookie.value && mascotCookie.value in availableMascots) {
+        currentMascot.value = availableMascots[mascotCookie.value]!;
+      }
     }
   }
 

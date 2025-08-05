@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, watch } from "vue";
-import { useAuthRefresh } from "~/composables/useAuthRefresh";
 import { useAppHeaderStore } from "~/stores/appHeader";
 import { useMascotStore } from "~/stores/mascot";
 
 const mascotStore = useMascotStore();
-mascotStore.initializeFromCookie();
+// Initialize from cookie only on client side
+if (import.meta.client) {
+	mascotStore.initializeFromCookie();
+}
 
 const route = useRoute();
 
@@ -157,8 +159,6 @@ onMounted(async () => {
 		preloadMascotImages();
 	}
 });
-
-useAuthRefresh();
 </script>
 
 <template>
