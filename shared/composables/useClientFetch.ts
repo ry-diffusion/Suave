@@ -23,7 +23,10 @@ interface RefreshResponse {
  */
 export function useClientFetch() {
   const authStore = useAuthStore();
-  const cookies = useCookie("nuxt-session");
+  const cookies = useCookie("nuxt-session", {
+    maxAge: 60 * 60 * 24 * 30, // 30 dias
+    expires: new Date(Date.now() + 60 * 60 * 24 * 30), // 30 dias
+  });
   const headers = useRequestHeaders(["cookie"]);
   const requestURL = useRequestURL();
   const enviroment = import.meta.server ? "server" : "client";
