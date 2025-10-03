@@ -1,110 +1,806 @@
 <template>
-	<div class="p-4">
+	<div class="min-h-screen">
+		<template v-if="loading">
+			<FullscreenGuiLoading v-if="loadingStage === 'courses'" :message="loadingMessage" />
 
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-			<UCard v-for="(moodle, index) in moodles" :key="index" class="hover:shadow-lg transition-shadow">
-				<template #header>
-					<div class="flex items-center">
-						<div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" :class="moodle.colorClass">
-							<UIcon :name="moodle.icon" class="h-5 w-5 text-white" />
-						</div>
-						<h2 class="font-medium break-words">{{ moodle.name }}</h2>
+			<transition v-else name="fade" mode="out-in">
+				<div
+					class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-white/90 dark:bg-black/90 backdrop-blur-lg px-6">
+					<GuiLoading />
+					<div class="text-center space-y-2">
+						<p class="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">
+							Carregando atividades...
+						</p>
+						<p class="text-neutral-600 dark:text-neutral-400">
+							{{ moduleLoadingMessage || 'Preparando os próximos moodles pra você' }}
+						</p>
 					</div>
-				</template>
-
-				<p class="text-sm text-gray-500 dark:text-gray-400 mb-3 break-words">
-					{{ moodle.description }}
-				</p>
-
-				<div class="flex items-center text-xs text-gray-500 mb-2">
-					<UIcon name="i-lucide-calendar" class="h-4 w-4 mr-1 flex-shrink-0" />
-					<span class="break-words">Última atualização: {{ moodle.lastUpdated }}</span>
+					<div class="w-full max-w-md">
+						<div class="h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+							<div class="h-full bg-primary-500 transition-all duration-300"
+								:style="{ width: `${progressPercentage}%` }" />
+						</div>
+						<p class="text-sm text-neutral-500 dark:text-neutral-400 mt-2 text-center">
+							{{ loadedCourses }} / {{ totalCourses }} cursos processados
+						</p>
+					</div>
 				</div>
+			</transition>
+		</template>
 
-				<div class="flex items-center text-xs text-gray-500">
-					<UIcon name="i-lucide-user" class="h-4 w-4 mr-1 flex-shrink-0" />
-					<span class="break-words">Professor: {{ moodle.teacher }}</span>
-				</div>
+		<!-- Error State -->
+		<FullscreenGuiError v-else-if="error" :error-message="error" :loading="loading" @retry="loadData" />
 
-				<template #footer>
-					<div class="flex justify-between items-center">
-						<UBadge :color="moodle.status === 'Ativo' ? 'green' : 'yellow'" size="sm">
-							{{ moodle.status }}
-						</UBadge>
-						<UButton :to="moodle.url" color="primary" variant="soft" icon="i-lucide-external-link" trailing>
-							Acessar
+		<!-- Main Content -->
+		<div v-else class="p-4 sm:p-6 lg:p-8 space-y-6">
+			<div class="space-y-3">
+				<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+					<div>
+						<h1 class="text-3xl font-bold text-neutral-900 dark:text-white">
+							Atividades do Moodle
+						</h1>
+						<p class="text-neutral-600 dark:text-neutral-400">
+							Acompanhe suas atividades disponíveis, veja o status e organize seus estudos.
+						</p>
+					</div>
+					<div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+						<UButton color="primary" size="lg" :loading="loading" @click="loadData">
+							<UIcon name="i-lucide-refresh-cw" class="mr-2" />
+							Atualizar dados
 						</UButton>
 					</div>
-				</template>
+				</div>
+				<!-- <UAlert v-if="hasModuleErrors" color="warning" variant="subtle" title="Alguns cursos não puderam ser carregados"
+					class="max-w-2xl">
+					<template #description>
+						<ul class="list-disc text-sm text-neutral-600 dark:text-neutral-400 ml-5 space-y-1">
+							<li v-for="message in moduleErrors" :key="message">{{ message }}</li>
+						</ul>
+					</template>
+				</UAlert> -->
+			</div>
+
+			<UCard v-if="stats.total > 0" class="glass-card">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+					<div class="space-y-2 text-center md:text-left">
+						<h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
+							Resumo rápido
+						</h2>
+						<p class="text-neutral-600 dark:text-neutral-400">
+							Você concluiu <strong>{{ stats.completed }}</strong> de <strong>{{ stats.total }}</strong>
+							atividades. Isso representa
+							<span
+								class="px-2 py-1 rounded-md bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-200 font-semibold">
+								{{ stats.percentage.toFixed(1) }}%
+							</span>
+							do total disponível.
+						</p>
+					</div>
+					<div class="flex flex-col items-center gap-3">
+						<div class="relative">
+							<svg class="w-24 h-24" viewBox="0 0 100 100">
+								<circle class="text-neutral-200 dark:text-neutral-700" stroke-width="10" stroke="currentColor"
+									fill="transparent" r="40" cx="50" cy="50" />
+								<circle class="text-primary-500 dark:text-primary-400" stroke-width="10"
+									:stroke-dasharray="circumference"
+									:stroke-dashoffset="circumference - (circumference * stats.percentage) / 100" stroke-linecap="round"
+									stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
+							</svg>
+							<div class="absolute inset-0 flex items-center justify-center">
+								<span class="text-xl font-semibold text-neutral-900 dark:text-white">
+									{{ Math.round(stats.percentage) }}%
+								</span>
+							</div>
+						</div>
+						<p class="text-sm text-neutral-500 dark:text-neutral-400">
+							Atualizado há {{ lastUpdatedLabel }}
+						</p>
+					</div>
+				</div>
 			</UCard>
+
+			<UCard class="glass-card">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+					<div class="flex flex-col sm:flex-row sm:items-center gap-3">
+						<div>
+							<p class="text-sm text-neutral-500 dark:text-neutral-400">Filtrar por disciplina</p>
+							<USelect v-model="filters.course" :items="courseOptions" value-key="value" option-attribute="label"
+								class="min-w-[220px]" />
+						</div>
+						<div>
+							<p class="text-sm text-neutral-500 dark:text-neutral-400">Filtrar por status</p>
+							<USelect v-model="filters.status" :items="statusOptions" value-key="value" option-attribute="label"
+								class="min-w-[220px]" />
+						</div>
+					</div>
+					<div class="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+						<span class="inline-flex items-center gap-1">
+							<span class="w-3 h-3 rounded-full bg-emerald-500" /> Concluído
+						</span>
+						<span class="inline-flex items-center gap-1">
+							<span class="w-3 h-3 rounded-full bg-amber-400" /> Pendente
+						</span>
+						<span class="inline-flex items-center gap-1">
+							<span class="w-3 h-3 rounded-full bg-rose-500" /> Atrasado
+						</span>
+					</div>
+				</div>
+			</UCard>
+
+			<div v-if="stats.total === 0" class="py-16">
+				<div class="max-w-xl mx-auto text-center space-y-4">
+					<MascotDoodles />
+					<h2 class="text-2xl font-semibold text-neutral-900 dark:text-white">
+						Nenhuma atividade disponível agora
+					</h2>
+					<p class="text-neutral-600 dark:text-neutral-400">
+						Assim que seus professores liberarem novas tarefas, elas aparecem aqui automaticamente.
+						Enquanto isso, aproveite para revisar o que já foi feito.
+					</p>
+				</div>
+			</div>
+
+			<div v-else class="space-y-8">
+				<section v-for="category in timeCategories" :key="category.key" class="space-y-4">
+					<div class="flex items-center justify-between">
+						<h2 class="text-2xl font-semibold text-neutral-900 dark:text-white">
+							{{ category.title }}
+						</h2>
+						<span class="text-sm text-neutral-500 dark:text-neutral-400">
+							{{ getCategoryCount(category.key) }} atividade(s)
+						</span>
+					</div>
+
+					<div v-if="categoryEntries(category.key).length === 0" class="text-neutral-500 dark:text-neutral-400">
+						Nenhuma atividade por aqui por enquanto.
+					</div>
+
+					<div v-else class="space-y-6">
+						<div v-for="[courseId, modules] in categoryEntries(category.key)" :key="courseId" class="space-y-3">
+							<div class="flex items-center justify-between">
+								<div>
+									<h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+										{{ getCourseName(Number(courseId)) }}
+									</h3>
+									<p class="text-sm text-neutral-500 dark:text-neutral-400">
+										{{ modules.length }} atividade(s)
+									</p>
+								</div>
+								<UButton variant="ghost" color="primary" size="sm" icon="i-lucide-share"
+									@click="shareCategory(category.title, courseId, modules)">
+									Compartilhar
+								</UButton>
+							</div>
+
+							<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+								<UCard v-for="module in modules" :key="module.id"
+									class="h-full flex flex-col justify-between border border-neutral-200/50 dark:border-neutral-700/50 hover:border-primary-400/60 transition">
+									<div class="space-y-3">
+										<div>
+											<h4 class="text-lg font-semibold text-neutral-900 dark:text-white">
+												{{ module.name }}
+											</h4>
+											<p class="text-sm text-neutral-500 dark:text-neutral-400">
+												{{ module.parent || module.course }}
+											</p>
+										</div>
+										<div class="flex items-center gap-2">
+											<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+												:class="statusClass(module)">
+												{{ statusLabel(module) }}
+											</span>
+										</div>
+										<div class="space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
+											<div v-if="module.allowSubmissionsFrom && category.showOpen">
+												<span class="font-medium">Abre:</span>
+												{{ formatAbsolute(module.allowSubmissionsFrom) }}
+											</div>
+											<div v-if="module.dueDate">
+												<span class="font-medium">Fecha:</span>
+												{{ formatRelative(module.dueDate) }}
+												<span class="text-xs text-neutral-500 dark:text-neutral-400">
+													({{ formatAbsolute(module.dueDate) }})
+												</span>
+											</div>
+										</div>
+									</div>
+									<div class="flex items-center justify-between pt-4">
+										<UBadge variant="subtle" :color="moduleBadgeTone(module)">
+											{{ module.kind }}
+										</UBadge>
+										<UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-up-right"
+											:to="module.url" target="_blank">
+											Acessar
+										</UButton>
+									</div>
+								</UCard>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
 		</div>
 	</div>
 </template>
 
-<script setup>
-const moodles = ref([
-	{
-		name: "Matemática Aplicada",
-		description:
-			"Curso de matemática aplicada com foco em resolução de problemas práticos",
-		icon: "i-lucide-calculator",
-		colorClass: "bg-blue-500",
-		lastUpdated: "12/05/2023",
-		teacher: "Prof. Carlos Santos",
-		status: "Ativo",
-		url: "#",
-	},
-	{
-		name: "Física Quântica",
-		description: "Introdução aos conceitos fundamentais da física quântica",
-		icon: "i-lucide-atom",
-		colorClass: "bg-purple-500",
-		lastUpdated: "10/05/2023",
-		teacher: "Profa. Ana Oliveira",
-		status: "Ativo",
-		url: "#",
-	},
-	{
-		name: "Literatura Brasileira",
-		description:
-			"Estudo das principais obras e autores da literatura brasileira",
-		icon: "i-lucide-book",
-		colorClass: "bg-red-500",
-		lastUpdated: "08/05/2023",
-		teacher: "Prof. João Pereira",
-		status: "Ativo",
-		url: "#",
-	},
-	{
-		name: "Programação Avançada",
-		description:
-			"Técnicas avançadas de programação e desenvolvimento de software",
-		icon: "i-lucide-code",
-		colorClass: "bg-green-500",
-		lastUpdated: "05/05/2023",
-		teacher: "Profa. Mariana Costa",
-		status: "Ativo",
-		url: "#",
-	},
-	{
-		name: "História da Arte",
-		description: "Panorama histórico das principais correntes artísticas",
-		icon: "i-lucide-palette",
-		colorClass: "bg-amber-500",
-		lastUpdated: "03/05/2023",
-		teacher: "Prof. Ricardo Alves",
-		status: "Em pausa",
-		url: "#",
-	},
-	{
-		name: "Biologia Celular",
-		description: "Estudo da estrutura e funcionamento das células",
-		icon: "i-lucide-microscope",
-		colorClass: "bg-teal-500",
-		lastUpdated: "01/05/2023",
-		teacher: "Profa. Juliana Lima",
-		status: "Ativo",
-		url: "#",
-	},
-]);
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { useMoodleApi } from "~~/shared/composables/useMoodleApi";
+import type { MoodleCourse, MoodleModule } from "~~/shared/moodle.d";
+
+definePageMeta({
+	middleware: "auth",
+});
+
+type FilterStatus = "all" | "completed" | "pending" | "late";
+
+type ModuleExt = MoodleModule & {
+	courseId: number;
+	course: string;
+	dueDate?: string;
+	allowSubmissionsFrom?: string;
+};
+
+type ModulesByCourse = Record<number, ModuleExt[]>;
+
+type CategoryKey = "current" | "future" | "past";
+
+interface CategoryDefinition {
+	key: CategoryKey;
+	title: string;
+	showOpen: boolean;
+}
+
+interface AvailableModulesExt {
+	current: ModulesByCourse;
+	future: ModulesByCourse;
+	past: ModulesByCourse;
+}
+
+const { getEnrolledCourses, getAvailableModules, getCourseCompletionStatus } =
+	useMoodleApi();
+
+const loading = ref(true);
+const loadingStage = ref<"courses" | "modules" | "completed">("courses");
+const loadingMessage = ref("Carregando cursos disponíveis...");
+const moduleLoadingMessage = ref("");
+const error = ref("");
+
+const courses = ref<MoodleCourse[]>([]);
+const courseNames = reactive<Record<number, string>>({});
+const moduleState = reactive<AvailableModulesExt>({
+	current: {},
+	future: {},
+	past: {},
+});
+
+const moduleErrors = ref<string[]>([]);
+const filters = reactive<{ course: string; status: FilterStatus }>({
+	course: "all",
+	status: "all",
+});
+
+const loadedCourses = ref(0);
+const now = ref(Date.now());
+let timer: ReturnType<typeof setInterval> | null = null;
+
+const courseOptions = computed(() => {
+	const options = [{ label: "Todas as disciplinas", value: "all" }];
+
+	const names = new Set<string>();
+	for (const modules of Object.values(moduleState)) {
+		for (const [courseId, courseModules] of Object.entries(modules)) {
+			if (courseModules.length > 0) {
+				names.add(getCourseName(Number(courseId)));
+			}
+		}
+	}
+
+	options.push(
+		...Array.from(names)
+			.sort((a, b) => a.localeCompare(b))
+			.map((name) => ({ label: name, value: name })),
+	);
+
+	return options;
+});
+
+const statusOptions = [
+	{ label: "Todos os status", value: "all" },
+	{ label: "Concluído", value: "completed" },
+	{ label: "Pendente", value: "pending" },
+	{ label: "Atrasado", value: "late" },
+];
+
+const timeCategories: CategoryDefinition[] = [
+	{ key: "current", title: "Moodles Abertos", showOpen: false },
+	{ key: "future", title: "Moodles Futuros", showOpen: true },
+	{ key: "past", title: "Moodles Passados", showOpen: false },
+];
+
+const totalCourses = computed(() => courses.value.length);
+const progressPercentage = computed(() => {
+	if (totalCourses.value === 0) return 0;
+	return Math.min(
+		100,
+		Math.round((loadedCourses.value / totalCourses.value) * 100),
+	);
+});
+
+const stats = computed(() => {
+	let completed = 0;
+	let total = 0;
+	const categories: CategoryKey[] = ["current", "future", "past"];
+
+	for (const category of categories) {
+		const record = moduleState[category];
+		for (const modules of Object.values(record)) {
+			for (const module of modules) {
+				total += 1;
+				if (module.hasCompleted) {
+					completed += 1;
+				}
+			}
+		}
+	}
+
+	const percentage = total === 0 ? 0 : (completed / total) * 100;
+
+	return {
+		completed,
+		total,
+		percentage,
+	};
+});
+
+const hasModuleErrors = computed(() => moduleErrors.value.length > 0);
+
+const lastUpdated = ref<Date | null>(null);
+const lastUpdatedLabel = computed(() => {
+	if (!lastUpdated.value) return "agora mesmo";
+	const diff = Date.now() - lastUpdated.value.getTime();
+	const minutes = Math.round(diff / 60000);
+	if (minutes <= 1) return "agora mesmo";
+	if (minutes < 60) return `${minutes} minuto${minutes > 1 ? "s" : ""} atrás`;
+	const hours = Math.round(minutes / 60);
+	if (hours < 24) return `${hours} hora${hours > 1 ? "s" : ""} atrás`;
+	const days = Math.round(hours / 24);
+	return `${days} dia${days > 1 ? "s" : ""} atrás`;
+});
+
+function simplifyCourseName(fullName: string) {
+	let name = fullName.replace(/^\d+ - /, "");
+	const parts = name.split(" - ");
+	if (parts.length > 0 && parts[0]) {
+		name = parts[0];
+	}
+	name = name.replace(/^SUAP\d+ - /, "");
+	return name.trim();
+}
+
+function normalizeDate(date: unknown): string | undefined {
+	if (!date) return undefined;
+	const parsed = new Date(date as string);
+	if (Number.isNaN(parsed.getTime())) return undefined;
+	return parsed.toISOString();
+}
+
+function categorizeModules(modules: ModuleExt[]) {
+	const nowDate = new Date();
+	const current: ModuleExt[] = [];
+	const future: ModuleExt[] = [];
+	const past: ModuleExt[] = [];
+
+	for (const module of modules) {
+		const allowDate = module.allowSubmissionsFrom
+			? new Date(module.allowSubmissionsFrom)
+			: undefined;
+		const dueDate = module.dueDate ? new Date(module.dueDate) : undefined;
+
+		if (dueDate && dueDate < nowDate) {
+			past.push(module);
+			continue;
+		}
+
+		if (!dueDate || (!allowDate && !dueDate)) {
+			past.push(module);
+			continue;
+		}
+
+		if (allowDate && allowDate > nowDate) {
+			future.push(module);
+			continue;
+		}
+
+		if (dueDate && dueDate >= nowDate && (!allowDate || allowDate <= nowDate)) {
+			current.push(module);
+			continue;
+		}
+
+		past.push(module);
+	}
+
+	const sorter = (a: ModuleExt, b: ModuleExt) => {
+		const aDate = a.dueDate
+			? new Date(a.dueDate).getTime()
+			: Number.POSITIVE_INFINITY;
+		const bDate = b.dueDate
+			? new Date(b.dueDate).getTime()
+			: Number.POSITIVE_INFINITY;
+		return aDate - bDate;
+	};
+
+	return {
+		current: current.sort(sorter),
+		future: future.sort(sorter),
+		past: past.sort(sorter),
+	};
+}
+
+function resetState() {
+	moduleState.current = {};
+	moduleState.future = {};
+	moduleState.past = {};
+	moduleErrors.value = [];
+	loadedCourses.value = 0;
+}
+
+async function loadData() {
+	try {
+		loading.value = true;
+		loadingStage.value = "courses";
+		loadingMessage.value = "Carregando cursos disponíveis...";
+		error.value = "";
+		resetState();
+
+		const coursesResult = await getEnrolledCourses();
+		if (coursesResult.error) {
+			throw coursesResult.data;
+		}
+
+		const fetchedCourses = coursesResult.data.courses || [];
+		courses.value = fetchedCourses;
+
+		if (fetchedCourses.length === 0) {
+			loadingStage.value = "completed";
+			loading.value = false;
+			lastUpdated.value = new Date();
+			return;
+		}
+
+		loadingStage.value = "modules";
+		for (const course of fetchedCourses) {
+			await loadCourseModules(course);
+			loadedCourses.value += 1;
+		}
+
+		await updateCompletionStatus();
+		lastUpdated.value = new Date();
+	} catch (err: unknown) {
+		console.error(err);
+		const message = err instanceof Error ? err.message : String(err);
+		error.value = message || "Não foi possível carregar os dados do Moodle.";
+	} finally {
+		loadingStage.value = "completed";
+		loading.value = false;
+	}
+}
+
+async function loadCourseModules(course: MoodleCourse) {
+	const courseName = simplifyCourseName(course.fullname) || course.fullname;
+	courseNames[course.id] = courseName;
+	moduleLoadingMessage.value = `Carregando atividades de ${courseName}`;
+
+	const modulesResult = await getAvailableModules(course.id);
+	if (modulesResult.error) {
+		moduleErrors.value.push(
+			`Não foi possível carregar as atividades de ${courseName}.`,
+		);
+		return;
+	}
+
+	const modules = (modulesResult.data.modules || []).map(
+		(module: MoodleModule) => {
+			return {
+				...module,
+				course: courseName,
+				courseId: course.id,
+				allowSubmissionsFrom: normalizeDate(module.allowSubmissionsFrom),
+				dueDate: normalizeDate(module.dueDate),
+			} as ModuleExt;
+		},
+	);
+
+	const categorized = categorizeModules(modules);
+	moduleState.current[course.id] = categorized.current;
+	moduleState.future[course.id] = categorized.future;
+	moduleState.past[course.id] = categorized.past;
+}
+
+function extractCompletionIds(entry: Record<string, unknown>): number[] {
+	const ids: number[] = [];
+	const maybeAdd = (value: unknown) => {
+		if (typeof value === "number" && Number.isFinite(value)) {
+			ids.push(value);
+		}
+	};
+
+	maybeAdd(entry.cmid);
+	maybeAdd(entry.coursemoduleid);
+	maybeAdd(entry.moduleid);
+	maybeAdd(entry.moduleinstance);
+
+	const details = entry.details;
+	if (Array.isArray(details)) {
+		for (const rawDetail of details) {
+			const detail = rawDetail as Record<string, unknown>;
+			maybeAdd(detail.cmid);
+			maybeAdd(detail.coursemoduleid);
+			maybeAdd(detail.moduleinstance);
+			if (typeof detail.url === "string") {
+				const match = detail.url.match(/id=(\d+)/);
+				const matchedId = match?.[1];
+				if (matchedId) {
+					maybeAdd(Number.parseInt(matchedId, 10));
+				}
+			}
+		}
+	}
+
+	const criteria = entry.criteria as Record<string, unknown> | undefined;
+	if (criteria && typeof criteria === "object") {
+		maybeAdd(criteria.coursemoduleid);
+		maybeAdd(criteria.moduleinstance);
+		maybeAdd(criteria.moduleid);
+	}
+
+	if (typeof entry.link === "string") {
+		const match = entry.link.match(/id=(\d+)/);
+		const matchedId = match?.[1];
+		if (matchedId) {
+			maybeAdd(Number.parseInt(matchedId, 10));
+		}
+	}
+
+	return ids;
+}
+
+async function updateCompletionStatus() {
+	const categories: CategoryKey[] = ["current", "future", "past"];
+
+	for (const course of courses.value) {
+		const statusResult = await getCourseCompletionStatus(course.id);
+		if (statusResult.error) {
+			moduleErrors.value.push(
+				`Não foi possível atualizar o progresso de ${getCourseName(course.id)}.`,
+			);
+			continue;
+		}
+
+		const completionsRaw = statusResult.data.completions as unknown;
+		const completions = Array.isArray(completionsRaw)
+			? (completionsRaw as Array<Record<string, unknown>>)
+			: [];
+		const completedIds = new Set<number>();
+
+		for (const completionRecord of completions) {
+			const completionDate = completionRecord.completiondate;
+			const completedFlag = completionRecord.completed;
+			const stateFlag = completionRecord.state;
+			const statusFlag = completionRecord.status;
+			const eligibleFlag = completionRecord.eligible;
+			const inProgressFlag = completionRecord.inprogress;
+
+			const hasDate = typeof completionDate === "number" && completionDate > 0;
+			const hasCompleted = typeof completedFlag === "boolean" && completedFlag;
+			const stateCompleted = typeof stateFlag === "number" && stateFlag === 1;
+			const statusCompleted =
+				typeof statusFlag === "number" && statusFlag === 1;
+			const eligibleCompleted =
+				typeof eligibleFlag === "boolean" &&
+				eligibleFlag &&
+				typeof inProgressFlag === "boolean" &&
+				!inProgressFlag;
+
+			const isDone =
+				hasDate ||
+				hasCompleted ||
+				stateCompleted ||
+				statusCompleted ||
+				eligibleCompleted;
+			if (!isDone) continue;
+			for (const id of extractCompletionIds(completionRecord)) {
+				completedIds.add(id);
+			}
+		}
+
+		if (completedIds.size === 0) continue;
+
+		for (const category of categories) {
+			const modules = moduleState[category][course.id];
+			if (!modules) continue;
+			moduleState[category][course.id] = modules.map((module) => {
+				if (module.hasCompleted) return module;
+				if (completedIds.has(module.id) || completedIds.has(module.instance)) {
+					return {
+						...module,
+						hasCompleted: true,
+					};
+				}
+				if (typeof module.url === "string") {
+					const match = module.url.match(/id=(\d+)/);
+					const matchedId = match?.[1];
+					if (matchedId && completedIds.has(Number.parseInt(matchedId, 10))) {
+						return {
+							...module,
+							hasCompleted: true,
+						};
+					}
+				}
+				return module;
+			});
+		}
+	}
+}
+
+function getCourseName(courseId: number) {
+	return courseNames[courseId] || "Curso";
+}
+
+function categoryEntries(category: CategoryKey) {
+	return Object.entries(moduleState[category])
+		.filter(([, modules]) => modules.length > 0)
+		.map(
+			([courseId, modules]) =>
+				[courseId, filterModules(modules)] as [string, ModuleExt[]],
+		)
+		.filter(([, modules]) => modules.length > 0);
+}
+
+function getCategoryCount(category: CategoryKey) {
+	return categoryEntries(category).reduce(
+		(acc, [, modules]) => acc + modules.length,
+		0,
+	);
+}
+
+function filterModules(modules: ModuleExt[]): ModuleExt[] {
+	return modules.filter((module) => {
+		const courseMatch =
+			filters.course === "all" || module.course === filters.course;
+		if (!courseMatch) return false;
+
+		if (filters.status === "all") return true;
+
+		const nowDate = new Date(now.value);
+		const dueDate = module.dueDate ? new Date(module.dueDate) : undefined;
+
+		switch (filters.status) {
+			case "completed":
+				return module.hasCompleted;
+			case "pending":
+				return !module.hasCompleted && (!dueDate || dueDate >= nowDate);
+			case "late":
+				return !module.hasCompleted && !!dueDate && dueDate < nowDate;
+			default:
+				return true;
+		}
+	});
+}
+
+function statusLabel(module: ModuleExt) {
+	if (module.hasCompleted) return "Concluído";
+	const dueDate = module.dueDate ? new Date(module.dueDate) : undefined;
+	if (dueDate && dueDate < new Date(now.value)) return "Atrasado";
+	return "Pendente";
+}
+
+function statusClass(module: ModuleExt) {
+	if (module.hasCompleted)
+		return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200";
+	const dueDate = module.dueDate ? new Date(module.dueDate) : undefined;
+	if (dueDate && dueDate < new Date(now.value))
+		return "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200";
+	return "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200";
+}
+
+function moduleBadgeTone(module: ModuleExt): "success" | "warning" | "error" {
+	if (module.hasCompleted) return "success";
+	const dueDate = module.dueDate ? new Date(module.dueDate) : undefined;
+	if (dueDate && dueDate < new Date(now.value)) return "error";
+	return "warning";
+}
+
+const circumference = 2 * Math.PI * 40;
+
+function formatAbsolute(date?: string) {
+	if (!date) return "Sem data definida";
+	const parsed = new Date(date);
+	if (Number.isNaN(parsed.getTime())) return "Sem data definida";
+	return parsed.toLocaleString("pt-BR", {
+		day: "2-digit",
+		month: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
+function formatRelative(date?: string) {
+	if (!date) return "Sem data";
+	const parsed = new Date(date);
+	if (Number.isNaN(parsed.getTime())) return "Sem data";
+	return formatRelativeTime(parsed, new Date(now.value));
+}
+
+function formatRelativeTime(target: Date, reference: Date) {
+	const diffSec = Math.round((target.getTime() - reference.getTime()) / 1000);
+	const isFuture = diffSec > 0;
+	const absDiff = Math.abs(diffSec);
+
+	const days = Math.floor(absDiff / 86400);
+	const hours = Math.floor((absDiff % 86400) / 3600);
+	const minutes = Math.floor((absDiff % 3600) / 60);
+	const seconds = Math.floor(absDiff % 60);
+
+	const parts: string[] = [];
+	if (days > 0) parts.push(`${days} ${days === 1 ? "dia" : "dias"}`);
+	if (hours > 0) parts.push(`${hours} ${hours === 1 ? "hora" : "horas"}`);
+	if (minutes > 0)
+		parts.push(`${minutes} ${minutes === 1 ? "minuto" : "minutos"}`);
+	if (parts.length === 0) {
+		parts.push(`${seconds} ${seconds === 1 ? "segundo" : "segundos"}`);
+	}
+
+	const formatted =
+		parts.length > 1
+			? `${parts.slice(0, -1).join(", ")} e ${parts.at(-1)}`
+			: parts[0];
+	return isFuture ? `Em ${formatted}` : `${formatted} atrás`;
+}
+
+function shareCategory(title: string, courseId: string, modules: ModuleExt[]) {
+	if (!modules.length) return;
+	const message = generateShareMessage(title, Number(courseId), modules);
+	if (import.meta.client) {
+		const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+		window.open(url, "_blank");
+	}
+}
+
+function generateShareMessage(
+	title: string,
+	courseId: number,
+	modules: ModuleExt[],
+) {
+	const course = getCourseName(courseId);
+	let content = `📚 ${title} - ${course}\n\n`;
+	for (const module of modules) {
+		const due = module.dueDate ? formatAbsolute(module.dueDate) : "Sem data";
+		content += `• ${module.name} (fecha ${due})\n${module.url}\n`;
+	}
+	content += "\nEnviado via Suave.";
+	return content;
+}
+onMounted(() => {
+	loadData();
+	timer = setInterval(() => {
+		now.value = Date.now();
+	}, 30_000);
+});
+
+onBeforeUnmount(() => {
+	if (timer) clearInterval(timer);
+});
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+	transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+	opacity: 0;
+}
+</style>
