@@ -8,19 +8,19 @@
 					class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-white/90 dark:bg-black/90 backdrop-blur-lg px-6">
 					<GuiLoading />
 					<div class="text-center space-y-2">
-						<p class="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">
+						<p class="text-2xl font-semibold">
 							Carregando atividades...
 						</p>
-						<p class="text-neutral-600 dark:text-neutral-400">
+						<p>
 							{{ moduleLoadingMessage || 'Preparando os próximos moodles pra você' }}
 						</p>
 					</div>
 					<div class="w-full max-w-md">
-						<div class="h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
-							<div class="h-full bg-primary-500 transition-all duration-300"
+						<div class="h-2 rounded-full bg-[color:var(--u-bg-muted)] overflow-hidden">
+							<div class="h-full transition-all duration-300 loading-bar-fill bg-primary"
 								:style="{ width: `${progressPercentage}%` }" />
 						</div>
-						<p class="text-sm text-neutral-500 dark:text-neutral-400 mt-2 text-center">
+						<p class="text-sm mt-2 text-center">
 							{{ loadedCourses }} / {{ totalCourses }} cursos processados
 						</p>
 					</div>
@@ -36,10 +36,10 @@
 			<div class="space-y-3">
 				<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 					<div>
-						<h1 class="text-3xl font-bold text-neutral-900 dark:text-white">
+						<h1 class="text-3xl font-bold">
 							Atividades do Moodle
 						</h1>
-						<p class="text-neutral-600 dark:text-neutral-400">
+						<p>
 							Acompanhe suas atividades disponíveis, veja o status e organize seus estudos.
 						</p>
 					</div>
@@ -53,7 +53,7 @@
 				<!-- <UAlert v-if="hasModuleErrors" color="warning" variant="subtle" title="Alguns cursos não puderam ser carregados"
 					class="max-w-2xl">
 					<template #description>
-						<ul class="list-disc text-sm text-neutral-600 dark:text-neutral-400 ml-5 space-y-1">
+						<ul class="list-disc text-sm ml-5 space-y-1">
 							<li v-for="message in moduleErrors" :key="message">{{ message }}</li>
 						</ul>
 					</template>
@@ -63,14 +63,13 @@
 			<UCard v-if="stats.total > 0" class="glass-card">
 				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 					<div class="space-y-2 text-center md:text-left">
-						<h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
+						<h2 class="text-xl font-semibold">
 							Resumo rápido
 						</h2>
-						<p class="text-neutral-600 dark:text-neutral-400">
+						<p>
 							Você concluiu <strong>{{ stats.completed }}</strong> de <strong>{{ stats.total }}</strong>
 							atividades. Isso representa
-							<span
-								class="px-2 py-1 rounded-md bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-200 font-semibold">
+							<span class="px-2 py-1 rounded-md bg-primary-800  font-semibold text-white">
 								{{ stats.percentage.toFixed(1) }}%
 							</span>
 							do total disponível.
@@ -79,20 +78,19 @@
 					<div class="flex flex-col items-center gap-3">
 						<div class="relative">
 							<svg class="w-24 h-24" viewBox="0 0 100 100">
-								<circle class="text-neutral-200 dark:text-neutral-700" stroke-width="10" stroke="currentColor"
-									fill="transparent" r="40" cx="50" cy="50" />
-								<circle class="text-primary-500 dark:text-primary-400" stroke-width="10"
-									:stroke-dasharray="circumference"
+								<circle class="text-muted" stroke-width="10" stroke="currentColor" fill="transparent" r="40" cx="50"
+									cy="50" />
+								<circle class="text-primary" stroke-width="10" :stroke-dasharray="circumference"
 									:stroke-dashoffset="circumference - (circumference * stats.percentage) / 100" stroke-linecap="round"
 									stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
 							</svg>
 							<div class="absolute inset-0 flex items-center justify-center">
-								<span class="text-xl font-semibold text-neutral-900 dark:text-white">
+								<span class="text-xl font-semibold">
 									{{ Math.round(stats.percentage) }}%
 								</span>
 							</div>
 						</div>
-						<p class="text-sm text-neutral-500 dark:text-neutral-400">
+						<p class="text-sm">
 							Atualizado há {{ lastUpdatedLabel }}
 						</p>
 					</div>
@@ -103,17 +101,17 @@
 				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 					<div class="flex flex-col sm:flex-row sm:items-center gap-3">
 						<div>
-							<p class="text-sm text-neutral-500 dark:text-neutral-400">Filtrar por disciplina</p>
+							<p class="text-sm">Filtrar por disciplina</p>
 							<USelect v-model="filters.course" :items="courseOptions" value-key="value" option-attribute="label"
 								class="min-w-[220px]" />
 						</div>
 						<div>
-							<p class="text-sm text-neutral-500 dark:text-neutral-400">Filtrar por status</p>
+							<p class="text-sm">Filtrar por status</p>
 							<USelect v-model="filters.status" :items="statusOptions" value-key="value" option-attribute="label"
 								class="min-w-[220px]" />
 						</div>
 					</div>
-					<div class="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+					<div class="flex items-center gap-2 text-sm">
 						<span class="inline-flex items-center gap-1">
 							<span class="w-3 h-3 rounded-full bg-emerald-500" /> Concluído
 						</span>
@@ -130,10 +128,10 @@
 			<div v-if="stats.total === 0" class="py-16">
 				<div class="max-w-xl mx-auto text-center space-y-4">
 					<MascotDoodles />
-					<h2 class="text-2xl font-semibold text-neutral-900 dark:text-white">
+					<h2 class="text-2xl font-semibold">
 						Nenhuma atividade disponível agora
 					</h2>
-					<p class="text-neutral-600 dark:text-neutral-400">
+					<p>
 						Assim que seus professores liberarem novas tarefas, elas aparecem aqui automaticamente.
 						Enquanto isso, aproveite para revisar o que já foi feito.
 					</p>
@@ -143,78 +141,70 @@
 			<div v-else class="space-y-8">
 				<section v-for="category in timeCategories" :key="category.key" class="space-y-4">
 					<div class="flex items-center justify-between">
-						<h2 class="text-2xl font-semibold text-neutral-900 dark:text-white">
+						<h2 class="text-2xl font-semibold">
 							{{ category.title }}
 						</h2>
-						<span class="text-sm text-neutral-500 dark:text-neutral-400">
+						<span class="text-sm">
 							{{ getCategoryCount(category.key) }} atividade(s)
 						</span>
 					</div>
 
-					<div v-if="categoryEntries(category.key).length === 0" class="text-neutral-500 dark:text-neutral-400">
+					<div v-if="flatCategoryEntries(category.key).length === 0" class="text-muted">
 						Nenhuma atividade por aqui por enquanto.
 					</div>
 
 					<div v-else class="space-y-6">
-						<div v-for="[courseId, modules] in categoryEntries(category.key)" :key="courseId" class="space-y-3">
-							<div class="flex items-center justify-between">
-								<div>
-									<h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
-										{{ getCourseName(Number(courseId)) }}
-									</h3>
-									<p class="text-sm text-neutral-500 dark:text-neutral-400">
-										{{ modules.length }} atividade(s)
-									</p>
-								</div>
-								<UButton variant="ghost" color="primary" size="sm" icon="i-lucide-share"
-									@click="shareCategory(category.title, courseId, modules)">
-									Compartilhar
-								</UButton>
-							</div>
-
-							<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-								<UCard v-for="module in modules" :key="module.id"
-									class="h-full flex flex-col justify-between border border-neutral-200/50 dark:border-neutral-700/50 hover:border-primary-400/60 transition">
-									<div class="space-y-3">
+						<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+							<UCard v-for="module in flatCategoryEntries(category.key)" :key="module.id"
+								class="h-full flex flex-col justify-between glass-card activity-card hover:border-primary transition">
+								<div class="space-y-3">
+									<div class="flex items-start justify-between">
 										<div>
-											<h4 class="text-lg font-semibold text-neutral-900 dark:text-white">
+											<h4 class="text-lg font-semibold">
 												{{ module.name }}
 											</h4>
-											<p class="text-sm text-neutral-500 dark:text-neutral-400">
-												{{ module.parent || module.course }}
+											<p class="text-sm">
+												<small v-if="module.parent">{{ module.parent }}</small>
 											</p>
 										</div>
-										<div class="flex items-center gap-2">
-											<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
-												:class="statusClass(module)">
-												{{ statusLabel(module) }}
+										<UBadge variant="subtle" class="ml-2">{{ module.course }}</UBadge>
+									</div>
+									<div class="flex items-center gap-2">
+										<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+											:class="statusClass(module)">
+											{{ statusLabel(module) }}
+										</span>
+									</div>
+									<div class="space-y-2 text-sm">
+										<div v-if="module.allowSubmissionsFrom && category.showOpen">
+											<span class="font-medium">Abre:</span>
+											{{ formatAbsolute(module.allowSubmissionsFrom) }}
+										</div>
+										<div v-if="module.dueDate">
+											<span class="font-medium">Fecha:</span>
+											{{ formatRelative(module.dueDate) }}
+											<span class="text-xs">
+												({{ formatAbsolute(module.dueDate) }})
 											</span>
 										</div>
-										<div class="space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
-											<div v-if="module.allowSubmissionsFrom && category.showOpen">
-												<span class="font-medium">Abre:</span>
-												{{ formatAbsolute(module.allowSubmissionsFrom) }}
-											</div>
-											<div v-if="module.dueDate">
-												<span class="font-medium">Fecha:</span>
-												{{ formatRelative(module.dueDate) }}
-												<span class="text-xs text-neutral-500 dark:text-neutral-400">
-													({{ formatAbsolute(module.dueDate) }})
-												</span>
-											</div>
-										</div>
 									</div>
-									<div class="flex items-center justify-between pt-4">
-										<UBadge variant="subtle" :color="moduleBadgeTone(module)">
-											{{ module.kind }}
-										</UBadge>
+								</div>
+								<div class="flex items-center justify-between pt-4">
+									<UBadge variant="subtle" :color="moduleBadgeTone(module)">
+										{{ module.kind }}
+									</UBadge>
+									<div class="flex items-center gap-2">
+										<UButton variant="ghost" color="primary" size="sm" icon="i-lucide-share"
+											@click="shareCategory(category.title, String(module.courseId), [module])">
+											Compartilhar
+										</UButton>
 										<UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-up-right"
 											:to="module.url" target="_blank">
 											Acessar
 										</UButton>
 									</div>
-								</UCard>
-							</div>
+								</div>
+							</UCard>
 						</div>
 					</div>
 				</section>
@@ -243,7 +233,7 @@ type ModuleExt = MoodleModule & {
 
 type ModulesByCourse = Record<number, ModuleExt[]>;
 
-type CategoryKey = "current" | "future" | "past";
+type CategoryKey = "current" | "future" | "undated" | "past";
 
 interface CategoryDefinition {
 	key: CategoryKey;
@@ -254,6 +244,7 @@ interface CategoryDefinition {
 interface AvailableModulesExt {
 	current: ModulesByCourse;
 	future: ModulesByCourse;
+	undated: ModulesByCourse;
 	past: ModulesByCourse;
 }
 
@@ -271,6 +262,7 @@ const courseNames = reactive<Record<number, string>>({});
 const moduleState = reactive<AvailableModulesExt>({
 	current: {},
 	future: {},
+	undated: {},
 	past: {},
 });
 
@@ -315,6 +307,7 @@ const statusOptions = [
 const timeCategories: CategoryDefinition[] = [
 	{ key: "current", title: "Moodles Abertos", showOpen: false },
 	{ key: "future", title: "Moodles Futuros", showOpen: true },
+	{ key: "undated", title: "Moodles sem data conhecida", showOpen: false },
 	{ key: "past", title: "Moodles Passados", showOpen: false },
 ];
 
@@ -327,6 +320,13 @@ const progressPercentage = computed(() => {
 	);
 });
 
+// Kinds that should not be considered part of the activity counters
+const nonCountableKinds = new Set(["resource", "forum", "page"]);
+function isCountable(module: ModuleExt) {
+	const kind = (module.kind || "").toString().toLowerCase();
+	return !nonCountableKinds.has(kind);
+}
+
 const stats = computed(() => {
 	let completed = 0;
 	let total = 0;
@@ -336,6 +336,7 @@ const stats = computed(() => {
 		const record = moduleState[category];
 		for (const modules of Object.values(record)) {
 			for (const module of modules) {
+				if (!isCountable(module)) continue;
 				total += 1;
 				if (module.hasCompleted) {
 					completed += 1;
@@ -389,6 +390,7 @@ function categorizeModules(modules: ModuleExt[]) {
 	const nowDate = new Date();
 	const current: ModuleExt[] = [];
 	const future: ModuleExt[] = [];
+	const undated: ModuleExt[] = [];
 	const past: ModuleExt[] = [];
 
 	for (const module of modules) {
@@ -402,8 +404,15 @@ function categorizeModules(modules: ModuleExt[]) {
 			continue;
 		}
 
-		if (!dueDate || (!allowDate && !dueDate)) {
-			past.push(module);
+		if (!dueDate && !allowDate) {
+			// Skip common non-actionable module types from undated (they clutter 'sem data conhecida')
+			const kindLower = (module.kind || "").toString().toLowerCase();
+			if (kindLower === "resource" || kindLower === "forum" || kindLower === "page") {
+				// Consider these as past/unimportant for the undated listing: place in past
+				past.push(module);
+				continue;
+			}
+			undated.push(module);
 			continue;
 		}
 
@@ -433,6 +442,7 @@ function categorizeModules(modules: ModuleExt[]) {
 	return {
 		current: current.sort(sorter),
 		future: future.sort(sorter),
+		undated: undated.sort(sorter),
 		past: past.sort(sorter),
 	};
 }
@@ -440,6 +450,7 @@ function categorizeModules(modules: ModuleExt[]) {
 function resetState() {
 	moduleState.current = {};
 	moduleState.future = {};
+	moduleState.undated = {};
 	moduleState.past = {};
 	moduleErrors.value = [];
 	loadedCourses.value = 0;
@@ -514,6 +525,7 @@ async function loadCourseModules(course: MoodleCourse) {
 	const categorized = categorizeModules(modules);
 	moduleState.current[course.id] = categorized.current;
 	moduleState.future[course.id] = categorized.future;
+	moduleState.undated[course.id] = categorized.undated;
 	moduleState.past[course.id] = categorized.past;
 }
 
@@ -566,7 +578,7 @@ function extractCompletionIds(entry: Record<string, unknown>): number[] {
 }
 
 async function updateCompletionStatus() {
-	const categories: CategoryKey[] = ["current", "future", "past"];
+	const categories: CategoryKey[] = ["current", "future", "undated", "past"];
 
 	for (const course of courses.value) {
 		const statusResult = await getCourseCompletionStatus(course.id);
@@ -647,21 +659,26 @@ function getCourseName(courseId: number) {
 	return courseNames[courseId] || "Curso";
 }
 
-function categoryEntries(category: CategoryKey) {
-	return Object.entries(moduleState[category])
-		.filter(([, modules]) => modules.length > 0)
-		.map(
-			([courseId, modules]) =>
-				[courseId, filterModules(modules)] as [string, ModuleExt[]],
-		)
-		.filter(([, modules]) => modules.length > 0);
+// categoryEntries was removed in favor of flatCategoryEntries which groups by category
+
+function flatCategoryEntries(category: CategoryKey) {
+	const entries: ModuleExt[] = [];
+	const record = moduleState[category] || {};
+	for (const modules of Object.values(record)) {
+		const filtered = filterModules(modules);
+		for (const m of filtered) entries.push(m);
+	}
+	// sort by dueDate (unknowns at end)
+	entries.sort((a, b) => {
+		const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
+		const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+		return aDate - bDate;
+	});
+	return entries;
 }
 
 function getCategoryCount(category: CategoryKey) {
-	return categoryEntries(category).reduce(
-		(acc, [, modules]) => acc + modules.length,
-		0,
-	);
+	return flatCategoryEntries(category).length;
 }
 
 function filterModules(modules: ModuleExt[]): ModuleExt[] {
@@ -696,12 +713,11 @@ function statusLabel(module: ModuleExt) {
 }
 
 function statusClass(module: ModuleExt) {
-	if (module.hasCompleted)
-		return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200";
+	// Only use background/tone classes; avoid explicit text color utilities so theme can provide text colors
+	if (module.hasCompleted) return "bg-emerald-100 dark:bg-emerald-500/20";
 	const dueDate = module.dueDate ? new Date(module.dueDate) : undefined;
-	if (dueDate && dueDate < new Date(now.value))
-		return "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200";
-	return "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200";
+	if (dueDate && dueDate < new Date(now.value)) return "bg-rose-100 dark:bg-rose-500/20";
+	return "bg-amber-100 dark:bg-amber-500/20";
 }
 
 function moduleBadgeTone(module: ModuleExt): "success" | "warning" | "error" {
@@ -802,5 +818,40 @@ onBeforeUnmount(() => {
 .fade-enter-from,
 .fade-leave-to {
 	opacity: 0;
+}
+
+.loading-bar-fill {
+	height: 100%;
+	transition: width 0.3s ease, opacity 0.25s ease;
+}
+
+.loading-bar-complete {
+	animation: loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+	0% {
+		opacity: 1;
+		transform: scaleY(1);
+	}
+
+	50% {
+		opacity: 0.6;
+		transform: scaleY(0.98);
+	}
+
+	100% {
+		opacity: 1;
+		transform: scaleY(1);
+	}
+}
+
+/* Activity card contrast adjustments: slightly darker border to match hero card */
+.activity-card {
+	border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark .activity-card {
+	border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 </style>

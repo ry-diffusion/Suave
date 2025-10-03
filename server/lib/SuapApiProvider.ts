@@ -1,5 +1,5 @@
-import type { Projetos, UserData } from "~~/shared/datatypes";
 import type { Disciplina, Etapa, PeriodoLetivo } from "~~/shared/boletim";
+import type { Projetos, UserData } from "~~/shared/datatypes";
 import { Err, Ok, type Result } from "~~/shared/result";
 import { suapFetchJson } from "~~/shared/suap";
 import type { ClassicAuthSchema, SuapAuthContext } from "~~/types/moodle";
@@ -107,7 +107,7 @@ export class SuapApiProvider
     console.log(`[SUAP] Buscando dados do usuário...`);
 
     const result = await suapFetchJson<UserData>(
-      `${this.baseUrl}/api/v2/minhas-informacoes/meus-dados/`,
+      `${this.baseUrl}/api/rh/meus-dados/`,
       {
         headers: {
           Authorization: `Bearer ${authContext.access}`,
