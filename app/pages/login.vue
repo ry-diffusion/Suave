@@ -14,6 +14,8 @@ const loading = ref(false);
 const error = ref("");
 const direction = ref<"left" | "right">("right");
 const success = ref(false);
+const { proxy: rybbit } = useScriptRybbitAnalytics();
+
 
 // Only one institution for now, but keep as array for future
 const institutions = [
@@ -58,6 +60,15 @@ async function submitLogin() {
         });
         await refreshSession();
         success.value = true;
+
+        rybbit.identify(form.username);
+
+        rybbit.event("login_success", {
+            method: "credentials",
+            institution: form.institution,
+        });
+
+        
         setTimeout(() => {
             router.push("/");
         }, 2000);
@@ -70,6 +81,11 @@ async function submitLogin() {
             (e as { data?: { message?: unknown } }).data?.message &&
             typeof (e as { data: { message: unknown } }).data.message === "string"
         ) {
+            rybbit.event("login_failure", {
+                method: "credentials",
+                institution: form.institution,
+                reason: (e as { data: { message: string } }).data.message,
+            });
             error.value = (e as { data: { message: string } }).data.message;
         } else {
             error.value = "Credenciais inválidas";
