@@ -16,6 +16,23 @@ export default defineNuxtConfig({
     },
   },
 
+  scripts: {
+    registry: {
+      rybbitAnalytics: {
+        sessionReplay: true,
+        trackOutbound: true,
+        trackErrors: true,
+
+        // NUXT_PUBLIC_RYBBIT_ANALYTICS_API_KEY
+        apiKey: "",
+        scriptInput: {
+          src: "https://analytics.zesmoi.com.br/api/script.js",
+        },
+        siteId: "3",
+      },
+    },
+  },
+
   modules: [
     "nitro-cloudflare-dev",
     "@nuxt/eslint",
@@ -27,5 +44,6 @@ export default defineNuxtConfig({
     "nuxt-auth-utils",
     "@pinia/nuxt",
     "nuxt-echarts",
+    "@nuxt/scripts",
   ],
 });
