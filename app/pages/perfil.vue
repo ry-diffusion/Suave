@@ -44,8 +44,7 @@
             <div>
               <p>Cor Principal</p>
               <div class="mt-4 grid grid-cols-4 gap-4">
-                <button v-for="(theme, name) in themeStore.availableThemes" :key="name"
-                  @click="themeStore.setTheme(name)"
+                <button v-for="(theme, name) in themeStore.availableThemes" :key="name" @click="handleSetTheme(name)"
                   class="group relative flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105">
                   <div class="relative">
                     <div class="size-12 rounded-full transition-all duration-200" :class="[
@@ -67,8 +66,7 @@
 
             <div class="flex items-center justify-between text-sm">
               <span class="text-gray-500 dark:text-gray-400">Modo Escuro</span>
-              <USwitch v-model="isDarkMode"
-                @update:model-value="themeStore.setColorMode(isDarkMode ? 'dark' : 'light')" />
+              <USwitch v-model="isDarkMode" />
             </div>
           </div>
         </UCard>
@@ -281,7 +279,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useMascotStore } from "~/stores/mascot";
 import { useThemeStore } from "~/stores/theme";
 
@@ -289,15 +287,39 @@ const themeStore = useThemeStore();
 const mascotStore = useMascotStore();
 const { userData, pending, error, refresh } = useMyData();
 
+// analytics proxy (similar to login.vue)
+const { proxy: rybbit } = useScriptRybbitAnalytics();
+
 const isDarkMode = computed({
   get: () => themeStore.colorMode === "dark",
-  set: (value) => themeStore.setColorMode(value ? "dark" : "light"),
+  set: (value) => {
+    themeStore.setColorMode(value ? "dark" : "light");
+    try {
+      rybbit.event("theme_color_mode_changed", {
+        mode: value ? "dark" : "light",
+      });
+    } catch (_) {
+      // fail silently if analytics not available
+    }
+  },
 });
 
 const notifMoodle = ref(true);
 const notifGrades = ref(true);
 const notifCalendar = ref(false);
 const notifEmails = ref(true);
+
+// Handler para alterar o tema (paleta)
+function handleSetTheme(name: string) {
+  themeStore.setTheme(name);
+  try {
+    rybbit.event("theme_selected", {
+      theme: name,
+    });
+  } catch (_) {
+    // ignore
+  }
+}
 
 // Função para selecionar mascote e aplicar suas preferências
 const selectMascot = (
@@ -309,14 +331,67 @@ const selectMascot = (
   const mascot = mascotStore.availableMascots[mascotName];
 
   if (mascot?.preferredTheme) {
-    themeStore.setTheme(mascot.preferredTheme);
+    handleSetTheme(mascot.preferredTheme);
   }
 
   if (mascot?.preferredColorScheme) {
     isDarkMode.value = mascot.preferredColorScheme === "dark";
-    themeStore.setColorMode(mascot.preferredColorScheme);
+    // themeStore.setColorMode already called by isDarkMode setter
+  }
+
+  try {
+    rybbit.event("mascot_selected", {
+      mascot: mascotName,
+    });
+  } catch (_) {
+    // ignore
   }
 };
+
+// Watchers para preferências de notificação
+watch(notifMoodle, (val) => {
+  try {
+    rybbit.event("notification_pref_changed", {
+      channel: "moodle",
+      enabled: Boolean(val),
+    });
+  } catch (_) {
+    // ignore
+  }
+});
+
+watch(notifGrades, (val) => {
+  try {
+    rybbit.event("notification_pref_changed", {
+      channel: "grades",
+      enabled: Boolean(val),
+    });
+  } catch (_) {
+    // ignore
+  }
+});
+
+watch(notifCalendar, (val) => {
+  try {
+    rybbit.event("notification_pref_changed", {
+      channel: "calendar",
+      enabled: Boolean(val),
+    });
+  } catch (_) {
+    // ignore
+  }
+});
+
+watch(notifEmails, (val) => {
+  try {
+    rybbit.event("notification_pref_changed", {
+      channel: "emails",
+      enabled: Boolean(val),
+    });
+  } catch (_) {
+    // ignore
+  }
+});
 
 // Função para formatar data
 const formatDate = (dateString: string) => {
@@ -324,6 +399,20 @@ const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString("pt-BR");
 };
+
+// Prevent false-positive "unused" errors for variables used only in the template
+/* istanbul ignore next */
+void userData;
+/* istanbul ignore next */
+void pending;
+/* istanbul ignore next */
+void error;
+/* istanbul ignore next */
+void refresh;
+/* istanbul ignore next */
+void selectMascot;
+/* istanbul ignore next */
+void formatDate;
 
 // Add middleware to protect this page
 definePageMeta({
