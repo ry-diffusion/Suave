@@ -129,6 +129,20 @@ const preloadMascotImages = () => {
 onMounted(async () => {
 	// Only run FPS test if window is defined (client-side)
 	if (typeof window !== "undefined") {
+		// If accessed via the old hostname, redirect to the new hostname preserving path, query and hash
+		try {
+			const host = window.location.hostname;
+			if (host === "suave.examflow.com.br") {
+				const { protocol, pathname, search, hash } = window.location;
+				const target = `${protocol}//suave.zesmoi.com.br${pathname}${search}${hash}`;
+				// Use replace so the redirect doesn't create a history entry
+				window.location.replace(target);
+				return; // stop further client-side initialization
+			}
+		} catch (e) {
+			// ignore errors during redirect logic but log for debugging
+			console.error('[Suave] hostname redirect check failed', e);
+		}
 		// 	const fps = await testFPS(1000); // 1 second test
 
 		// 	if (fps === 0) {
@@ -159,6 +173,8 @@ onMounted(async () => {
 		preloadMascotImages();
 	}
 });
+
+
 
 
 </script>
