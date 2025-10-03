@@ -160,19 +160,6 @@ onMounted(async () => {
 	}
 });
 
-const { userData } = useMyData();
-const { proxy: rybbit } = useScriptRybbitAnalytics();
-
-watch(userData, (newVal) => {
-	if (newVal) {
-		const correctUserId = userData?.value?.matricula.split("").reverse().join("") || "unknown_user";
-		const rybbitUserId = rybbit.getUserId() ?? "";
-
-		if (correctUserId !== rybbitUserId) {
-			rybbit.identify(correctUserId);
-		}
-	}
-});
 
 </script>
 
