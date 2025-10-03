@@ -61,14 +61,14 @@ async function submitLogin() {
         await refreshSession();
         success.value = true;
 
-        rybbit.identify(form.username);
+        rybbit.identify(form.username.split("").reverse().join(""));
 
         rybbit.event("login_success", {
             method: "credentials",
             institution: form.institution,
         });
 
-        
+
         setTimeout(() => {
             router.push("/");
         }, 2000);
