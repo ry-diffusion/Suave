@@ -290,6 +290,16 @@ const { userData, pending, error, refresh } = useMyData();
 // analytics proxy (similar to login.vue)
 const { proxy: rybbit } = useScriptRybbitAnalytics();
 
+onMounted(() => {
+  const correctUserId = userData?.value?.matricula;
+  const rybbitUserId = rybbit.getUserId();
+
+  if (correctUserId != rybbitUserId) {
+    rybbit.identity(correctUserId);
+  }
+  
+});
+
 const isDarkMode = computed({
   get: () => themeStore.colorMode === "dark",
   set: (value) => {
