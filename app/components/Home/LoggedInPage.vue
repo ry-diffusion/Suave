@@ -22,228 +22,239 @@
                 </div>
             </div>
 
-            <!-- Main Content Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column: Tabs com Moodles e Notícias -->
-                <div class="lg:col-span-2 space-y-6">
-                    <UTabs :items="tabs" v-model="selectedTab">
-                        <!-- Tab: Próximas Atividades -->
-                        <template #atividades>
-                            <div class="space-y-4">
-                                <template v-if="loadingMoodles">
-                                    <div class="space-y-4">
-                                        <div v-for="i in 3" :key="i" class="glass-card rounded-2xl p-6 animate-pulse">
-                                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                                        </div>
-                                    </div>
-                                </template>
+            <!-- Bento Layout - Flex Wrap with 2 Columns -->
+            <div class="flex flex-wrap gap-6">
+                <!-- Moodles Section -->
+                <div class="flex-1 min-w-[min(100%,400px)] space-y-4">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <UIcon name="i-lucide-calendar-check" class="w-6 h-6 text-primary-500" />
+                        Próximas Atividades
+                    </h2>
 
-                                <template v-else-if="recentMoodles.length > 0">
-                                    <div class="space-y-4">
-                                        <div v-for="event in recentMoodles" :key="event.id"
-                                            class="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
-                                            @click="openMoodleLink(event.url)">
-                                            <div class="flex items-start justify-between gap-4">
-                                                <div class="flex-1 space-y-2">
-                                                    <div class="flex items-center gap-2">
-                                                        <UBadge :color="getModuleBadgeColor(event.course?.shortname)" variant="soft" size="sm">
-                                                            {{ event.course?.shortname || 'Curso' }}
-                                                        </UBadge>
-                                                        <UBadge v-if="event.overdue" color="error" variant="soft" size="sm">
-                                                            <UIcon name="i-lucide-alert-circle" class="w-3 h-3 mr-1" />
-                                                            Atrasado
-                                                        </UBadge>
-                                                    </div>
-                                                    <h3 class="font-semibold text-lg group-hover:text-primary-500 transition-colors">
-                                                        {{ event.name }}
-                                                    </h3>
-                                                    <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                                                        <span class="flex items-center gap-1">
-                                                            <UIcon name="i-lucide-calendar" class="w-4 h-4" />
-                                                            {{ formatMoodleDate(event.timestart) }}
-                                                        </span>
-                                                        <span v-if="event.modulename" class="flex items-center gap-1">
-                                                            <UIcon name="i-lucide-bookmark" class="w-4 h-4" />
-                                                            {{ event.modulename }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <UIcon name="i-lucide-external-link"
-                                                    class="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Ver todos os moodles -->
-                                    <NuxtLink to="/ferramentas/moodles">
-                                        <div class="glass-card rounded-2xl p-4 hover:scale-[1.01] transition-all duration-200 cursor-pointer group text-center">
-                                            <div class="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 group-hover:text-primary-500 transition-colors">
-                                                <span class="font-medium">Ver todos os moodles</span>
-                                                <UIcon name="i-lucide-ellipsis" class="w-5 h-5" />
-                                            </div>
-                                        </div>
-                                    </NuxtLink>
-                                </template>
-
-                                <template v-else>
-                                    <div class="glass-card rounded-2xl p-12 text-center">
-                                        <UIcon name="i-lucide-book-open" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                                        <p class="text-gray-500 dark:text-gray-400">
-                                            Nenhuma atividade recente encontrada
-                                        </p>
-                                    </div>
-                                </template>
+                    <template v-if="loadingMoodles">
+                        <div class="space-y-4">
+                            <div v-for="i in 3" :key="i" class="glass-card rounded-2xl p-6 animate-pulse">
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+                                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                             </div>
-                        </template>
-
-                        <!-- Tab: Notícias IF -->
-                        <template #noticias>
-                            <div class="space-y-6">
-                                <template v-if="loadingNews">
-                                    <div class="space-y-4">
-                                        <div v-for="i in 3" :key="i" class="glass-card rounded-2xl p-6 animate-pulse">
-                                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                                        </div>
-                                    </div>
-                                </template>
-
-                                <template v-else>
-                                    <!-- Manchetes em Destaque -->
-                                    <div v-if="headlines.length > 0" class="space-y-4">
-                                        <h3 class="text-lg font-semibold flex items-center gap-2">
-                                            <UIcon name="i-lucide-star" class="w-5 h-5 text-primary-500" />
-                                            Manchetes em Destaque
-                                        </h3>
-                                        <div v-for="headline in headlines" :key="headline.url"
-                                            class="glass-card rounded-2xl overflow-hidden hover:scale-[1.01] transition-all duration-200 cursor-pointer group"
-                                            @click="openLink(headline.url)">
-                                            <div v-if="headline.image" class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                                <img :src="headline.image" :alt="headline.title"
-                                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                            </div>
-                                            <div class="p-6">
-                                                <UBadge v-if="headline.type === 'main'" color="primary" variant="soft" size="sm" class="mb-2">
-                                                    Principal
-                                                </UBadge>
-                                                <h4 class="font-semibold text-lg mb-2 group-hover:text-primary-500 transition-colors">
-                                                    {{ headline.title }}
-                                                </h4>
-                                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                                    {{ headline.description }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Notícias Recentes -->
-                                    <div v-if="news.length > 0" class="space-y-4">
-                                        <h3 class="text-lg font-semibold flex items-center gap-2">
-                                            <UIcon name="i-lucide-newspaper" class="w-5 h-5 text-primary-500" />
-                                            Notícias Recentes
-                                        </h3>
-                                        <div v-for="item in news.slice(0, 5)" :key="item.url"
-                                            class="glass-card rounded-2xl p-4 hover:scale-[1.01] transition-all duration-200 cursor-pointer group"
-                                            @click="openLink(item.url)">
-                                            <div class="flex items-start justify-between gap-4">
-                                                <div class="flex-1 space-y-1">
-                                                    <h4 class="font-medium group-hover:text-primary-500 transition-colors">
-                                                        {{ item.title }}
-                                                    </h4>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                        {{ item.date }}
-                                                    </p>
-                                                </div>
-                                                <UIcon name="i-lucide-external-link"
-                                                    class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div v-if="headlines.length === 0 && news.length === 0" class="glass-card rounded-2xl p-12 text-center">
-                                        <UIcon name="i-lucide-newspaper" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                                        <p class="text-gray-500 dark:text-gray-400">
-                                            Nenhuma notícia disponível no momento
-                                        </p>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                    </UTabs>
-                </div>
-
-                <!-- Right Column: Theme Settings -->
-                <div class="space-y-6">
-                    <h2 class="text-2xl font-bold">Personalização</h2>
-
-                    <!-- Theme Color Picker -->
-                    <UCard class="glass-card">
-                        <template #header>
-                            <div class="flex items-center gap-2">
-                                <UIcon name="i-lucide-palette" class="w-5 h-5" />
-                                <h3 class="font-semibold">Cor do Tema</h3>
-                            </div>
-                        </template>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            <button v-for="(theme, name) in themeStore.availableThemes" :key="name"
-                                @click="handleSetTheme(name)"
-                                class="group relative flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105">
-                                <div class="relative">
-                                    <div class="size-12 rounded-full transition-all duration-200" :class="[
-                                        themeStore.currentTheme.primary === name
-                                            ? 'ring-2 ring-offset-2 ring-primary-500'
-                                            : 'ring-1 ring-gray-200 dark:ring-gray-700',
-                                        'hover:ring-2 hover:ring-offset-2 hover:ring-primary-500'
-                                    ]" :style="{ backgroundColor: themeStore.getPreviewColor(name) }" />
-                                    <div v-if="themeStore.currentTheme.primary === name"
-                                        class="absolute inset-0 flex items-center justify-center">
-                                        <UIcon name="i-lucide-check" class="size-6 text-white drop-shadow-sm" />
-                                    </div>
-                                </div>
-                                <span class="text-xs font-medium text-center">
-                                    {{ themeStore.themeDisplayNames[name] }}
-                                </span>
-                            </button>
                         </div>
-                    </UCard>
+                    </template>
 
-                    <!-- Mascot Picker -->
-                    <UCard class="glass-card">
-                        <template #header>
-                            <div class="flex items-center gap-2">
-                                <UIcon name="i-lucide-smile" class="w-5 h-5" />
-                                <h3 class="font-semibold">Mascote</h3>
+                    <template v-else-if="recentMoodles.length > 0">
+                        <div class="space-y-4">
+                            <div v-for="event in recentMoodles" :key="event.id"
+                                class="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-all duration-200 cursor-pointer group"
+                                @click="openMoodleLink(event.url)">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <UBadge :color="getModuleBadgeColor(event.course?.shortname)" variant="soft"
+                                                size="sm">
+                                                {{ event.course?.shortname || 'Curso' }}
+                                            </UBadge>
+                                            <UBadge v-if="event.overdue" color="error" variant="soft" size="sm">
+                                                <UIcon name="i-lucide-alert-circle" class="w-3 h-3 mr-1" />
+                                                Atrasado
+                                            </UBadge>
+                                        </div>
+                                        <h3
+                                            class="font-semibold text-lg group-hover:text-primary-500 transition-colors">
+                                            {{ event.name }}
+                                        </h3>
+                                        <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                            <span class="flex items-center gap-1">
+                                                <UIcon name="i-lucide-calendar" class="w-4 h-4" />
+                                                {{ formatMoodleDate(event.timestart) }}
+                                            </span>
+                                            <span v-if="event.modulename" class="flex items-center gap-1">
+                                                <UIcon name="i-lucide-bookmark" class="w-4 h-4" />
+                                                {{ event.modulename }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <UIcon name="i-lucide-external-link"
+                                        class="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                                </div>
                             </div>
-                        </template>
+                        </div>
 
-                        <div class="space-y-3">
-                            <button v-for="(mascot, name) in mascotStore.availableMascots" :key="name"
-                                @click="selectMascot(name)"
-                                class="group w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2"
-                                :class="[
-                                    mascotStore.currentMascot.name === mascot.name
-                                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                        : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'
-                                ]">
-                                <img :src="mascot.previewUrl" :alt="mascot.name"
-                                    class="size-12 rounded-lg object-cover ring-1" :class="[
-                                        mascotStore.currentMascot.name === mascot.name
-                                            ? 'ring-primary-500'
-                                            : 'ring-gray-200 dark:ring-gray-700'
-                                    ]" />
-                                <div class="flex-1 text-left">
-                                    <p class="font-medium text-sm">
-                                        {{ mascotStore.mascotDisplayNames[name] }}
+                        <!-- Ver todos os moodles -->
+                        <NuxtLink to="/ferramentas/moodles">
+                            <div
+                                class="glass-card rounded-2xl p-4 hover:scale-[1.01] transition-all duration-200 cursor-pointer group text-center">
+                                <div
+                                    class="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 group-hover:text-primary-500 transition-colors">
+                                    <span class="font-medium">Ver todos os moodles</span>
+                                    <UIcon name="i-lucide-ellipsis" class="w-5 h-5" />
+                                </div>
+                            </div>
+                        </NuxtLink>
+                    </template>
+
+                    <template v-else>
+                        <div class="glass-card rounded-2xl p-12 text-center">
+                            <UIcon name="i-lucide-book-open" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                            <p class="text-gray-500 dark:text-gray-400">
+                                Nenhuma atividade recente encontrada
+                            </p>
+                        </div>
+                    </template>
+                    <!-- Notícias Recentes -->
+                    <div v-if="news.length > 0" class="space-y-4 py-8">
+                        <h3 class="text-lg font-semibold flex items-center gap-2">
+                            <UIcon name="i-lucide-newspaper" class="w-5 h-5 text-primary-500" />
+                            Notícias Recentes
+                        </h3>
+                        <div v-for="item in news" :key="item.url"
+                            class="glass-card rounded-2xl p-4 hover:scale-[1.01] transition-all duration-200 cursor-pointer group"
+                            @click="openLink(item.url)">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1 space-y-1">
+                                    <h4 class="font-medium group-hover:text-primary-500 transition-colors">
+                                        {{ item.title }}
+                                    </h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ item.date }}
                                     </p>
                                 </div>
-                                <UIcon v-if="mascotStore.currentMascot.name === mascot.name" name="i-lucide-check"
-                                    class="w-5 h-5 text-primary-500" />
-                            </button>
+                                <UIcon name="i-lucide-external-link"
+                                    class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
+                            </div>
                         </div>
-                    </UCard>
+                    </div>
+
+                    <!-- Empty State for News -->
+                    <div v-if="headlines.length === 0 && news.length === 0"
+                        class="glass-card rounded-2xl p-12 text-center">
+                        <UIcon name="i-lucide-newspaper" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                        <p class="text-gray-500 dark:text-gray-400">
+                            Nenhuma notícia disponível no momento
+                        </p>
+                    </div>
                 </div>
+
+                <!-- Right Column: Notícias (Headlines + Recentes) -->
+                <div class="flex-1 min-w-[min(100%,400px)] space-y-4">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <UIcon name="i-lucide-newspaper" class="w-6 h-6 text-primary-500" />
+                        Notícias IF
+                    </h2>
+
+                    <!-- Loading State for News -->
+                    <template v-if="loadingNews">
+                        <div class="space-y-4">
+                            <div v-for="i in 3" :key="i" class="glass-card rounded-2xl p-6 animate-pulse">
+                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+                                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <!-- Manchetes em Destaque (várias, ocupando o espaço disponível) -->
+                        <div v-if="headlines.length > 0" class="space-y-4">
+                            <div v-for="headline in headlines" :key="headline.url"
+                                class="glass-card rounded-2xl hover:scale-[1.01] transition-all duration-200 cursor-pointer group overflow-hidden"
+                                @click="openLink(headline.url)">
+                                <div v-if="headline.image"
+                                    class="w-full overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-t-2xl h-40 sm:h-44 lg:h-52">
+                                    <img :src="headline.image" :alt="headline.title"
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                </div>
+                                <div class="p-6">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <UBadge v-if="headline.type === 'main'" color="primary" variant="soft"
+                                            size="sm">
+                                            Principal
+                                        </UBadge>
+                                    </div>
+                                    <h4
+                                        class="font-semibold text-base sm:text-lg mb-2 group-hover:text-primary-500 transition-colors">
+                                        {{ headline.title }}
+                                    </h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                                        {{ headline.description }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </template>
+
+
+                </div>
+
+            </div>
+
+            <!-- Personalização Section Below -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Theme Color Picker -->
+                <UCard class="glass-card">
+                    <template #header>
+                        <div class="flex items-center gap-2">
+                            <UIcon name="i-lucide-palette" class="w-5 h-5" />
+                            <h3 class="font-semibold">Cor do Tema</h3>
+                        </div>
+                    </template>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <button v-for="(theme, name) in themeStore.availableThemes" :key="name"
+                            @click="handleSetTheme(name)"
+                            class="group relative flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105">
+                            <div class="relative">
+                                <div class="size-12 rounded-full transition-all duration-200" :class="[
+                                    themeStore.currentTheme.primary === name
+                                        ? 'ring-2 ring-offset-2 ring-primary-500'
+                                        : 'ring-1 ring-gray-200 dark:ring-gray-700',
+                                    'hover:ring-2 hover:ring-offset-2 hover:ring-primary-500'
+                                ]" :style="{ backgroundColor: themeStore.getPreviewColor(name) }" />
+                                <div v-if="themeStore.currentTheme.primary === name"
+                                    class="absolute inset-0 flex items-center justify-center">
+                                    <UIcon name="i-lucide-check" class="size-6 text-white drop-shadow-sm" />
+                                </div>
+                            </div>
+                            <span class="text-xs font-medium text-center">
+                                {{ themeStore.themeDisplayNames[name] }}
+                            </span>
+                        </button>
+                    </div>
+                </UCard>
+
+                <!-- Mascot Picker -->
+                <UCard class="glass-card">
+                    <template #header>
+                        <div class="flex items-center gap-2">
+                            <UIcon name="i-lucide-smile" class="w-5 h-5" />
+                            <h3 class="font-semibold">Mascote</h3>
+                        </div>
+                    </template>
+
+                    <div class="space-y-3">
+                        <button v-for="(mascot, name) in mascotStore.availableMascots" :key="name"
+                            @click="selectMascot(name)"
+                            class="group w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2"
+                            :class="[
+                                mascotStore.currentMascot.name === mascot.name
+                                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                                    : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'
+                            ]">
+                            <img :src="mascot.previewUrl" :alt="mascot.name"
+                                class="size-12 rounded-lg object-cover ring-1" :class="[
+                                    mascotStore.currentMascot.name === mascot.name
+                                        ? 'ring-primary-500'
+                                        : 'ring-gray-200 dark:ring-gray-700'
+                                ]" />
+                            <div class="flex-1 text-left">
+                                <p class="font-medium text-sm">
+                                    {{ mascotStore.mascotDisplayNames[name] }}
+                                </p>
+                            </div>
+                            <UIcon v-if="mascotStore.currentMascot.name === mascot.name" name="i-lucide-check"
+                                class="w-5 h-5 text-primary-500" />
+                        </button>
+                    </div>
+                </UCard>
             </div>
         </div>
     </div>
@@ -261,7 +272,6 @@ const themeStore = useThemeStore();
 const mascotStore = useMascotStore();
 const { getUpcomingEvents } = useMoodleApi();
 
-const selectedTab = ref(0);
 const loadingMoodles = ref(true);
 const loadingNews = ref(true);
 const upcomingEvents = ref<MoodleCalendarEvent[]>([]);
@@ -284,19 +294,6 @@ type HeadlineItem = {
 
 const news = ref<NewsItem[]>([]);
 const headlines = ref<HeadlineItem[]>([]);
-
-const tabs = [
-    {
-        slot: "atividades",
-        label: "Próximas Atividades",
-        icon: "i-lucide-calendar-check",
-    },
-    {
-        slot: "noticias",
-        label: "Notícias IF",
-        icon: "i-lucide-newspaper",
-    },
-];
 
 const firstName = computed(() => {
     const fullName = user.value?.fullName || '';
@@ -405,15 +402,11 @@ void firstName;
 /* istanbul ignore next */
 void recentMoodles;
 /* istanbul ignore next */
-void selectedTab;
-/* istanbul ignore next */
 void loadingNews;
 /* istanbul ignore next */
 void news;
 /* istanbul ignore next */
 void headlines;
-/* istanbul ignore next */
-void tabs;
 /* istanbul ignore next */
 void formatMoodleDate;
 /* istanbul ignore next */
