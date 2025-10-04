@@ -22,17 +22,15 @@
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex-1 space-y-2">
                             <div class="flex items-center gap-2">
-                                <UBadge :color="getModuleBadgeColor(event.course?.shortname)" variant="soft"
-                                    size="sm">
-                                    {{ event.course?.shortname || 'Curso' }}
+                                <UBadge :color="getModuleBadgeColor(event.course?.fullname)" variant="soft" size="sm">
+                                    {{ simplifyCourseName(event.course?.fullname || 'Curso') }}
                                 </UBadge>
                                 <UBadge v-if="event.overdue" color="error" variant="soft" size="sm">
                                     <UIcon name="i-lucide-alert-circle" class="w-3 h-3 mr-1" />
                                     Atrasado
                                 </UBadge>
                             </div>
-                            <h3
-                                class="font-semibold text-lg group-hover:text-primary-500 transition-colors">
+                            <h3 class="font-semibold text-lg group-hover:text-primary-500 transition-colors">
                                 {{ event.name }}
                             </h3>
                             <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -79,6 +77,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useMoodleApi } from "~/composables/useMoodleApi";
+import { simplifyCourseName } from "~/utils/course";
 import type { MoodleCalendarEvent } from "~~/shared/moodle.d";
 
 const { getUpcomingEvents } = useMoodleApi();
@@ -130,11 +129,11 @@ function formatMoodleDate(timestamp?: number) {
     });
 }
 
-function getModuleBadgeColor(courseName?: string) {
+function getModuleBadgeColor(courseName?: string): "primary" | "neutral" | "secondary" | "success" | "info" | "warning" | "error" {
     if (!courseName) return 'primary';
-    const colors = ['primary', 'blue', 'green', 'purple', 'orange', 'pink'];
+    const colors: Array<"primary" | "neutral" | "secondary" | "success" | "info" | "warning" | "error"> = ['primary', 'success', 'info', 'warning'];
     const hash = courseName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[hash % colors.length];
+    return colors[hash % colors.length] || 'primary';
 }
 
 function openMoodleLink(url: string) {

@@ -216,6 +216,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useMoodleApi } from "~/composables/useMoodleApi";
+import { simplifyCourseName } from "~/utils/course";
 import type { MoodleCourse, MoodleModule } from "~~/shared/moodle.d";
 
 definePageMeta({
@@ -368,16 +369,6 @@ const lastUpdatedLabel = computed(() => {
 	const days = Math.round(hours / 24);
 	return `${days} dia${days > 1 ? "s" : ""} atrás`;
 });
-
-function simplifyCourseName(fullName: string) {
-	let name = fullName.replace(/^\d+ - /, "");
-	const parts = name.split(" - ");
-	if (parts.length > 0 && parts[0]) {
-		name = parts[0];
-	}
-	name = name.replace(/^SUAP\d+ - /, "");
-	return name.trim();
-}
 
 function normalizeDate(date: unknown): string | undefined {
 	if (!date) return undefined;
