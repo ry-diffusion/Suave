@@ -411,8 +411,10 @@ function selectMascot(mascotName: keyof typeof mascotStore.availableMascots) {
 }
 
 onMounted(() => {
-    loadRecentMoodles();
-    loadNews();
+    if (import.meta.client) {
+        loadRecentMoodles();
+        loadNews();
+    }
 });
 
 // Prevent false-positive "unused" errors for variables used only in the template
