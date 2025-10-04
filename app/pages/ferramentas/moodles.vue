@@ -191,7 +191,7 @@
 								</div>
 								<div class="flex items-center justify-between pt-4">
 									<UBadge variant="subtle" :color="moduleBadgeTone(module)">
-										{{ module.kind }}
+										{{ normalizeModuleName(module.kind) }}
 									</UBadge>
 									<div class="flex items-center gap-2">
 										<UButton variant="ghost" color="primary" size="sm" icon="i-lucide-share"
@@ -217,6 +217,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useMoodleApi } from "~/composables/useMoodleApi";
 import { simplifyCourseName } from "~/utils/course";
+import { normalizeModuleName } from "~/utils/moodle";
 import type { MoodleCourse, MoodleModule } from "~~/shared/moodle.d";
 
 definePageMeta({

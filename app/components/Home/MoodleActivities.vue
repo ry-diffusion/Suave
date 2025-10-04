@@ -40,7 +40,7 @@
                                 </span>
                                 <span v-if="event.modulename" class="flex items-center gap-1">
                                     <UIcon name="i-lucide-bookmark" class="w-4 h-4" />
-                                    {{ event.modulename }}
+                                    {{ normalizeModuleName(event.modulename) }}
                                 </span>
                             </div>
                         </div>
@@ -78,6 +78,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useMoodleApi } from "~/composables/useMoodleApi";
 import { simplifyCourseName } from "~/utils/course";
+import { normalizeModuleName } from "~/utils/moodle";
 import type { MoodleCalendarEvent } from "~~/shared/moodle.d";
 
 const { getUpcomingEvents } = useMoodleApi();
