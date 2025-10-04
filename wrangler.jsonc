@@ -11,7 +11,9 @@
     "enabled": true
   },
   "vars": {
-    "NUXT_SESSION_PASSWORD": "6f146015ce054b01a5eafef64a3b557f"
+    "NUXT_SESSION_PASSWORD": "6f146015ce054b01a5eafef64a3b557f",
+    "FEATURE_DESEMPENHO_ACADEMICO": "false",
+    "FEATURE_MEUS_PROJETOS": "false"
   },
   /**
    * Smart Placement

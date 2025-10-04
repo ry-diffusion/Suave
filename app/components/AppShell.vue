@@ -14,6 +14,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const route = useRoute();
+const { isDesempenhoAcademicoEnabled, isMeusProjetosEnabled } = useFeatureFlags();
 const { progress } = useLoadingIndicator({
     duration: 2000,
 });
@@ -102,18 +103,18 @@ const items = ref<NavigationMenuItem[]>([
                 icon: "i-lucide-book-open",
                 to: "/ferramentas/moodles",
             },
-            {
+            ...(isDesempenhoAcademicoEnabled.value ? [{
                 label: "Desempenho Acadêmico",
                 description: "Acompanhe seu desempenho acadêmico",
                 icon: "i-lucide-bar-chart-2",
                 to: "/ferramentas/desempenho",
-            },
-            {
+            }] : []),
+            ...(isMeusProjetosEnabled.value ? [{
                 label: "Meus Projetos",
                 description: "Visualize seus projetos acadêmicos",
                 icon: "i-lucide-folder",
                 to: "/projetos",
-            },
+            }] : []),
         ],
     },
     {
@@ -151,18 +152,18 @@ const dropdownItems = ref<DropdownMenuItem[]>([
             description: "Visualize os Moodles disponíveis",
             to: "/ferramentas/moodles",
         },
-        {
+        ...(isDesempenhoAcademicoEnabled.value ? [{
             label: "Desempenho Acadêmico",
             icon: "i-lucide-bar-chart-2",
             description: "Acompanhe seu desempenho acadêmico",
             to: "/ferramentas/desempenho",
-        },
-        {
+        }] : []),
+        ...(isMeusProjetosEnabled.value ? [{
             label: "Meus Projetos",
             icon: "i-lucide-folder",
             description: "Visualize seus projetos acadêmicos",
             to: "/projetos",
-        },
+        }] : []),
     ],
 ]);
 </script>

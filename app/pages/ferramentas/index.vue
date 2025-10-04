@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const { isDesempenhoAcademicoEnabled, isMeusProjetosEnabled } = useFeatureFlags();
+</script>
+
 <template>
     <div class="px-4">
         <UCard class="mb-4">
@@ -18,7 +22,7 @@
             </template>
         </UCard>
 
-        <UCard>
+        <UCard v-if="isDesempenhoAcademicoEnabled" class="mb-4">
             <template #header>
                 <div class="flex items-center">
                     <UIcon name="i-lucide-bar-chart-2" class="mr-2 h-5 w-5" />
@@ -37,7 +41,7 @@
             </template>
         </UCard>
 
-        <UCard>
+        <UCard v-if="isMeusProjetosEnabled">
             <template #header>
                 <div class="flex items-center">
                     <UIcon name="i-lucide-folder" class="mr-2 h-5 w-5" />

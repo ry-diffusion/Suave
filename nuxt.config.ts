@@ -33,6 +33,14 @@ export default defineNuxtConfig({
     },
   },
 
+  runtimeConfig: {
+    public: {
+      featureDesempenhoAcademico:
+        process.env.FEATURE_DESEMPENHO_ACADEMICO || "false",
+      featureMeusProjetos: process.env.FEATURE_MEUS_PROJETOS || "false",
+    },
+  },
+
   modules: [
     "nitro-cloudflare-dev",
     "@nuxt/eslint",

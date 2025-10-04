@@ -327,6 +327,14 @@ definePageMeta({
   middleware: "auth",
 });
 
+// Check feature flag
+const { isDesempenhoAcademicoEnabled } = useFeatureFlags();
+
+// Redirect if feature is disabled
+if (!isDesempenhoAcademicoEnabled.value) {
+  navigateTo('/ferramentas');
+}
+
 // Composables
 const { clientFetch } = useClientFetch();
 const mascotStore = useMascotStore();

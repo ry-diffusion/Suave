@@ -119,7 +119,7 @@
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-muted">Início</span>
                                 <span class="text-sm font-medium">{{ formatDate(selectedProjeto.inicio_execucao)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-muted">Término</span>
@@ -223,6 +223,14 @@ import { useClientFetch } from "~~/app/composables/useClientFetch";
 definePageMeta({
     middleware: ["auth"],
 });
+
+// Check feature flag
+const { isMeusProjetosEnabled } = useFeatureFlags();
+
+// Redirect if feature is disabled
+if (!isMeusProjetosEnabled.value) {
+    navigateTo('/ferramentas');
+}
 
 // Reactive data
 const loading = ref(false);
