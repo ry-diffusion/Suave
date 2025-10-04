@@ -318,8 +318,9 @@
 
 <script setup>
 // Import clientFetch for API calls
-import { useClientFetch } from "~~/shared/composables/useClientFetch";
+
 import { useMascotStore } from "~/stores/mascot";
+import { useClientFetch } from "~~/app/composables/useClientFetch";
 
 // Page metadata
 definePageMeta({
@@ -340,7 +341,7 @@ const sortMethod = ref("cargaHoraria");
 
 // Computed properties
 const periodOptions = computed(() => {
-  return periodosLetivos.value.map(period => ({
+  return periodosLetivos.value.map((period) => ({
     label: `${period.ano_letivo}.${period.periodo_letivo}`,
     value: `${period.ano_letivo}.${period.periodo_letivo}`,
   }));
@@ -350,30 +351,30 @@ const sortOptions = computed(() => [
   { label: "Carga Horária", value: "cargaHoraria" },
   { label: "Nota", value: "nota" },
   { label: "Frequência", value: "frequencia" },
-  { label: "Nome", value: "nome" }
+  { label: "Nome", value: "nome" },
 ]);
 
 const averageGrade = computed(() => {
   const grades = disciplinas.value
-    .map(d => calculateAverage(d))
-    .filter(grade => grade !== undefined && grade !== null);
+    .map((d) => calculateAverage(d))
+    .filter((grade) => grade !== undefined && grade !== null);
 
   if (grades.length === 0) return 0;
   return grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
 });
 
 const approvedCount = computed(() => {
-  return disciplinas.value.filter(d => d.situacao === "Aprovado").length;
+  return disciplinas.value.filter((d) => d.situacao === "Aprovado").length;
 });
 
 const inProgressCount = computed(() => {
-  return disciplinas.value.filter(d => d.situacao === "Cursando").length;
+  return disciplinas.value.filter((d) => d.situacao === "Cursando").length;
 });
 
 const averageAttendance = computed(() => {
   const attendances = disciplinas.value
-    .map(d => d.percentual_carga_horaria_frequentada)
-    .filter(att => att !== undefined && att !== null);
+    .map((d) => d.percentual_carga_horaria_frequentada)
+    .filter((att) => att !== undefined && att !== null);
 
   if (attendances.length === 0) return 0;
   return attendances.reduce((sum, att) => sum + att, 0) / attendances.length;
@@ -381,31 +382,31 @@ const averageAttendance = computed(() => {
 
 const bestSubject = computed(() => {
   const subjectsWithGrades = disciplinas.value
-    .map(d => ({
+    .map((d) => ({
       name: d.disciplina,
-      average: calculateAverage(d)
+      average: calculateAverage(d),
     }))
-    .filter(s => s.average !== null && s.average !== undefined);
+    .filter((s) => s.average !== null && s.average !== undefined);
 
   if (subjectsWithGrades.length === 0) return null;
 
   return subjectsWithGrades.reduce((best, current) =>
-    current.average > best.average ? current : best
+    current.average > best.average ? current : best,
   );
 });
 
 const worstSubject = computed(() => {
   const subjectsWithGrades = disciplinas.value
-    .map(d => ({
+    .map((d) => ({
       name: d.disciplina,
-      average: calculateAverage(d)
+      average: calculateAverage(d),
     }))
-    .filter(s => s.average !== null && s.average !== undefined);
+    .filter((s) => s.average !== null && s.average !== undefined);
 
   if (subjectsWithGrades.length === 0) return null;
 
   return subjectsWithGrades.reduce((worst, current) =>
-    current.average < worst.average ? current : worst
+    current.average < worst.average ? current : worst,
   );
 });
 
@@ -413,9 +414,10 @@ const mostAbsentSubject = computed(() => {
   if (disciplinas.value.length === 0) return null;
 
   return disciplinas.value.reduce((mostAbsent, current) =>
-    current.percentual_carga_horaria_frequentada < mostAbsent.percentual_carga_horaria_frequentada
+    current.percentual_carga_horaria_frequentada <
+      mostAbsent.percentual_carga_horaria_frequentada
       ? current
-      : mostAbsent
+      : mostAbsent,
   );
 });
 
@@ -424,7 +426,10 @@ const mascotPerformanceTitle = computed(() => {
 });
 
 const mascotPerformanceMessage = computed(() => {
-  return mascotStore.getPerformanceMessage(averageGrade.value, averageAttendance.value);
+  return mascotStore.getPerformanceMessage(
+    averageGrade.value,
+    averageAttendance.value,
+  );
 });
 
 const mascotBestSubjectTitle = computed(() => {
@@ -434,7 +439,10 @@ const mascotBestSubjectTitle = computed(() => {
 const mascotBestSubjectMessage = computed(() => {
   if (!bestSubject.value) return "N/A";
   const name = sanitizarNomeDisciplina(bestSubject.value.name);
-  return mascotStore.getBestSubjectMessage(bestSubject.value.average || 0, name);
+  return mascotStore.getBestSubjectMessage(
+    bestSubject.value.average || 0,
+    name,
+  );
 });
 
 const mascotWorstSubjectTitle = computed(() => {
@@ -444,7 +452,10 @@ const mascotWorstSubjectTitle = computed(() => {
 const mascotWorstSubjectMessage = computed(() => {
   if (!worstSubject.value) return "N/A";
   const name = sanitizarNomeDisciplina(worstSubject.value.name);
-  return mascotStore.getWorstSubjectMessage(worstSubject.value.average || 0, name);
+  return mascotStore.getWorstSubjectMessage(
+    worstSubject.value.average || 0,
+    name,
+  );
 });
 
 const mascotAttendanceTitle = computed(() => {
@@ -519,8 +530,10 @@ const sortedDisciplinas = computed(() => {
 
   switch (sortMethod.value) {
     case "cargaHoraria":
-      return sorted.sort((a, b) =>
-        (b.carga_horaria_cumprida / b.carga_horaria) - (a.carga_horaria_cumprida / a.carga_horaria)
+      return sorted.sort(
+        (a, b) =>
+          b.carga_horaria_cumprida / b.carga_horaria -
+          a.carga_horaria_cumprida / a.carga_horaria,
       );
     case "nota":
       return sorted.sort((a, b) => {
@@ -529,11 +542,17 @@ const sortedDisciplinas = computed(() => {
         return avgB - avgA;
       });
     case "frequencia":
-      return sorted.sort((a, b) =>
-        b.percentual_carga_horaria_frequentada - a.percentual_carga_horaria_frequentada
+      return sorted.sort(
+        (a, b) =>
+          b.percentual_carga_horaria_frequentada -
+          a.percentual_carga_horaria_frequentada,
       );
     case "nome":
-      return sorted.sort((a, b) => sanitizarNomeDisciplina(a.disciplina).localeCompare(sanitizarNomeDisciplina(b.disciplina)));
+      return sorted.sort((a, b) =>
+        sanitizarNomeDisciplina(a.disciplina).localeCompare(
+          sanitizarNomeDisciplina(b.disciplina),
+        ),
+      );
     default:
       return sorted;
   }
@@ -542,222 +561,244 @@ const sortedDisciplinas = computed(() => {
 // Chart options
 const gradeDistributionOption = computed(() => ({
   title: {
-    text: 'Distribuição de Notas',
-    left: 'center',
+    text: "Distribuição de Notas",
+    left: "center",
     textStyle: {
       fontSize: 16,
-      fontWeight: 'normal',
-      color: '#374151'
-    }
+      fontWeight: "normal",
+      color: "#374151",
+    },
   },
   tooltip: {
-    trigger: 'item',
-    formatter: '{b}: {c} ({d}%)'
+    trigger: "item",
+    formatter: "{b}: {c} ({d}%)",
   },
   legend: {
-    orient: 'vertical',
-    left: 'left',
-    top: 'middle',
+    orient: "vertical",
+    left: "left",
+    top: "middle",
     textStyle: {
-      color: '#6b7280'
-    }
+      color: "#6b7280",
+    },
   },
   series: [
     {
-      name: 'Notas',
-      type: 'pie',
-      radius: '50%',
+      name: "Notas",
+      type: "pie",
+      radius: "50%",
       data: [
         {
-          value: disciplinas.value.filter(d => calculateAverage(d) && calculateAverage(d) >= 9).length,
-          name: '9.0-10.0',
-          itemStyle: { color: '#10b981' }
+          value: disciplinas.value.filter(
+            (d) => calculateAverage(d) && calculateAverage(d) >= 9,
+          ).length,
+          name: "9.0-10.0",
+          itemStyle: { color: "#10b981" },
         },
         {
-          value: disciplinas.value.filter(d => calculateAverage(d) && calculateAverage(d) >= 7 && calculateAverage(d) < 9).length,
-          name: '7.0-8.9',
-          itemStyle: { color: '#3b82f6' }
+          value: disciplinas.value.filter(
+            (d) =>
+              calculateAverage(d) &&
+              calculateAverage(d) >= 7 &&
+              calculateAverage(d) < 9,
+          ).length,
+          name: "7.0-8.9",
+          itemStyle: { color: "#3b82f6" },
         },
         {
-          value: disciplinas.value.filter(d => calculateAverage(d) && calculateAverage(d) >= 5 && calculateAverage(d) < 7).length,
-          name: '5.0-6.9',
-          itemStyle: { color: '#f59e0b' }
+          value: disciplinas.value.filter(
+            (d) =>
+              calculateAverage(d) &&
+              calculateAverage(d) >= 5 &&
+              calculateAverage(d) < 7,
+          ).length,
+          name: "5.0-6.9",
+          itemStyle: { color: "#f59e0b" },
         },
         {
-          value: disciplinas.value.filter(d => calculateAverage(d) && calculateAverage(d) < 5).length,
-          name: '0.0-4.9',
-          itemStyle: { color: '#ef4444' }
+          value: disciplinas.value.filter(
+            (d) => calculateAverage(d) && calculateAverage(d) < 5,
+          ).length,
+          name: "0.0-4.9",
+          itemStyle: { color: "#ef4444" },
         },
         {
-          value: disciplinas.value.filter(d => !calculateAverage(d)).length,
-          name: 'N/A',
-          itemStyle: { color: '#6b7280' }
-        }
+          value: disciplinas.value.filter((d) => !calculateAverage(d)).length,
+          name: "N/A",
+          itemStyle: { color: "#6b7280" },
+        },
       ],
       emphasis: {
         itemStyle: {
           shadowBlur: 10,
           shadowOffsetX: 0,
-          shadowColor: 'rgba(0, 0, 0, 0.5)'
-        }
-      }
-    }
-  ]
+          shadowColor: "rgba(0, 0, 0, 0.5)",
+        },
+      },
+    },
+  ],
 }));
 
 const attendanceOption = computed(() => ({
   title: {
-    text: 'Frequência por Disciplina',
-    left: 'center',
+    text: "Frequência por Disciplina",
+    left: "center",
     textStyle: {
       fontSize: 16,
-      fontWeight: 'normal',
-      color: '#374151'
-    }
+      fontWeight: "normal",
+      color: "#374151",
+    },
   },
   tooltip: {
-    trigger: 'axis',
+    trigger: "axis",
     axisPointer: {
-      type: 'shadow'
-    }
+      type: "shadow",
+    },
   },
   grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '15%',
-    containLabel: true
+    left: "3%",
+    right: "4%",
+    bottom: "15%",
+    containLabel: true,
   },
   xAxis: {
-    type: 'category',
-    data: disciplinas.value.map(d => sanitizarNomeDisciplina(d.disciplina).substring(0, 12) + '...'),
+    type: "category",
+    data: disciplinas.value.map(
+      (d) => sanitizarNomeDisciplina(d.disciplina).substring(0, 12) + "...",
+    ),
     axisLabel: {
       rotate: 45,
-      color: '#6b7280'
+      color: "#6b7280",
     },
     axisLine: {
       lineStyle: {
-        color: '#d1d5db'
-      }
-    }
+        color: "#d1d5db",
+      },
+    },
   },
   yAxis: {
-    type: 'value',
+    type: "value",
     min: 0,
     max: 100,
     axisLabel: {
-      formatter: '{value}%',
-      color: '#6b7280'
+      formatter: "{value}%",
+      color: "#6b7280",
     },
     axisLine: {
       lineStyle: {
-        color: '#d1d5db'
-      }
+        color: "#d1d5db",
+      },
     },
     splitLine: {
       lineStyle: {
-        color: '#e5e7eb'
-      }
-    }
+        color: "#e5e7eb",
+      },
+    },
   },
   series: [
     {
-      name: 'Frequência',
-      type: 'bar',
-      data: disciplinas.value.map(d => ({
+      name: "Frequência",
+      type: "bar",
+      data: disciplinas.value.map((d) => ({
         value: d.percentual_carga_horaria_frequentada,
         itemStyle: {
-          color: d.percentual_carga_horaria_frequentada >= 75 ? '#10b981' :
-            d.percentual_carga_horaria_frequentada >= 50 ? '#f59e0b' : '#ef4444'
-        }
-      }))
-    }
-  ]
+          color:
+            d.percentual_carga_horaria_frequentada >= 75
+              ? "#10b981"
+              : d.percentual_carga_horaria_frequentada >= 50
+                ? "#f59e0b"
+                : "#ef4444",
+        },
+      })),
+    },
+  ],
 }));
 
 const performanceTrendOption = computed(() => {
-  const subjects = disciplinas.value.filter(d => calculateAverage(d));
-  const grades = subjects.map(d => calculateAverage(d));
-  const labels = subjects.map(d => sanitizarNomeDisciplina(d.disciplina).substring(0, 10) + '...');
+  const subjects = disciplinas.value.filter((d) => calculateAverage(d));
+  const grades = subjects.map((d) => calculateAverage(d));
+  const labels = subjects.map(
+    (d) => sanitizarNomeDisciplina(d.disciplina).substring(0, 10) + "...",
+  );
 
   return {
     title: {
-      text: 'Evolução das Notas',
-      left: 'center',
+      text: "Evolução das Notas",
+      left: "center",
       textStyle: {
         fontSize: 16,
-        fontWeight: 'normal',
-        color: '#374151'
-      }
+        fontWeight: "normal",
+        color: "#374151",
+      },
     },
     tooltip: {
-      trigger: 'axis'
+      trigger: "axis",
     },
     grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '15%',
-      containLabel: true
+      left: "3%",
+      right: "4%",
+      bottom: "15%",
+      containLabel: true,
     },
     xAxis: {
-      type: 'category',
+      type: "category",
       data: labels,
       axisLabel: {
         rotate: 45,
-        color: '#6b7280'
+        color: "#6b7280",
       },
       axisLine: {
         lineStyle: {
-          color: '#d1d5db'
-        }
-      }
+          color: "#d1d5db",
+        },
+      },
     },
     yAxis: {
-      type: 'value',
+      type: "value",
       min: 0,
       max: 10,
       axisLabel: {
-        formatter: '{value}',
-        color: '#6b7280'
+        formatter: "{value}",
+        color: "#6b7280",
       },
       axisLine: {
         lineStyle: {
-          color: '#d1d5db'
-        }
+          color: "#d1d5db",
+        },
       },
       splitLine: {
         lineStyle: {
-          color: '#e5e7eb'
-        }
-      }
+          color: "#e5e7eb",
+        },
+      },
     },
     series: [
       {
-        name: 'Nota',
-        type: 'line',
+        name: "Nota",
+        type: "line",
         data: grades,
         smooth: true,
         lineStyle: {
-          color: '#3b82f6',
-          width: 3
+          color: "#3b82f6",
+          width: 3,
         },
         itemStyle: {
-          color: '#3b82f6'
+          color: "#3b82f6",
         },
         areaStyle: {
           color: {
-            type: 'linear',
+            type: "linear",
             x: 0,
             y: 0,
             x2: 0,
             y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
-              { offset: 1, color: 'rgba(59, 130, 246, 0.1)' }
-            ]
-          }
-        }
-      }
-    ]
+              { offset: 0, color: "rgba(59, 130, 246, 0.3)" },
+              { offset: 1, color: "rgba(59, 130, 246, 0.1)" },
+            ],
+          },
+        },
+      },
+    ],
   };
 });
 
@@ -768,7 +809,7 @@ const performanceTrendOption = computed(() => {
  */
 function handleEndSession() {
   // Navigate to logout or clear session
-  navigateTo('/login');
+  navigateTo("/login");
 }
 
 /**
@@ -780,20 +821,23 @@ function getMascotPerformanceImage() {
   const attendance = averageAttendance.value;
 
   // Determina o nível de desempenho
-  let performanceLevel = 'average';
+  let performanceLevel = "average";
 
   if (average >= 9 && attendance >= 90) {
-    performanceLevel = 'excellent';
+    performanceLevel = "excellent";
   } else if (average >= 7 && attendance >= 75) {
-    performanceLevel = 'good';
+    performanceLevel = "good";
   } else if (average >= 5 && attendance >= 60) {
-    performanceLevel = 'average';
+    performanceLevel = "average";
   } else {
-    performanceLevel = 'poor';
+    performanceLevel = "poor";
   }
 
   // Usa a função do store para obter a imagem apropriada
-  const performanceImage = mascotStore.getPerformanceImage(average, performanceLevel);
+  const performanceImage = mascotStore.getPerformanceImage(
+    average,
+    performanceLevel,
+  );
 
   // Se a função retornou uma imagem, usa ela
   if (performanceImage) {
@@ -805,13 +849,13 @@ function getMascotPerformanceImage() {
 }
 
 /**
- * Sanitiza o nome da disciplina removendo padrões como "Disciplina.XXXX - " 
+ * Sanitiza o nome da disciplina removendo padrões como "Disciplina.XXXX - "
  * e convertendo para lowercase
  * @param {string} nome - Nome original da disciplina
  * @returns {string} - Nome sanitizado
  */
 function sanitizarNomeDisciplina(nome) {
-  if (!nome || typeof nome !== 'string') {
+  if (!nome || typeof nome !== "string") {
     return nome;
   }
 
@@ -821,10 +865,10 @@ function sanitizarNomeDisciplina(nome) {
 
   if (match) {
     // Remove o padrão encontrado e limpa o resto
-    let cleaned = nome.replace(regex, '');
+    let cleaned = nome.replace(regex, "");
 
     // Remove caracteres especiais como "!" e converte para lowercase
-    cleaned = cleaned.replace(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+    cleaned = cleaned.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "");
 
     // Converte para lowercase
     cleaned = cleaned.toLowerCase();
@@ -865,11 +909,22 @@ async function loadData() {
           if (disciplinasTest && disciplinasTest.length > 0) {
             selectedPeriod.value = periodKey;
             disciplinas.value = disciplinasTest;
-            console.log("Found period with data:", periodKey, "with", disciplinasTest.length, "disciplines");
+            console.log(
+              "Found period with data:",
+              periodKey,
+              "with",
+              disciplinasTest.length,
+              "disciplines",
+            );
             break;
           }
         } catch (err) {
-          console.log("Period", periodKey, "has no data or error:", err.message);
+          console.log(
+            "Period",
+            periodKey,
+            "has no data or error:",
+            err.message,
+          );
           // Continue to next period
         }
       }
@@ -878,13 +933,16 @@ async function loadData() {
       if (!selectedPeriod.value && periodosLetivos.value.length > 0) {
         const latestPeriod = periodosLetivos.value[0];
         selectedPeriod.value = `${latestPeriod.ano_letivo}.${latestPeriod.periodo_letivo}`;
-        console.log("No period with data found, selecting first:", selectedPeriod.value);
+        console.log(
+          "No period with data found, selecting first:",
+          selectedPeriod.value,
+        );
       }
     }
 
     // Load boletim data if period is selected and not already loaded
     if (selectedPeriod.value && disciplinas.value.length === 0) {
-      const [ano, periodo] = selectedPeriod.value.split('.');
+      const [ano, periodo] = selectedPeriod.value.split(".");
       console.log("Loading boletim for:", ano, periodo);
       disciplinas.value = await clientFetch("/api/suap/boletim", {
         query: {
@@ -903,7 +961,8 @@ async function loadData() {
       disciplinas.value = []; // Clear disciplines
     } else {
       // Show error for other types of errors
-      error.value = err.data.message || err.message || "Erro ao carregar dados do boletim";
+      error.value =
+        err.data.message || err.message || "Erro ao carregar dados do boletim";
       console.error("Error loading data:", err);
     }
   } finally {
@@ -930,7 +989,10 @@ function getStatusColor(status) {
 
 function calculateAverage(disciplina) {
   // Se já tem média calculada, usa ela
-  if (disciplina.media_disciplina !== undefined && disciplina.media_disciplina !== null) {
+  if (
+    disciplina.media_disciplina !== undefined &&
+    disciplina.media_disciplina !== null
+  ) {
     return disciplina.media_disciplina;
   }
 
@@ -940,7 +1002,7 @@ function calculateAverage(disciplina) {
     disciplina.nota_etapa_2?.nota,
     disciplina.nota_etapa_3?.nota,
     disciplina.nota_etapa_4?.nota,
-  ].filter(nota => nota !== undefined && nota !== null);
+  ].filter((nota) => nota !== undefined && nota !== null);
 
   if (etapas.length === 0) {
     return null;

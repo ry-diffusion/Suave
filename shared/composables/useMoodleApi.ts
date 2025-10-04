@@ -8,7 +8,7 @@ import type {
   WhoamiResponse,
 } from "../moodle.d";
 import { Err, Ok, type Result } from "../result";
-import { useClientFetch } from "./useClientFetch";
+import { useClientFetch } from "~~/app/composables/useClientFetch";
 
 export interface AvailableInstitution {
   id: string;

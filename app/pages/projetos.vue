@@ -217,7 +217,7 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import type { Ensino, Extensao, Pesquisa, Projetos } from "#shared/datatypes";
 import { useDeviceDetection } from "~/composables/useDeviceDetection";
 import { useAppHeaderStore } from "~/stores/appHeader";
-import { useClientFetch } from "~~/shared/composables/useClientFetch";
+import { useClientFetch } from "~~/app/composables/useClientFetch";
 
 // Page meta
 definePageMeta({

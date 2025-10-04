@@ -1,4 +1,4 @@
-import { useClientFetch } from "~~/shared/composables/useClientFetch";
+import { useClientFetch } from "~~/app/composables/useClientFetch";
 import type { UserData } from "~~/shared/datatypes";
 
 export const useMyData = () => {
