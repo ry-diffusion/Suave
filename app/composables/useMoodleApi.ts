@@ -1,4 +1,3 @@
-import { useClientFetch } from "~~/app/composables/useClientFetch";
 import type {
   CourseCompletionStatusResponse,
   GetAvailableModulesResponse,
@@ -7,8 +6,8 @@ import type {
   MoodleLoginInput,
   MoodleLoginOutput,
   WhoamiResponse,
-} from "../moodle.d";
-import { Err, Ok, type Result } from "../result";
+} from "~~/shared/moodle";
+import { Err, Ok, type Result } from "../../shared/result";
 
 export interface AvailableInstitution {
   id: string;

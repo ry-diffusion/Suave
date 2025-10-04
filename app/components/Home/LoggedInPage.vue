@@ -285,7 +285,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useMascotStore } from "~/stores/mascot";
 import { useThemeStore } from "~/stores/theme";
-import { useMoodleApi } from "~~/shared/composables/useMoodleApi";
+import { useMoodleApi } from "~/composables/useMoodleApi";
 import type { MoodleCalendarEvent } from "~~/shared/moodle.d";
 
 const { user } = useUserSession();

@@ -215,7 +215,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import { useMoodleApi } from "~~/shared/composables/useMoodleApi";
+import { useMoodleApi } from "~/composables/useMoodleApi";
 import type { MoodleCourse, MoodleModule } from "~~/shared/moodle.d";
 
 definePageMeta({

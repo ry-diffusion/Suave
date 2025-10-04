@@ -1,5 +1,8 @@
 import { AppException } from "./errors";
 import { tryFetchJson } from "./http";
+
+export * from "./moodle.d";
+
 import type {
   GetEnrolledCoursesResponse,
   MoodleAssignmentsResponse,
@@ -11,6 +14,7 @@ import type {
   MoodleQuiz,
   MoodleSiteInfo,
 } from "./moodle.d";
+
 import { Err, Ok, type Result } from "./result";
 
 export async function moodleFetchJson<T>(
