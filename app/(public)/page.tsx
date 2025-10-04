@@ -1,4 +1,4 @@
-import OnBoarding from "@/components/home/Onboarding";
+import MigrationNotice from "@/components/home/MigrationNotice";
 export default function Home() {
-    return <OnBoarding />
+    return <MigrationNotice />
 }

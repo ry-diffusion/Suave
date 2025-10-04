@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "presencial.ifgoiano.edu.br",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "suave.zesmoi.com.br",
+        pathname: "/**",
+      },
 
       {
         protocol: "https",
