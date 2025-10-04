@@ -355,10 +355,17 @@ watch(notifEmails, (val) => {
 });
 
 // Função para formatar data
+// Função para formatar data no padrão ano-mes-dia (YYYY-MM-DD)
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
+  // Se já está no formato correto
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
   const date = new Date(dateString);
-  return date.toLocaleDateString("pt-BR");
+  if (isNaN(date.getTime())) return dateString;
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 };
 
 // Prevent false-positive "unused" errors for variables used only in the template
