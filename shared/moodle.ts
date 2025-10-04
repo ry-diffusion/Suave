@@ -187,13 +187,33 @@ export class AuthenticatedMoodleApiClient extends MoodleApiClient {
   async fetchCourseContents(
     courseId: number
   ): Promise<Result<MoodleContentData[], Error>> {
-    return this.call<MoodleContentData[]>(
+    const response = await this.call<MoodleContentData[]>(
       "core_course_get_contents",
       {
         courseid: courseId,
       },
       this.token
     );
+
+    if (response.error) {
+      return response;
+    }
+
+    const contents = response.data;
+
+    // Sort modules by the most recent `lastmodified` date
+    contents.forEach((section) => {
+      if (section.modules) {
+        section.modules.sort((a, b) => {
+          const dateA = b.contentsinfo?.lastmodified || 0;
+          const dateB = a.contentsinfo?.lastmodified || 0;
+          return dateA - dateB;
+        });
+      }
+    });
+
+    console.log("fetchCourseContents response:", contents[0]?.modules);
+    return Ok(contents);
   }
 
   async fetchAssignments(): Promise<Result<MoodleAssignmentsResponse, Error>> {
@@ -233,5 +253,54 @@ export class AuthenticatedMoodleApiClient extends MoodleApiClient {
       params,
       this.token
     );
+  }
+
+  async fetchUpcomingCalendarEvents(): Promise<
+    Result<
+      {
+        events: unknown[];
+        defaulteventcontext: number;
+        filter_selector: string;
+        courseid: number;
+        categoryid: number | null;
+        isloggedin: boolean;
+        date: {
+          seconds: number;
+          minutes: number;
+          hours: number;
+          mday: number;
+          wday: number;
+          mon: number;
+          year: number;
+          yday: number;
+          weekday: string;
+          month: string;
+          timestamp: number;
+        };
+      },
+      Error
+    >
+  > {
+    return this.call<{
+      events: unknown[];
+      defaulteventcontext: number;
+      filter_selector: string;
+      courseid: number;
+      categoryid: number | null;
+      isloggedin: boolean;
+      date: {
+        seconds: number;
+        minutes: number;
+        hours: number;
+        mday: number;
+        wday: number;
+        mon: number;
+        year: number;
+        yday: number;
+        weekday: string;
+        month: string;
+        timestamp: number;
+      };
+    }>("core_calendar_get_calendar_upcoming_view", {}, this.token);
   }
 }

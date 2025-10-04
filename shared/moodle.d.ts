@@ -99,6 +99,9 @@ export type MoodleModuleData = {
   instance: number;
   modname: string;
   url: string;
+  contentsinfo?: {
+    lastmodified: number;
+  };
   completiondata: { state: number; timecompleted: number } | null;
   completion: number;
   uservisible: boolean;
@@ -207,4 +210,115 @@ export type CourseCompletionStatusResponse = {
     eligible: boolean;
     inprogress: boolean;
   }[];
+};
+
+export type MoodleCalendarEvent = {
+  id: number;
+  name: string;
+  description: string;
+  descriptionformat: number;
+  location: string;
+  categoryid: number | null;
+  groupid: number | null;
+  userid: number | null;
+  repeatid: number | null;
+  eventcount: number | null;
+  component: string;
+  modulename: string;
+  instance: number;
+  eventtype: string;
+  timestart: number;
+  timeduration: number;
+  timesort: number;
+  timeusermidnight: number;
+  visible: number;
+  timemodified: number;
+  overdue: boolean;
+  icon: {
+    key: string;
+    component: string;
+    alttext: string;
+  };
+  category?: {
+    id: number;
+    name: string;
+    idnumber: string;
+    description: string | null;
+    parent: number;
+    coursecount: number;
+    visible: number;
+    timemodified: number;
+    depth: number;
+    nestedname: string;
+    url: string;
+  };
+  course?: {
+    id: number;
+    fullname: string;
+    shortname: string;
+    idnumber: string;
+    summary: string;
+    summaryformat: number;
+    startdate: number;
+    enddate: number;
+    visible: boolean;
+    showactivitydates: boolean;
+    showcompletionconditions: boolean;
+    fullnamedisplay: string;
+    viewurl: string;
+    courseimage: string;
+    progress: number | null;
+    hasprogress: boolean;
+    isfavourite: boolean;
+    hidden: boolean;
+    showshortname: boolean;
+    coursecategory: string;
+  };
+  subscription?: {
+    displayeventsource: boolean;
+  };
+  canedit: boolean;
+  candelete: boolean;
+  deleteurl: string;
+  editurl: string;
+  viewurl: string;
+  formattedtime: string;
+  formattedlocation: string;
+  isactionevent: boolean;
+  iscourseevent: boolean;
+  iscategoryevent: boolean;
+  groupname: string | null;
+  normalisedeventtype: string;
+  normalisedeventtypetext: string;
+  action?: {
+    name: string;
+    url: string;
+    itemcount: number;
+    actionable: boolean;
+    showitemcount: boolean;
+  };
+  purpose: string;
+  url: string;
+};
+
+export type GetCalendarUpcomingViewResponse = {
+  events: MoodleCalendarEvent[];
+  defaulteventcontext: number;
+  filter_selector: string;
+  courseid: number;
+  categoryid: number | null;
+  isloggedin: boolean;
+  date: {
+    seconds: number;
+    minutes: number;
+    hours: number;
+    mday: number;
+    wday: number;
+    mon: number;
+    year: number;
+    yday: number;
+    weekday: string;
+    month: string;
+    timestamp: number;
+  };
 };

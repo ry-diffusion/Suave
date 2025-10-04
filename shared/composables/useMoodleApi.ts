@@ -1,6 +1,7 @@
 import type {
   CourseCompletionStatusResponse,
   GetAvailableModulesResponse,
+  GetCalendarUpcomingViewResponse,
   GetEnrolledCoursesResponse,
   MoodleLoginInput,
   MoodleLoginOutput,
@@ -127,6 +128,23 @@ export function useMoodleApi() {
     }
   };
 
+  /**
+   * Get upcoming calendar events
+   * Uses session authentication - no parameters needed
+   */
+  const getUpcomingEvents = async (): Promise<
+    Result<GetCalendarUpcomingViewResponse, Error>
+  > => {
+    try {
+      const result = await clientFetch<GetCalendarUpcomingViewResponse>(
+        "/api/moodle/upcoming-events"
+      );
+      return Ok(result);
+    } catch (error) {
+      return Err(error instanceof Error ? error : new Error(String(error)));
+    }
+  };
+
   return {
     getAvailableInstitutions,
     login,
@@ -134,5 +152,6 @@ export function useMoodleApi() {
     getEnrolledCourses,
     getAvailableModules,
     getCourseCompletionStatus,
+    getUpcomingEvents,
   };
 }
