@@ -150,7 +150,6 @@
           <template #header>
             <div class="flex items-center justify-between">
               <h2 class="font-medium">Informações Pessoais</h2>
-              <UButton color="neutral" variant="ghost" icon="i-lucide-edit-3" size="sm" />
             </div>
           </template>
 
@@ -192,7 +191,6 @@
           <template #header>
             <div class="flex items-center justify-between">
               <h2 class="font-medium">Informações Acadêmicas</h2>
-              <UButton color="neutral" variant="ghost" icon="i-lucide-edit-3" size="sm" />
             </div>
           </template>
 
@@ -231,48 +229,7 @@
           </div>
         </UCard>
 
-        <!-- Notification Settings -->
-        <UCard class="glass-card">
-          <template #header>
-            <h2 class="font-medium">Configurações de Notificações</h2>
-          </template>
-
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-medium">Avisos do Moodle</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Receba avisos sobre novas atividades e prazos</p>
-              </div>
-              <USwitch v-model="notifMoodle" />
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-medium">Notas e Avaliações</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Receba notificações quando suas notas forem
-                  publicadas</p>
-              </div>
-              <USwitch v-model="notifGrades" />
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-medium">Calendário Acadêmico</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Receba lembretes sobre eventos importantes</p>
-              </div>
-              <USwitch v-model="notifCalendar" />
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-medium">E-mails institucionais</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Receba cópias dos e-mails no seu endereço pessoal
-                </p>
-              </div>
-              <USwitch v-model="notifEmails" />
-            </div>
-          </div>
-        </UCard>
+        <GuiLoading class="block md:hidden" />
       </div>
     </div>
   </div>
@@ -280,6 +237,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import GuiLoading from "~/components/GuiLoading.vue";
+import MascotDoodles from "~/components/MascotDoodles.vue";
 import { useMascotStore } from "~/stores/mascot";
 import { useThemeStore } from "~/stores/theme";
 

@@ -3,7 +3,7 @@
     <div class="flex flex-col items-center justify-center">
       <GuiLoading />
       <div v-if="message" class="mt-4 text-center">
-        <p class="text-white text-lg font-medium">{{ message }}</p>
+        <p class="text-black dark:text-white text-lg font-medium">{{ message }}</p>
       </div>
     </div>
   </div>

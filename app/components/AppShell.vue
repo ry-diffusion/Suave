@@ -178,7 +178,7 @@ const dropdownItems = ref<DropdownMenuItem[]>([
                     : transparent
                         ? 'bg-transparent backdrop-blur-sm shadow-sm'
                         : isMobile
-                            ? 'outline glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-md'
+                            ? 'outline glass-effect bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-lg shadow-md outline-neutral-300/20 dark:outline-neutral-700/40'
                             : 'floating-header glass-effect-apple',
             ]">
             <!-- Loading Bar -->
