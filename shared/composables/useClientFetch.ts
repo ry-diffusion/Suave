@@ -23,10 +23,20 @@ interface RefreshResponse {
  */
 export function useClientFetch() {
   const authStore = useAuthStore();
-  const cookies = useCookie("nuxt-session", {
-    maxAge: 60 * 60 * 24 * 30, // 30 dias
-    expires: new Date(Date.now() + 60 * 60 * 24 * 30), // 30 dias
-  });
+  // Utilitário para extrair cookie do header
+  function getNuxtSessionCookieFromHeader(cookieHeader?: string): string | undefined {
+    if (!cookieHeader) return undefined;
+    const match = cookieHeader.match(/nuxt-session=([^;]+)/);
+    return match ? match[1] : undefined;
+  }
+
+  // SSR: lê cookie do header, client: usa useCookie normalmente
+  const cookies = import.meta.client
+    ? useCookie("nuxt-session", {
+        maxAge: 60 * 60 * 24 * 30, // 30 dias
+        expires: new Date(Date.now() + 60 * 60 * 24 * 30), // 30 dias
+      })
+    : { value: getNuxtSessionCookieFromHeader(useRequestHeaders(["cookie"]).cookie) };
   const headers = useRequestHeaders(["cookie"]);
   const requestURL = useRequestURL();
   const enviroment = import.meta.server ? "server" : "client";
