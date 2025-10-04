@@ -9,17 +9,15 @@
 					<GuiLoading />
 					<div class="text-center space-y-2">
 						<p class="text-2xl font-semibold">
-							Carregando atividades...
+							{{ loadedCourses === totalCourses ? 'Finalizando' : 'Carregando atividades...' }}
 						</p>
 						<p>
-							{{ moduleLoadingMessage || 'Preparando os próximos moodles pra você' }}
+							{{ loadedCourses === totalCourses ? 'Só mais um momento, estou organizando os moodles para você!' :
+								(moduleLoadingMessage || 'Preparando os próximos moodles pra você') }}
 						</p>
 					</div>
 					<div class="w-full max-w-md">
-						<div class="h-2 rounded-full bg-[color:var(--u-bg-muted)] overflow-hidden">
-							<div class="h-full transition-all duration-300 loading-bar-fill bg-primary"
-								:style="{ width: `${progressPercentage}%` }" />
-						</div>
+						<UProgress :model-value="loadedCourses === totalCourses ? null : progressPercentage" :max="100" />
 						<p class="text-sm mt-2 text-center">
 							{{ loadedCourses }} / {{ totalCourses }} cursos processados
 						</p>
@@ -144,9 +142,15 @@
 						<h2 class="text-2xl font-semibold">
 							{{ category.title }}
 						</h2>
-						<span class="text-sm">
-							{{ getCategoryCount(category.key) }} atividade(s)
-						</span>
+						<div class="flex items-center gap-3">
+							<span class="text-sm">
+								{{ getCategoryCount(category.key) }} atividade(s)
+							</span>
+							<UButton v-if="getCategoryCount(category.key) > 0" variant="ghost" color="primary" size="sm"
+								icon="i-lucide-share" @click="shareCategoryAll(category.title, category.key)">
+								Compartilhar
+							</UButton>
+						</div>
 					</div>
 
 					<div v-if="flatCategoryEntries(category.key).length === 0" class="text-muted">
@@ -222,6 +226,7 @@ import type { MoodleCourse, MoodleModule } from "~~/shared/moodle.d";
 
 definePageMeta({
 	middleware: "auth",
+	ssr: false
 });
 
 type FilterStatus = "all" | "completed" | "pending" | "late";
@@ -766,12 +771,125 @@ function formatRelativeTime(target: Date, reference: Date) {
 	return isFuture ? `Em ${formatted}` : `${formatted} atrás`;
 }
 
+const moduleEmojis: Record<string, string> = {
+	assign: "📝",
+	forum: "💬",
+	quiz: "🧠",
+	url: "🔗",
+	page: "📄",
+	book: "📚",
+	folder: "📁",
+	resource: "📦",
+	label: "🏷️",
+	lesson: "📖",
+	choice: "🤔",
+	feedback: "📣",
+	workshop: "🔨",
+	glossary: "📖",
+	wiki: "📖",
+	survey: "📊",
+	data: "📊",
+	attendance: "📋",
+	scorm: "📦",
+	h5pactivity: "🎮",
+};
+
+function formatDateForShare(date?: string) {
+	if (!date) return "";
+	const parsed = new Date(date);
+	if (Number.isNaN(parsed.getTime())) return "";
+
+	const day = parsed.getDate().toString().padStart(2, "0");
+	const month = (parsed.getMonth() + 1).toString().padStart(2, "0");
+	const hours = parsed.getHours().toString().padStart(2, "0");
+	const minutes = parsed.getMinutes().toString().padStart(2, "0");
+	const year = parsed.getFullYear();
+
+	if (year !== new Date().getFullYear()) {
+		return `${day}/${month}/${year} às ${hours}:${minutes}`;
+	}
+
+	return `${day}/${month} ${hours}:${minutes}`;
+}
+
+function generatePrettyMessage(course: string, modules: ModuleExt[]) {
+	let content = `📚 ${course}\n`;
+
+	for (const module of modules) {
+		let de = "";
+		if (module.allowSubmissionsFrom) {
+			const from = new Date(module.allowSubmissionsFrom);
+			if (from > new Date(0)) {
+				de = `De: ${formatDateForShare(module.allowSubmissionsFrom)}, `;
+			}
+		}
+
+		const emoji = moduleEmojis[module.kind?.toString() || ""] || "📌";
+		const ate = module.dueDate ? `até ${formatDateForShare(module.dueDate)}` : "Sem data limite";
+
+		content += ` ➤ ${emoji} ${module.name} (${de}${ate})\n`;
+		content += `Acesse em ${module.url}\n`;
+	}
+
+	return content;
+}
+
+function isMobileDevice(): boolean {
+	if (!import.meta.client) return false;
+	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(
+		navigator.userAgent
+	);
+}
+
 function shareCategory(title: string, courseId: string, modules: ModuleExt[]) {
 	if (!modules.length) return;
 	const message = generateShareMessage(title, Number(courseId), modules);
 	if (import.meta.client) {
-		const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-		window.open(url, "_blank");
+		// No mobile, usar o protocolo whatsapp:// para abrir diretamente no app
+		if (isMobileDevice()) {
+			window.location.href = `whatsapp://send?text=${encodeURIComponent(message)}`;
+		} else {
+			const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+			window.open(url, "_blank");
+		}
+	}
+}
+
+function shareCategoryAll(title: string, categoryKey: CategoryKey) {
+	const modules = flatCategoryEntries(categoryKey);
+	if (!modules.length) return;
+
+	// Agrupar módulos por curso
+	const modulesByCourse: Record<string, ModuleExt[]> = {};
+	for (const module of modules) {
+		if (!modulesByCourse[module.course]) {
+			modulesByCourse[module.course] = [];
+		}
+		modulesByCourse[module.course]?.push(module);
+	}
+
+	// Gerar mensagens por curso
+	const messages = Object.entries(modulesByCourse)
+		.map(([course, mods]) => generatePrettyMessage(course, mods))
+		.filter(x => x.trim().length > 0);
+
+	const total = modules.length;
+	const verbTem = total > 1 ? "temos" : "tem";
+	const verbDisponiveis = total > 1 ? "atividades disponíveis" : "atividade disponível";
+
+	let content = `📅✨ ${title} 🚀\n`;
+	content += `🎉 Eae, galera, suave na nave? ${verbTem} ${total} ${verbDisponiveis}! 🚀\n\n`;
+	content += messages.join("\n\n");
+	content += "\n😃 Criado usando o Suave (https://suave.zesmoi.com.br/).";
+
+	if (import.meta.client) {
+		// No mobile, usar o protocolo whatsapp:// para abrir diretamente no app
+		if (isMobileDevice()) {
+			window.location.href = `whatsapp://send?text=${encodeURIComponent(content)}`;
+		} else {
+			const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(content)}`;
+			window.open(url, "_blank");
+		}
 	}
 }
 
@@ -781,13 +899,7 @@ function generateShareMessage(
 	modules: ModuleExt[],
 ) {
 	const course = getCourseName(courseId);
-	let content = `📚 ${title} - ${course}\n\n`;
-	for (const module of modules) {
-		const due = module.dueDate ? formatAbsolute(module.dueDate) : "Sem data";
-		content += `• ${module.name} (fecha ${due})\n${module.url}\n`;
-	}
-	content += "\nEnviado via Suave.";
-	return content;
+	return generatePrettyMessage(course, modules);
 }
 onMounted(() => {
 	loadData();
