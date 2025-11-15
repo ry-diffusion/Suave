@@ -34,6 +34,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    session: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
+    },
     public: {
       featureDesempenhoAcademico:
         process.env.FEATURE_DESEMPENHO_ACADEMICO || "false",

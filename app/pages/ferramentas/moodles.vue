@@ -108,6 +108,10 @@
 							<USelect v-model="filters.status" :items="statusOptions" value-key="value" option-attribute="label"
 								class="min-w-[220px]" />
 						</div>
+						<div class="flex items-center gap-2">
+							<p class="text-sm">Modo compacto</p>
+							<UToggle v-model="compactMode" />
+						</div>
 					</div>
 					<div class="flex items-center gap-2 text-sm">
 						<span class="inline-flex items-center gap-1">
@@ -150,67 +154,103 @@
 								icon="i-lucide-share" @click="shareCategoryAll(category.title, category.key)">
 								Compartilhar
 							</UButton>
+							<UButton variant="ghost" color="neutral" size="sm"
+								:icon="expandedCategories[category.key] ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+								@click="expandedCategories[category.key] = !expandedCategories[category.key]">
+								{{ expandedCategories[category.key] ? 'Recolher' : 'Expandir' }}
+							</UButton>
 						</div>
 					</div>
 
-					<div v-if="flatCategoryEntries(category.key).length === 0" class="text-muted">
-						Nenhuma atividade por aqui por enquanto.
-					</div>
+					<transition name="slide-fade" mode="out-in">
+						<div v-show="expandedCategories[category.key]">
+							<div v-if="flatCategoryEntries(category.key).length === 0" class="text-muted">
+								Nenhuma atividade por aqui por enquanto.
+							</div>
 
-					<div v-else class="space-y-6">
-						<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-							<UCard v-for="module in flatCategoryEntries(category.key)" :key="module.id"
-								class="h-full flex flex-col justify-between glass-card activity-card hover:border-primary transition">
-								<div class="space-y-3">
-									<div class="flex items-start justify-between">
-										<div>
-											<h4 class="text-lg font-semibold">
-												{{ module.name }}
-											</h4>
-											<p class="text-sm">
-												<small v-if="module.parent">{{ module.parent }}</small>
-											</p>
+							<div v-else class="space-y-6">
+								<div
+									:class="compactMode && category.key !== 'current' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'">
+									<UCard v-for="module in flatCategoryEntries(category.key)" :key="module.id"
+										:class="compactMode && category.key !== 'current' ? 'glass-card activity-card hover:border-primary transition p-3' : 'h-full flex flex-col justify-between glass-card activity-card hover:border-primary transition'">
+										<div v-if="!(compactMode && category.key !== 'current')" class="space-y-3">
+											<div class="flex items-start justify-between">
+												<div>
+													<h4 class="text-lg font-semibold">
+														{{ module.name }}
+													</h4>
+													<p class="text-sm">
+														<small v-if="module.parent">{{ module.parent }}</small>
+													</p>
+												</div>
+												<UBadge variant="subtle" class="ml-2">{{ module.course }}</UBadge>
+											</div>
+											<div class="flex items-center gap-2">
+												<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+													:class="statusClass(module)">
+													{{ statusLabel(module) }}
+												</span>
+											</div>
+											<div class="space-y-2 text-sm">
+												<div v-if="module.allowSubmissionsFrom && category.showOpen">
+													<span class="font-medium">Abre:</span>
+													{{ formatAbsolute(module.allowSubmissionsFrom) }}
+												</div>
+												<div v-if="module.dueDate">
+													<span class="font-medium">Fecha:</span>
+													{{ formatRelative(module.dueDate) }}
+													<span class="text-xs">
+														({{ formatAbsolute(module.dueDate) }})
+													</span>
+												</div>
+											</div>
 										</div>
-										<UBadge variant="subtle" class="ml-2">{{ module.course }}</UBadge>
-									</div>
-									<div class="flex items-center gap-2">
-										<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
-											:class="statusClass(module)">
-											{{ statusLabel(module) }}
-										</span>
-									</div>
-									<div class="space-y-2 text-sm">
-										<div v-if="module.allowSubmissionsFrom && category.showOpen">
-											<span class="font-medium">Abre:</span>
-											{{ formatAbsolute(module.allowSubmissionsFrom) }}
+										<div v-else class="flex items-center justify-between">
+											<div class="flex-1 min-w-0">
+												<h4 class="text-sm font-semibold truncate">
+													{{ module.name }}
+												</h4>
+												<p class="text-xs text-muted truncate">
+													{{ module.course }}
+												</p>
+											</div>
+											<div class="flex items-center gap-1 ml-2">
+												<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold"
+													:class="statusClass(module)">
+													{{ statusLabel(module) }}
+												</span>
+												<UBadge variant="subtle" :color="moduleBadgeTone(module)" size="sm">
+													{{ normalizeModuleName(module.kind) }}
+												</UBadge>
+											</div>
 										</div>
-										<div v-if="module.dueDate">
-											<span class="font-medium">Fecha:</span>
-											{{ formatRelative(module.dueDate) }}
-											<span class="text-xs">
-												({{ formatAbsolute(module.dueDate) }})
-											</span>
+										<div class="flex items-center justify-between pt-4"
+											v-if="!(compactMode && category.key !== 'current')">
+											<UBadge variant="subtle" :color="moduleBadgeTone(module)">
+												{{ normalizeModuleName(module.kind) }}
+											</UBadge>
+											<div class="flex items-center gap-2">
+												<UButton variant="ghost" color="primary" size="sm" icon="i-lucide-share"
+													@click="shareCategory(category.title, String(module.courseId), [module])">
+													Compartilhar
+												</UButton>
+												<UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-up-right"
+													:to="module.url" target="_blank">
+													Acessar
+												</UButton>
+											</div>
 										</div>
-									</div>
+										<div class="flex items-center justify-end pt-2" v-else>
+											<UButton color="primary" variant="soft" size="xs" trailing-icon="i-lucide-arrow-up-right"
+												:to="module.url" target="_blank">
+												Acessar
+											</UButton>
+										</div>
+									</UCard>
 								</div>
-								<div class="flex items-center justify-between pt-4">
-									<UBadge variant="subtle" :color="moduleBadgeTone(module)">
-										{{ normalizeModuleName(module.kind) }}
-									</UBadge>
-									<div class="flex items-center gap-2">
-										<UButton variant="ghost" color="primary" size="sm" icon="i-lucide-share"
-											@click="shareCategory(category.title, String(module.courseId), [module])">
-											Compartilhar
-										</UButton>
-										<UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-up-right"
-											:to="module.url" target="_blank">
-											Acessar
-										</UButton>
-									</div>
-								</div>
-							</UCard>
+							</div>
 						</div>
-					</div>
+					</transition>
 				</section>
 			</div>
 		</div>
@@ -236,6 +276,7 @@ type ModuleExt = MoodleModule & {
 	course: string;
 	dueDate?: string;
 	allowSubmissionsFrom?: string;
+	createdAt?: string;
 };
 
 type ModulesByCourse = Record<number, ModuleExt[]>;
@@ -279,6 +320,14 @@ const filters = reactive<{ course: string; status: FilterStatus }>({
 	status: "all",
 });
 
+const compactMode = ref(false);
+const expandedCategories = reactive<Record<CategoryKey, boolean>>({
+	current: true,
+	future: true,
+	undated: false,
+	past: false,
+});
+
 const loadedCourses = ref(0);
 const now = ref(Date.now());
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -314,8 +363,8 @@ const statusOptions = [
 const timeCategories: CategoryDefinition[] = [
 	{ key: "current", title: "Moodles Abertos", showOpen: false },
 	{ key: "future", title: "Moodles Futuros", showOpen: true },
-	{ key: "undated", title: "Moodles sem data conhecida", showOpen: false },
 	{ key: "past", title: "Moodles Passados", showOpen: false },
+	{ key: "undated", title: "Moodles sem data conhecida", showOpen: false },
 ];
 
 const totalCourses = computed(() => courses.value.length);
@@ -408,6 +457,20 @@ function categorizeModules(modules: ModuleExt[]) {
 				// Consider these as past/unimportant for the undated listing: place in past
 				past.push(module);
 				continue;
+			}
+
+			// If the module has no explicit dates but was created recently (<= 15 days),
+			// treat it as an open/current activity so it shows up in 'Moodles Abertos'.
+			if (module.createdAt) {
+				const created = new Date(module.createdAt);
+				if (!Number.isNaN(created.getTime())) {
+					const ageMs = nowDate.getTime() - created.getTime();
+					const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
+					if (ageMs >= 0 && ageMs <= FIFTEEN_DAYS_MS) {
+						current.push(module);
+						continue;
+					}
+				}
 			}
 			undated.push(module);
 			continue;
@@ -515,6 +578,7 @@ async function loadCourseModules(course: MoodleCourse) {
 				courseId: course.id,
 				allowSubmissionsFrom: normalizeDate(module.allowSubmissionsFrom),
 				dueDate: normalizeDate(module.dueDate),
+				createdAt: normalizeDate((module as any).createdAt),
 			} as ModuleExt;
 		},
 	);
@@ -957,5 +1021,42 @@ onBeforeUnmount(() => {
 
 .dark .activity-card {
 	border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.glass-card {
+	background: rgba(255, 255, 255, 0.7) !important;
+	backdrop-filter: blur(20px) saturate(180%);
+	-webkit-backdrop-filter: blur(20px) saturate(180%);
+	border: 1px solid rgba(255, 255, 255, 0.2) !important;
+	box-shadow:
+		0 8px 32px 0 rgba(31, 38, 135, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-card {
+	background: rgba(0, 0, 0, 0.3) !important;
+	border: 1px solid rgba(255, 255, 255, 0.1) !important;
+	box-shadow:
+		0 8px 32px 0 rgba(0, 0, 0, 0.3),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-card:hover {
+	background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark .glass-card:hover {
+	background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+	transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+	opacity: 0;
+	transform: translateY(-10px);
 }
 </style>

@@ -121,6 +121,7 @@ export type MoodleModule = {
   url: string;
   allowSubmissionsFrom?: Date;
   dueDate?: Date;
+  createdAt?: Date;
   hasCompleted: boolean;
   id: number;
   instance: number;

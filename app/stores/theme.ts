@@ -224,7 +224,7 @@ export const useThemeStore = defineStore("theme", () => {
       currentTheme.value = availableThemes[themeName]!;
       // Save to cookie (client-side only)
       if (import.meta.client) {
-        const themeCookie = useCookie(THEME_COOKIE);
+        const themeCookie = useCookie(THEME_COOKIE, { maxAge: 315360000 });
         themeCookie.value = themeName;
       }
       // Update CSS variables
@@ -238,7 +238,7 @@ export const useThemeStore = defineStore("theme", () => {
       colorMode.value = colorMode.value === "light" ? "dark" : "light";
       // Save to cookie (client-side only)
       if (import.meta.client) {
-        const modeCookie = useCookie(COLOR_MODE_COOKIE);
+        const modeCookie = useCookie(COLOR_MODE_COOKIE, { maxAge: 315360000 });
         modeCookie.value = colorMode.value;
         document.documentElement.classList.toggle(
           "dark",
@@ -252,7 +252,7 @@ export const useThemeStore = defineStore("theme", () => {
     colorMode.value = mode;
     // Save to cookie (client-side only)
     if (import.meta.client) {
-      const modeCookie = useCookie(COLOR_MODE_COOKIE);
+      const modeCookie = useCookie(COLOR_MODE_COOKIE, { maxAge: 315360000 });
       modeCookie.value = mode;
       document.documentElement.classList.toggle("dark", mode === "dark");
     }

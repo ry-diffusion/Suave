@@ -109,6 +109,9 @@ function parseModules(contents: MoodleContentData[]): MoodleModule[] {
         url: moodleModule.url,
         allowSubmissionsFrom: result?.allowSubmissionsFrom,
         dueDate: result?.dueDate,
+        createdAt: moodleModule.contentsinfo
+          ? new Date(moodleModule.contentsinfo.lastmodified * 1000)
+          : undefined,
         hasCompleted: moodleModule.completiondata?.state === 1,
         id: moodleModule.id,
         instance: moodleModule.instance,
