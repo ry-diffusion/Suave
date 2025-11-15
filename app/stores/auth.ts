@@ -5,6 +5,7 @@ interface User {
   fullName: string;
   avatarUrl: string;
   hasAlternativeIdentity?: boolean;
+  enrollmentId: string;
 }
 
 interface AuthContext {

@@ -60,6 +60,7 @@ export default defineEventHandler(async (event) => {
       fullName: identity.name,
       avatarUrl: identity.avatarUrl,
       hasAlternativeIdentity: identity.hasAlternativeIdentity,
+      enrollmentId: username,
     },
     secure: {
       authContext: result.data,

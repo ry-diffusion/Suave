@@ -3,6 +3,7 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, watch } from "vue";
 import { useAppHeaderStore } from "~/stores/appHeader";
 import { useMascotStore } from "~/stores/mascot";
+import { useAuthStore } from "~/stores/auth";
 
 const mascotStore = useMascotStore();
 // Initialize from cookie only on client side
@@ -171,6 +172,13 @@ onMounted(async () => {
 
 		// Preload all mascot loading images
 		preloadMascotImages();
+
+		// Identify user in PostHog if logged in
+		const { $posthog } = useNuxtApp();
+		const authStore = useAuthStore();
+		if (authStore.user) {
+			$posthog().identify(authStore.user.enrollmentId);
+		}
 	}
 });
 

@@ -38,6 +38,9 @@ export default defineNuxtConfig({
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
     },
     public: {
+      posthogPublicKey: "phc_WnPrM9nQhwRS3ZMOttxdY8S10klruhMoAMvgHZvLK5",
+      posthogHost: "https://us.i.posthog.com",
+      posthogDefaults: "2025-05-24",
       featureDesempenhoAcademico:
         process.env.FEATURE_DESEMPENHO_ACADEMICO || "false",
       featureMeusProjetos: process.env.FEATURE_MEUS_PROJETOS || "false",

@@ -61,6 +61,9 @@ async function submitLogin() {
         await refreshSession();
         success.value = true;
 
+        const { $posthog } = useNuxtApp();
+        $posthog().identify(form.username);
+
         rybbit.identify(form.username.split("").reverse().join(""));
 
         rybbit.event("login_success", {
